@@ -2,6 +2,11 @@
 
 namespace App\Providers;
 
+use App\Models\Category;
+use App\Models\MenuItem;
+use App\Models\Order;
+use App\Models\User;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +24,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        View::composer('admin.*', function ($view) {
+            $view->with([
+                'navCategoryCount' => Category::count(),
+                'navMenuItemCount' => MenuItem::count(),
+                'navOrderCount' => Order::count(),
+                'navUserCount' => User::count(),
+            ]);
+        });
     }
 }
