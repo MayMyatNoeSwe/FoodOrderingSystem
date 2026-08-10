@@ -108,7 +108,7 @@
                                 <svg class="w-5 h-5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                 </svg>
-                                <input type="text" placeholder="Search pizza, burger, sushi, drinks..." class="w-full text-sm text-slate-800 placeholder-slate-400 bg-transparent border-none focus:outline-none focus:ring-0">
+                                <input type="text" placeholder="Search pizza, burger, noodles, drinks..." class="w-full text-sm text-slate-800 placeholder-slate-400 bg-transparent border-none focus:outline-none focus:ring-0">
                             </div>
                             <button class="w-full sm:w-auto px-6 py-3.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-orange-500/30 transition-all cursor-pointer shrink-0 flex items-center justify-center gap-2">
                                 <span>Find Food</span>
@@ -149,7 +149,7 @@
                             </div>
 
                             <!-- Floating Badge 1 (Rating) -->
-                            <div class="absolute -top-6 -left-6 z-20 bg-white p-3.5 rounded-2xl shadow-xl border border-slate-100 flex items-center gap-3 animate-bounce-slow">
+                            <div class="absolute -top-6 -left-6 z-20 bg-white p-3.5 rounded-2xl shadow-xl border border-slate-100 flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-lg">
                                     ⭐
                                 </div>
@@ -186,49 +186,62 @@
                     <p class="mt-2 text-slate-600 text-sm">Select a category to view your favorite dish options</p>
                 </div>
 
-                <!-- Category Cards Grid -->
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+                <!-- Category Cards Grid with Photos -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
                     
-                    <!-- Category Item 1 -->
-                    <div class="bg-orange-500 text-white rounded-2xl p-5 text-center cursor-pointer shadow-lg shadow-orange-500/25 transition-transform hover:-translate-y-1">
-                        <div class="text-3xl mb-2">🔥</div>
-                        <div class="font-bold text-sm">All Dishes</div>
-                        <div class="text-xs text-orange-100 mt-1">45 Items</div>
+                    <!-- Category 1: Pizza -->
+                    <div class="bg-slate-50 hover:bg-orange-50 border border-slate-100 hover:border-orange-200 rounded-3xl p-4 text-center cursor-pointer transition-all duration-300 hover:-translate-y-1.5 shadow-sm hover:shadow-md group">
+                        <div class="relative w-24 h-24 mx-auto mb-3 rounded-2xl overflow-hidden shadow-md">
+                            <img src="/images/pizza.png" alt="Pizza" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                        </div>
+                        <div class="font-bold text-base text-slate-800 group-hover:text-orange-600 flex items-center justify-center gap-1">
+                            <span>🍕 Pizza</span>
+                        </div>
+                        <div class="text-xs text-slate-500 mt-1">12 Choice Items</div>
                     </div>
 
-                    <!-- Category Item 2 -->
-                    <div class="bg-slate-50 hover:bg-orange-50 border border-slate-100 rounded-2xl p-5 text-center cursor-pointer transition-all hover:-translate-y-1 group">
-                        <div class="text-3xl mb-2 group-hover:scale-110 transition-transform">🍕</div>
-                        <div class="font-bold text-sm text-slate-800 group-hover:text-orange-600">Pizza</div>
-                        <div class="text-xs text-slate-500 mt-1">12 Items</div>
+                    <!-- Category 2: Burgers -->
+                    <div class="bg-slate-50 hover:bg-orange-50 border border-slate-100 hover:border-orange-200 rounded-3xl p-4 text-center cursor-pointer transition-all duration-300 hover:-translate-y-1.5 shadow-sm hover:shadow-md group">
+                        <div class="relative w-24 h-24 mx-auto mb-3 rounded-2xl overflow-hidden shadow-md">
+                            <img src="/images/burger.png" alt="Burgers" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                        </div>
+                        <div class="font-bold text-base text-slate-800 group-hover:text-orange-600 flex items-center justify-center gap-1">
+                            <span>🍔 Burgers</span>
+                        </div>
+                        <div class="text-xs text-slate-500 mt-1">10 Choice Items</div>
                     </div>
 
-                    <!-- Category Item 3 -->
-                    <div class="bg-slate-50 hover:bg-orange-50 border border-slate-100 rounded-2xl p-5 text-center cursor-pointer transition-all hover:-translate-y-1 group">
-                        <div class="text-3xl mb-2 group-hover:scale-110 transition-transform">🍔</div>
-                        <div class="font-bold text-sm text-slate-800 group-hover:text-orange-600">Burgers</div>
-                        <div class="text-xs text-slate-500 mt-1">10 Items</div>
+                    <!-- Category 3: Noodles -->
+                    <div class="bg-slate-50 hover:bg-orange-50 border border-slate-100 hover:border-orange-200 rounded-3xl p-4 text-center cursor-pointer transition-all duration-300 hover:-translate-y-1.5 shadow-sm hover:shadow-md group">
+                        <div class="relative w-24 h-24 mx-auto mb-3 rounded-2xl overflow-hidden shadow-md">
+                            <img src="/images/noodles.png" alt="Noodles" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                        </div>
+                        <div class="font-bold text-base text-slate-800 group-hover:text-orange-600 flex items-center justify-center gap-1">
+                            <span>🍜 Noodles</span>
+                        </div>
+                        <div class="text-xs text-slate-500 mt-1">8 Choice Items</div>
                     </div>
 
-                    <!-- Category Item 4 -->
-                    <div class="bg-slate-50 hover:bg-orange-50 border border-slate-100 rounded-2xl p-5 text-center cursor-pointer transition-all hover:-translate-y-1 group">
-                        <div class="text-3xl mb-2 group-hover:scale-110 transition-transform">🍜</div>
-                        <div class="font-bold text-sm text-slate-800 group-hover:text-orange-600">Noodles</div>
-                        <div class="text-xs text-slate-500 mt-1">8 Items</div>
+                    <!-- Category 4: Beverages -->
+                    <div class="bg-slate-50 hover:bg-orange-50 border border-slate-100 hover:border-orange-200 rounded-3xl p-4 text-center cursor-pointer transition-all duration-300 hover:-translate-y-1.5 shadow-sm hover:shadow-md group">
+                        <div class="relative w-24 h-24 mx-auto mb-3 rounded-2xl overflow-hidden shadow-md">
+                            <img src="/images/beverages.png" alt="Beverages" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                        </div>
+                        <div class="font-bold text-base text-slate-800 group-hover:text-orange-600 flex items-center justify-center gap-1">
+                            <span>🍹 Beverages</span>
+                        </div>
+                        <div class="text-xs text-slate-500 mt-1">15 Choice Items</div>
                     </div>
 
-                    <!-- Category Item 5 -->
-                    <div class="bg-slate-50 hover:bg-orange-50 border border-slate-100 rounded-2xl p-5 text-center cursor-pointer transition-all hover:-translate-y-1 group">
-                        <div class="text-3xl mb-2 group-hover:scale-110 transition-transform">🍹</div>
-                        <div class="font-bold text-sm text-slate-800 group-hover:text-orange-600">Beverages</div>
-                        <div class="text-xs text-slate-500 mt-1">15 Items</div>
-                    </div>
-
-                    <!-- Category Item 6 -->
-                    <div class="bg-slate-50 hover:bg-orange-50 border border-slate-100 rounded-2xl p-5 text-center cursor-pointer transition-all hover:-translate-y-1 group">
-                        <div class="text-3xl mb-2 group-hover:scale-110 transition-transform">🍰</div>
-                        <div class="font-bold text-sm text-slate-800 group-hover:text-orange-600">Desserts</div>
-                        <div class="text-xs text-slate-500 mt-1">6 Items</div>
+                    <!-- Category 5: Desserts -->
+                    <div class="bg-slate-50 hover:bg-orange-50 border border-slate-100 hover:border-orange-200 rounded-3xl p-4 text-center cursor-pointer transition-all duration-300 hover:-translate-y-1.5 shadow-sm hover:shadow-md group">
+                        <div class="relative w-24 h-24 mx-auto mb-3 rounded-2xl overflow-hidden shadow-md">
+                            <img src="/images/desserts.png" alt="Desserts" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                        </div>
+                        <div class="font-bold text-base text-slate-800 group-hover:text-orange-600 flex items-center justify-center gap-1">
+                            <span>🍰 Desserts</span>
+                        </div>
+                        <div class="text-xs text-slate-500 mt-1">6 Choice Items</div>
                     </div>
 
                 </div>
@@ -242,8 +255,8 @@
                 
                 <div class="flex flex-col md:flex-row md:items-end justify-between mb-12">
                     <div>
-                        <span class="text-orange-500 text-xs font-bold tracking-widest uppercase">Mouth-Watering Choices</span>
-                        <h2 class="text-3xl font-black text-slate-900 mt-1">Our Popular Menu</h2>
+                        <span class="text-orange-500 text-xs font-bold tracking-widest uppercase">Delicious Selections</span>
+                        <h2 class="text-3xl font-black text-slate-900 mt-1">Featured Menu</h2>
                     </div>
                     <a href="#menu" class="mt-4 md:mt-0 inline-flex items-center gap-1.5 text-sm font-bold text-orange-600 hover:text-orange-700">
                         <span>View All Menu</span>
@@ -253,51 +266,16 @@
                     </a>
                 </div>
 
-                <!-- Food Cards Grid -->
+                <!-- 5 Categories Menu Cards Grid -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
 
-                    <!-- Food Card 1: Burger -->
+                    <!-- Menu Card 1: 🍕 Pizza -->
                     <div class="bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-md hover:shadow-xl transition-all duration-300 group flex flex-col justify-between">
                         <div>
-                            <div class="relative h-56 overflow-hidden bg-slate-100">
-                                <img src="/images/burger.png" alt="Double Cheeseburger" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                                <span class="absolute top-4 left-4 bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
-                                    Popular 🍔
-                                </span>
-                                <span class="absolute top-4 right-4 bg-white/90 backdrop-blur-md text-slate-900 text-xs font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
-                                    ⭐ 4.8
-                                </span>
-                            </div>
-                            <div class="p-6">
-                                <div class="flex items-center justify-between text-xs text-slate-500 font-semibold mb-1">
-                                    <span>Burger</span>
-                                    <span>⏱️ 20 min</span>
-                                </div>
-                                <h3 class="text-xl font-bold text-slate-900 group-hover:text-orange-600 transition-colors">Double Beef Cheeseburger</h3>
-                                <p class="text-slate-500 text-xs mt-2 line-clamp-2 leading-relaxed">Juicy double beef patty with melted cheddar cheese, fresh lettuce, tomatoes, and signature burger sauce.</p>
-                            </div>
-                        </div>
-                        <div class="p-6 pt-0 flex items-center justify-between border-t border-slate-50 mt-4">
-                            <div>
-                                <span class="text-xs text-slate-400 font-medium block">Price</span>
-                                <span class="text-2xl font-black text-slate-900">$8.99</span>
-                            </div>
-                            <button class="px-4 py-2.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-orange-500/25 flex items-center gap-2 transition-all cursor-pointer">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                                </svg>
-                                <span>Add to Cart</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Food Card 2: Pizza -->
-                    <div class="bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-md hover:shadow-xl transition-all duration-300 group flex flex-col justify-between">
-                        <div>
-                            <div class="relative h-56 overflow-hidden bg-slate-100">
+                            <div class="relative h-60 overflow-hidden bg-slate-100">
                                 <img src="/images/pizza.png" alt="Pepperoni Pizza" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                                <span class="absolute top-4 left-4 bg-amber-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
-                                    Chef Choice 🍕
+                                <span class="absolute top-4 left-4 bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
+                                    🍕 Pizza
                                 </span>
                                 <span class="absolute top-4 right-4 bg-white/90 backdrop-blur-md text-slate-900 text-xs font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
                                     ⭐ 4.9
@@ -305,11 +283,11 @@
                             </div>
                             <div class="p-6">
                                 <div class="flex items-center justify-between text-xs text-slate-500 font-semibold mb-1">
-                                    <span>Pizza</span>
+                                    <span>Italian Style</span>
                                     <span>⏱️ 25 min</span>
                                 </div>
                                 <h3 class="text-xl font-bold text-slate-900 group-hover:text-orange-600 transition-colors">Cheesy Pepperoni Supreme</h3>
-                                <p class="text-slate-500 text-xs mt-2 line-clamp-2 leading-relaxed">Crispy hand-tossed crust topped with rich tomato sauce, premium mozzarella cheese, and spicy pepperoni slices.</p>
+                                <p class="text-slate-500 text-xs mt-2 line-clamp-2 leading-relaxed">Crispy hand-tossed crust topped with rich tomato sauce, melted mozzarella cheese, and spicy pepperoni slices.</p>
                             </div>
                         </div>
                         <div class="p-6 pt-0 flex items-center justify-between border-t border-slate-50 mt-4">
@@ -326,31 +304,171 @@
                         </div>
                     </div>
 
-                    <!-- Food Card 3: Ramen -->
+                    <!-- Menu Card 2: 🍔 Burgers -->
                     <div class="bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-md hover:shadow-xl transition-all duration-300 group flex flex-col justify-between">
                         <div>
-                            <div class="relative h-56 overflow-hidden bg-slate-100">
-                                <img src="/images/hero_food.png" alt="Spicy Tonkotsu Ramen" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                                <span class="absolute top-4 left-4 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
-                                    Hot & Spicy 🍜
+                            <div class="relative h-60 overflow-hidden bg-slate-100">
+                                <img src="/images/burger.png" alt="Double Cheeseburger" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                <span class="absolute top-4 left-4 bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
+                                    🍔 Burgers
                                 </span>
                                 <span class="absolute top-4 right-4 bg-white/90 backdrop-blur-md text-slate-900 text-xs font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
-                                    ⭐ 4.7
+                                    ⭐ 4.8
                                 </span>
                             </div>
                             <div class="p-6">
                                 <div class="flex items-center justify-between text-xs text-slate-500 font-semibold mb-1">
-                                    <span>Noodles</span>
+                                    <span>American Classic</span>
+                                    <span>⏱️ 20 min</span>
+                                </div>
+                                <h3 class="text-xl font-bold text-slate-900 group-hover:text-orange-600 transition-colors">Double Beef Cheeseburger</h3>
+                                <p class="text-slate-500 text-xs mt-2 line-clamp-2 leading-relaxed">Juicy double beef patty with melted cheddar cheese, fresh lettuce, tomatoes, crispy fries and house burger sauce.</p>
+                            </div>
+                        </div>
+                        <div class="p-6 pt-0 flex items-center justify-between border-t border-slate-50 mt-4">
+                            <div>
+                                <span class="text-xs text-slate-400 font-medium block">Price</span>
+                                <span class="text-2xl font-black text-slate-900">$8.99</span>
+                            </div>
+                            <button class="px-4 py-2.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-orange-500/25 flex items-center gap-2 transition-all cursor-pointer">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                </svg>
+                                <span>Add to Cart</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Menu Card 3: 🍜 Noodles -->
+                    <div class="bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-md hover:shadow-xl transition-all duration-300 group flex flex-col justify-between">
+                        <div>
+                            <div class="relative h-60 overflow-hidden bg-slate-100">
+                                <img src="/images/noodles.png" alt="Spicy Tonkotsu Ramen" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                <span class="absolute top-4 left-4 bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
+                                    🍜 Noodles
+                                </span>
+                                <span class="absolute top-4 right-4 bg-white/90 backdrop-blur-md text-slate-900 text-xs font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
+                                    ⭐ 4.9
+                                </span>
+                            </div>
+                            <div class="p-6">
+                                <div class="flex items-center justify-between text-xs text-slate-500 font-semibold mb-1">
+                                    <span>Japanese Asian</span>
                                     <span>⏱️ 15 min</span>
                                 </div>
                                 <h3 class="text-xl font-bold text-slate-900 group-hover:text-orange-600 transition-colors">Spicy Tonkotsu Ramen Bowl</h3>
-                                <p class="text-slate-500 text-xs mt-2 line-clamp-2 leading-relaxed">Rich pork broth ramen served with soft-boiled ramen egg, bamboo shoots, green onions, and tender pork chashu.</p>
+                                <p class="text-slate-500 text-xs mt-2 line-clamp-2 leading-relaxed">Rich pork bone broth served with handmade ramen noodles, soft-boiled marinated egg, and tender pork chashu.</p>
                             </div>
                         </div>
                         <div class="p-6 pt-0 flex items-center justify-between border-t border-slate-50 mt-4">
                             <div>
                                 <span class="text-xs text-slate-400 font-medium block">Price</span>
                                 <span class="text-2xl font-black text-slate-900">$10.99</span>
+                            </div>
+                            <button class="px-4 py-2.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-orange-500/25 flex items-center gap-2 transition-all cursor-pointer">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                </svg>
+                                <span>Add to Cart</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Menu Card 4: 🍹 Beverages -->
+                    <div class="bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-md hover:shadow-xl transition-all duration-300 group flex flex-col justify-between">
+                        <div>
+                            <div class="relative h-60 overflow-hidden bg-slate-100">
+                                <img src="/images/beverages.png" alt="Tropical Fruit Smoothie" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                <span class="absolute top-4 left-4 bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
+                                    🍹 Beverages
+                                </span>
+                                <span class="absolute top-4 right-4 bg-white/90 backdrop-blur-md text-slate-900 text-xs font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
+                                    ⭐ 4.8
+                                </span>
+                            </div>
+                            <div class="p-6">
+                                <div class="flex items-center justify-between text-xs text-slate-500 font-semibold mb-1">
+                                    <span>Chilled Refreshing</span>
+                                    <span>⏱️ 5 min</span>
+                                </div>
+                                <h3 class="text-xl font-bold text-slate-900 group-hover:text-orange-600 transition-colors">Berry Tropical Blast Smoothie</h3>
+                                <p class="text-slate-500 text-xs mt-2 line-clamp-2 leading-relaxed">Refreshing blend of fresh strawberries, blueberries, citrus, crushed ice and mint leaves.</p>
+                            </div>
+                        </div>
+                        <div class="p-6 pt-0 flex items-center justify-between border-t border-slate-50 mt-4">
+                            <div>
+                                <span class="text-xs text-slate-400 font-medium block">Price</span>
+                                <span class="text-2xl font-black text-slate-900">$4.50</span>
+                            </div>
+                            <button class="px-4 py-2.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-orange-500/25 flex items-center gap-2 transition-all cursor-pointer">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                </svg>
+                                <span>Add to Cart</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Menu Card 5: 🍰 Desserts -->
+                    <div class="bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-md hover:shadow-xl transition-all duration-300 group flex flex-col justify-between">
+                        <div>
+                            <div class="relative h-60 overflow-hidden bg-slate-100">
+                                <img src="/images/desserts.png" alt="Chocolate Lava Cake" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                <span class="absolute top-4 left-4 bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
+                                    🍰 Desserts
+                                </span>
+                                <span class="absolute top-4 right-4 bg-white/90 backdrop-blur-md text-slate-900 text-xs font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
+                                    ⭐ 5.0
+                                </span>
+                            </div>
+                            <div class="p-6">
+                                <div class="flex items-center justify-between text-xs text-slate-500 font-semibold mb-1">
+                                    <span>Sweet Treats</span>
+                                    <span>⏱️ 10 min</span>
+                                </div>
+                                <h3 class="text-xl font-bold text-slate-900 group-hover:text-orange-600 transition-colors">Molten Chocolate Lava Cake</h3>
+                                <p class="text-slate-500 text-xs mt-2 line-clamp-2 leading-relaxed">Warm rich chocolate cake with a molten oozing chocolate center, served with fresh ripe strawberries.</p>
+                            </div>
+                        </div>
+                        <div class="p-6 pt-0 flex items-center justify-between border-t border-slate-50 mt-4">
+                            <div>
+                                <span class="text-xs text-slate-400 font-medium block">Price</span>
+                                <span class="text-2xl font-black text-slate-900">$6.99</span>
+                            </div>
+                            <button class="px-4 py-2.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-orange-500/25 flex items-center gap-2 transition-all cursor-pointer">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                </svg>
+                                <span>Add to Cart</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Menu Card 6: 🍕 Pizza (Extra Choice) -->
+                    <div class="bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-md hover:shadow-xl transition-all duration-300 group flex flex-col justify-between">
+                        <div>
+                            <div class="relative h-60 overflow-hidden bg-slate-100">
+                                <img src="/images/pizza.png" alt="BBQ Chicken Pizza" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                <span class="absolute top-4 left-4 bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
+                                    🍕 Pizza
+                                </span>
+                                <span class="absolute top-4 right-4 bg-white/90 backdrop-blur-md text-slate-900 text-xs font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
+                                    ⭐ 4.8
+                                </span>
+                            </div>
+                            <div class="p-6">
+                                <div class="flex items-center justify-between text-xs text-slate-500 font-semibold mb-1">
+                                    <span>Specialty Crust</span>
+                                    <span>⏱️ 25 min</span>
+                                </div>
+                                <h3 class="text-xl font-bold text-slate-900 group-hover:text-orange-600 transition-colors">Smokey BBQ Chicken Pizza</h3>
+                                <p class="text-slate-500 text-xs mt-2 line-clamp-2 leading-relaxed">Grilled chicken breast, red onions, cilantro, mozzarella cheese, and tangy smokey barbecue sauce.</p>
+                            </div>
+                        </div>
+                        <div class="p-6 pt-0 flex items-center justify-between border-t border-slate-50 mt-4">
+                            <div>
+                                <span class="text-xs text-slate-400 font-medium block">Price</span>
+                                <span class="text-2xl font-black text-slate-900">$13.99</span>
                             </div>
                             <button class="px-4 py-2.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-orange-500/25 flex items-center gap-2 transition-all cursor-pointer">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
