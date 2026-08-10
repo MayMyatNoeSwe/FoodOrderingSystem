@@ -311,7 +311,19 @@
                              class="bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-md hover:shadow-xl transition-all duration-300 group flex flex-col justify-between">
                             <div>
                                 <div class="relative h-56 overflow-hidden bg-slate-100">
-                                    <img src="{{ $item->image }}" alt="{{ $item->name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                    @php
+                                        $img = trim($item->image ?? '');
+                                        if (str_starts_with($img, 'http://') || str_starts_with($img, 'https://')) {
+                                            $frontImgSrc = $img;
+                                        } elseif (str_starts_with($img, '/images/') || str_starts_with($img, 'images/')) {
+                                            $frontImgSrc = asset(ltrim($img, '/'));
+                                        } elseif (str_starts_with($img, '/storage/') || str_starts_with($img, 'storage/')) {
+                                            $frontImgSrc = asset(ltrim($img, '/'));
+                                        } else {
+                                            $frontImgSrc = asset('storage/' . $img);
+                                        }
+                                    @endphp
+                                    <img src="{{ $frontImgSrc }}" alt="{{ $item->name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                                     <span class="absolute top-4 left-4 bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
                                         {{ $icon }} {{ $catName }}
                                     </span>
@@ -331,7 +343,7 @@
                             <div class="p-6 pt-0 flex items-center justify-between border-t border-slate-50 mt-4">
                                 <div>
                                     <span class="text-xs text-slate-400 font-medium block">Price</span>
-                                    <span class="text-2xl font-black text-slate-900">${{ number_format($item->price, 2) }}</span>
+                                    <span class="text-2xl font-black text-slate-900">{{ number_format($item->price) }} MMK</span>
                                 </div>
                                 <button @click="cartCount++" class="px-4 py-2.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-orange-500/25 flex items-center gap-2 transition-all cursor-pointer">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -83,12 +83,12 @@ class MenuItemController extends Controller
 
         $imagePath = $menuItem->image;
         if ($request->hasFile('image_file')) {
-            if ($menuItem->image && Storage::disk('public')->exists($menuItem->image)) {
+            if ($menuItem->image && !str_starts_with($menuItem->image, '/images/') && !str_starts_with($menuItem->image, 'images/') && Storage::disk('public')->exists($menuItem->image)) {
                 Storage::disk('public')->delete($menuItem->image);
             }
             $imagePath = $request->file('image_file')->store('menu_items', 'public');
-        } elseif (array_key_exists('image', $validated) && !empty($validated['image'])) {
-            $imagePath = $validated['image'];
+        } elseif ($request->filled('image')) {
+            $imagePath = trim($request->input('image'));
         }
 
         $menuItem->update([

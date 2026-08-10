@@ -63,18 +63,18 @@ class DatabaseSeeder extends Seeder
                 'icon' => '🍕',
                 'image' => '/images/pizza.png',
                 'items' => [
-                    ['name' => 'Pepperoni Passion Pizza', 'description' => 'Double pepperoni with extra mozzarella cheese & rich tomato sauce', 'price' => 14.99, 'image' => '/images/pizza.png'],
-                    ['name' => 'Supreme Meat Lovers', 'description' => 'Pepperoni, Italian sausage, beef, bacon, and mozzarella', 'price' => 16.50, 'image' => '/images/pizza.png'],
-                    ['name' => 'Cheesy Garlic Crust Pizza', 'description' => 'Garlic butter crust loaded with 4 gourmet cheeses', 'price' => 12.00, 'image' => '/images/pizza.png'],
-                    ['name' => 'BBQ Chicken Deluxe Pizza', 'description' => 'Grilled chicken breast, red onions, cilantro with tangy BBQ sauce', 'price' => 15.00, 'image' => '/images/pizza.png'],
-                    ['name' => 'Hawaiian Paradise Pizza', 'description' => 'Smoked ham, sweet pineapple chunks, and mozzarella cheese', 'price' => 13.50, 'image' => '/images/pizza.png'],
-                    ['name' => 'Veggie Feast Pizza', 'description' => 'Bell peppers, mushrooms, red onions, olives, and fresh tomatoes', 'price' => 11.99, 'image' => '/images/pizza.png'],
-                    ['name' => 'Four Cheese Special Pizza', 'description' => 'Mozzarella, cheddar, parmesan, and gorgonzola blend', 'price' => 14.00, 'image' => '/images/pizza.png'],
-                    ['name' => 'Spicy Seafood Supreme', 'description' => 'Shrimp, calamari, chili flakes, garlic oil, and herbs', 'price' => 17.50, 'image' => '/images/pizza.png'],
-                    ['name' => 'Truffle Mushroom Special', 'description' => 'Wild mushrooms, truffle cream sauce, and fresh arugula', 'price' => 18.00, 'image' => '/images/pizza.png'],
-                    ['name' => 'Margherita Classic Pizza', 'description' => 'San Marzano tomatoes, fresh basil, and buffalo mozzarella', 'price' => 10.50, 'image' => '/images/pizza.png'],
-                    ['name' => 'Bacon & Cheddar Slice Pizza', 'description' => 'Crispy bacon strips, sharp cheddar cheese, and green onions', 'price' => 13.00, 'image' => '/images/pizza.png'],
-                    ['name' => 'Buffalo Chicken Pizza', 'description' => 'Spicy buffalo chicken, ranch drizzle, and melted mozzarella', 'price' => 15.50, 'image' => '/images/pizza.png'],
+                    ['name' => 'Pepperoni Passion Pizza', 'description' => 'Double pepperoni with extra mozzarella cheese & rich tomato sauce', 'price' => 18000, 'image' => '/images/pizza.png'],
+                    ['name' => 'Supreme Meat Lovers', 'description' => 'Pepperoni, Italian sausage, beef, bacon, and mozzarella', 'price' => 19500, 'image' => '/images/pizza.png'],
+                    ['name' => 'Cheesy Garlic Crust Pizza', 'description' => 'Garlic butter crust loaded with 4 gourmet cheeses', 'price' => 15000, 'image' => '/images/pizza.png'],
+                    ['name' => 'BBQ Chicken Deluxe Pizza', 'description' => 'Grilled chicken breast, red onions, cilantro with tangy BBQ sauce', 'price' => 17500, 'image' => '/images/pizza.png'],
+                    ['name' => 'Hawaiian Paradise Pizza', 'description' => 'Smoked ham, sweet pineapple chunks, and mozzarella cheese', 'price' => 16000, 'image' => '/images/pizza.png'],
+                    ['name' => 'Veggie Feast Pizza', 'description' => 'Bell peppers, mushrooms, red onions, olives, and fresh tomatoes', 'price' => 14000, 'image' => '/images/pizza.png'],
+                    ['name' => 'Four Cheese Special Pizza', 'description' => 'Mozzarella, cheddar, parmesan, and gorgonzola blend', 'price' => 16500, 'image' => '/images/pizza.png'],
+                    ['name' => 'Spicy Seafood Supreme', 'description' => 'Shrimp, calamari, chili flakes, garlic oil, and herbs', 'price' => 20000, 'image' => '/images/pizza.png'],
+                    ['name' => 'Truffle Mushroom Special', 'description' => 'Wild mushrooms, truffle cream sauce, and fresh arugula', 'price' => 20000, 'image' => '/images/pizza.png'],
+                    ['name' => 'Margherita Classic Pizza', 'description' => 'San Marzano tomatoes, fresh basil, and buffalo mozzarella', 'price' => 13500, 'image' => '/images/pizza.png'],
+                    ['name' => 'Bacon & Cheddar Slice Pizza', 'description' => 'Crispy bacon strips, sharp cheddar cheese, and green onions', 'price' => 15000, 'image' => '/images/pizza.png'],
+                    ['name' => 'Buffalo Chicken Pizza', 'description' => 'Spicy buffalo chicken, ranch drizzle, and melted mozzarella', 'price' => 17000, 'image' => '/images/pizza.png'],
                 ]
             ],
             [
@@ -84,12 +84,12 @@ class DatabaseSeeder extends Seeder
                 'icon' => '🍔',
                 'image' => '/images/burger.png',
                 'items' => [
-                    ['name' => 'Double Bacon Cheeseburger', 'description' => 'Two Angus beef patties, crispy bacon, cheddar, lettuce & special sauce', 'price' => 11.99, 'image' => '/images/burger.png'],
-                    ['name' => 'Classic Beef Deluxe Burger', 'description' => 'Juicy beef patty, cheddar cheese, pickles, onions & tomato', 'price' => 9.50, 'image' => '/images/burger.png'],
-                    ['name' => 'Spicy Zinger Chicken Burger', 'description' => 'Crispy fried chicken breast, spicy mayo, and crunchy slaw', 'price' => 10.20, 'image' => '/images/burger.png'],
-                    ['name' => 'Mushroom Swiss Burger', 'description' => 'Sautéed mushrooms, melted Swiss cheese, and garlic aioli', 'price' => 12.50, 'image' => '/images/burger.png'],
-                    ['name' => 'BBQ Pulled Pork Burger', 'description' => 'Slow-cooked pulled pork, BBQ sauce, and crispy onion rings', 'price' => 13.00, 'image' => '/images/burger.png'],
-                    ['name' => 'Veggie Black Bean Burger', 'description' => 'Housemade black bean patty, avocado, lettuce & chipotle sauce', 'price' => 8.99, 'image' => '/images/burger.png'],
+                    ['name' => 'Double Bacon Cheeseburger', 'description' => 'Two Angus beef patties, crispy bacon, cheddar, lettuce & special sauce', 'price' => 14500, 'image' => '/images/burger.png'],
+                    ['name' => 'Classic Beef Deluxe Burger', 'description' => 'Juicy beef patty, cheddar cheese, pickles, onions & tomato', 'price' => 12000, 'image' => '/images/burger.png'],
+                    ['name' => 'Spicy Zinger Chicken Burger', 'description' => 'Crispy fried chicken breast, spicy mayo, and crunchy slaw', 'price' => 12500, 'image' => '/images/burger.png'],
+                    ['name' => 'Mushroom Swiss Burger', 'description' => 'Sautéed mushrooms, melted Swiss cheese, and garlic aioli', 'price' => 14000, 'image' => '/images/burger.png'],
+                    ['name' => 'BBQ Pulled Pork Burger', 'description' => 'Slow-cooked pulled pork, BBQ sauce, and crispy onion rings', 'price' => 15000, 'image' => '/images/burger.png'],
+                    ['name' => 'Veggie Black Bean Burger', 'description' => 'Housemade black bean patty, avocado, lettuce & chipotle sauce', 'price' => 11000, 'image' => '/images/burger.png'],
                 ]
             ],
             [
@@ -99,12 +99,12 @@ class DatabaseSeeder extends Seeder
                 'icon' => '🍜',
                 'image' => '/images/noodles.png',
                 'items' => [
-                    ['name' => 'Spicy Seafood Ramen', 'description' => 'Rich spicy miso broth, prawns, squid, soft-boiled egg & ramen noodles', 'price' => 13.50, 'image' => '/images/noodles.png'],
-                    ['name' => 'Pad Thai Special Noodles', 'description' => 'Stir-fried rice noodles with prawns, tofu, peanuts & bean sprouts', 'price' => 11.00, 'image' => '/images/noodles.png'],
-                    ['name' => 'Beef Pho Noodle Soup', 'description' => 'Traditional Vietnamese aromatic beef broth with rice noodles & herbs', 'price' => 12.50, 'image' => '/images/noodles.png'],
-                    ['name' => 'Chow Mein Special', 'description' => 'Crispy egg noodles with chicken, vegetables & savory soy sauce', 'price' => 10.50, 'image' => '/images/noodles.png'],
-                    ['name' => 'Singapore Fried Vermicelli', 'description' => 'Curry-infused rice vermicelli with shrimp, pork & bell peppers', 'price' => 11.80, 'image' => '/images/noodles.png'],
-                    ['name' => 'Dan Dan Spicy Noodles', 'description' => 'Sichuan wheat noodles with minced pork, chili oil & sesame paste', 'price' => 10.99, 'image' => '/images/noodles.png'],
+                    ['name' => 'Spicy Seafood Ramen', 'description' => 'Rich spicy miso broth, prawns, squid, soft-boiled egg & ramen noodles', 'price' => 15000, 'image' => '/images/noodles.png'],
+                    ['name' => 'Pad Thai Special Noodles', 'description' => 'Stir-fried rice noodles with prawns, tofu, peanuts & bean sprouts', 'price' => 13500, 'image' => '/images/noodles.png'],
+                    ['name' => 'Beef Pho Noodle Soup', 'description' => 'Traditional Vietnamese aromatic beef broth with rice noodles & herbs', 'price' => 14000, 'image' => '/images/noodles.png'],
+                    ['name' => 'Chow Mein Special', 'description' => 'Crispy egg noodles with chicken, vegetables & savory soy sauce', 'price' => 12500, 'image' => '/images/noodles.png'],
+                    ['name' => 'Singapore Fried Vermicelli', 'description' => 'Curry-infused rice vermicelli with shrimp, pork & bell peppers', 'price' => 13000, 'image' => '/images/noodles.png'],
+                    ['name' => 'Dan Dan Spicy Noodles', 'description' => 'Sichuan wheat noodles with minced pork, chili oil & sesame paste', 'price' => 12000, 'image' => '/images/noodles.png'],
                 ]
             ],
             [
@@ -114,12 +114,12 @@ class DatabaseSeeder extends Seeder
                 'icon' => '🍹',
                 'image' => '/images/beverages.png',
                 'items' => [
-                    ['name' => 'Fresh Mango Tropical Smoothie', 'description' => 'Blend of sweet ripe mangoes, passionfruit, and Greek yogurt', 'price' => 5.50, 'image' => '/images/beverages.png'],
-                    ['name' => 'Iced Matcha Green Tea Latte', 'description' => 'Premium Uji matcha whisked with cold oat milk and honey', 'price' => 4.99, 'image' => '/images/beverages.png'],
-                    ['name' => 'Sparkling Berry Lemonade', 'description' => 'Freshly squeezed lemons with muddled wild berries & soda', 'price' => 3.50, 'image' => '/images/beverages.png'],
-                    ['name' => 'Cold Brew Nitro Coffee', 'description' => 'Smooth 18-hour cold brew coffee infused with nitrogen', 'price' => 4.50, 'image' => '/images/beverages.png'],
-                    ['name' => 'Strawberry Milkshake Supreme', 'description' => 'Real strawberry ice cream topped with whipped cream & cherry', 'price' => 5.00, 'image' => '/images/beverages.png'],
-                    ['name' => 'Thai Iced Tea with Boba', 'description' => 'Sweet spiced Thai black tea with condensed milk & tapioca pearls', 'price' => 4.00, 'image' => '/images/beverages.png'],
+                    ['name' => 'Fresh Mango Tropical Smoothie', 'description' => 'Blend of sweet ripe mangoes, passionfruit, and Greek yogurt', 'price' => 7000, 'image' => '/images/beverages.png'],
+                    ['name' => 'Iced Matcha Green Tea Latte', 'description' => 'Premium Uji matcha whisked with cold oat milk and honey', 'price' => 6500, 'image' => '/images/beverages.png'],
+                    ['name' => 'Sparkling Berry Lemonade', 'description' => 'Freshly squeezed lemons with muddled wild berries & soda', 'price' => 5000, 'image' => '/images/beverages.png'],
+                    ['name' => 'Cold Brew Nitro Coffee', 'description' => 'Smooth 18-hour cold brew coffee infused with nitrogen', 'price' => 6000, 'image' => '/images/beverages.png'],
+                    ['name' => 'Strawberry Milkshake Supreme', 'description' => 'Real strawberry ice cream topped with whipped cream & cherry', 'price' => 6500, 'image' => '/images/beverages.png'],
+                    ['name' => 'Thai Iced Tea with Boba', 'description' => 'Sweet spiced Thai black tea with condensed milk & tapioca pearls', 'price' => 5500, 'image' => '/images/beverages.png'],
                 ]
             ],
             [
@@ -129,12 +129,12 @@ class DatabaseSeeder extends Seeder
                 'icon' => '🍰',
                 'image' => '/images/desserts.png',
                 'items' => [
-                    ['name' => 'Triple Chocolate Brownie', 'description' => 'Warm fudgy brownie served with vanilla bean ice cream & chocolate sauce', 'price' => 6.50, 'image' => '/images/desserts.png'],
-                    ['name' => 'New York Creamy Cheesecake', 'description' => 'Classic rich cheesecake with fresh raspberry compote', 'price' => 7.00, 'image' => '/images/desserts.png'],
-                    ['name' => 'Italian Tiramisu Slice', 'description' => 'Espresso-soaked ladyfingers layered with mascarpone cream', 'price' => 6.80, 'image' => '/images/desserts.png'],
-                    ['name' => 'Fresh Strawberry Fruit Tart', 'description' => 'Butter pastry shell filled with vanilla custard & sweet berries', 'price' => 5.99, 'image' => '/images/desserts.png'],
-                    ['name' => 'Molten Chocolate Lava Cake', 'description' => 'Warm chocolate cake with gooey molten lava center', 'price' => 7.50, 'image' => '/images/desserts.png'],
-                    ['name' => 'Matcha Ice Cream Parfait', 'description' => 'Green tea gelato, red bean paste, and crispy waffle cone chips', 'price' => 4.50, 'image' => '/images/desserts.png'],
+                    ['name' => 'Triple Chocolate Brownie', 'description' => 'Warm fudgy brownie served with vanilla bean ice cream & chocolate sauce', 'price' => 8500, 'image' => '/images/desserts.png'],
+                    ['name' => 'New York Creamy Cheesecake', 'description' => 'Classic rich cheesecake with fresh raspberry compote', 'price' => 9000, 'image' => '/images/desserts.png'],
+                    ['name' => 'Italian Tiramisu Slice', 'description' => 'Espresso-soaked ladyfingers layered with mascarpone cream', 'price' => 8500, 'image' => '/images/desserts.png'],
+                    ['name' => 'Fresh Strawberry Fruit Tart', 'description' => 'Butter pastry shell filled with vanilla custard & sweet berries', 'price' => 7500, 'image' => '/images/desserts.png'],
+                    ['name' => 'Molten Chocolate Lava Cake', 'description' => 'Warm chocolate cake with gooey molten lava center', 'price' => 9500, 'image' => '/images/desserts.png'],
+                    ['name' => 'Matcha Ice Cream Parfait', 'description' => 'Green tea gelato, red bean paste, and crispy waffle cone chips', 'price' => 6000, 'image' => '/images/desserts.png'],
                 ]
             ]
         ];

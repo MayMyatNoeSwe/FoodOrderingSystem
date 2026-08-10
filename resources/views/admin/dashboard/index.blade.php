@@ -122,7 +122,7 @@
                     <!-- Stat 1: Total Sales Revenue -->
                     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 relative overflow-hidden">
                         <div class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Total Sales Revenue</div>
-                        <div class="text-3xl font-black text-white mt-2">${{ number_format($totalSalesRevenue, 2) }}</div>
+                        <div class="text-3xl font-black text-white mt-2">{{ number_format($totalSalesRevenue) }} MMK</div>
                         <div class="text-xs text-emerald-400 font-semibold mt-2 flex items-center gap-1">
                             <span>↑ 18.5%</span> <span class="text-slate-500">vs last month</span>
                         </div>
@@ -195,7 +195,7 @@
                                                 <span class="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 rounded border border-emerald-500/30 uppercase font-bold text-[10px]">COD</span>
                                             @endif
                                         </td>
-                                        <td class="px-4 py-4 font-bold text-white">${{ number_format($order->total_amount, 2) }}</td>
+                                        <td class="px-4 py-4 font-bold text-white">{{ number_format($order->total_amount) }} MMK</td>
                                         <td class="px-4 py-4">
                                             @if($order->status === 'completed')
                                                 <span class="px-2.5 py-1 bg-emerald-500/20 text-emerald-400 rounded-full font-bold border border-emerald-500/30 capitalize">Completed</span>
