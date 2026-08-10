@@ -193,7 +193,7 @@ class DatabaseSeeder extends Seeder
                 'delivery_phone' => '09' . rand(10000000, 99999999),
                 'status' => $status,
                 'payment_method' => $paymentMethod,
-                'payment_status' => ($status === 'completed') ? 'paid' : 'unpaid',
+                'payment_status' => ($paymentMethod === 'cod') ? 'unpaid' : 'paid',
 
                 'created_at' => now()->subHours(rand(1, 48)),
             ]);

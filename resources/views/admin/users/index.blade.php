@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>Food Categories - {{ config('app.name', 'Food Ordering System') }}</title>
+    <title>User Accounts - {{ config('app.name', 'Food Ordering System') }}</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -15,15 +15,32 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        function confirmDelete(form, itemName, type = 'category') {
+        function confirmDeleteUser(form, userName, isSelf = false) {
+            if (isSelf) {
+                Swal.fire({
+                    title: 'Action Prohibited',
+                    text: 'You cannot delete your own active logged-in admin account!',
+                    icon: 'error',
+                    confirmButtonColor: '#f59e0b',
+                    background: '#0f172a',
+                    color: '#f8fafc',
+                    customClass: {
+                        popup: 'border border-slate-800 rounded-3xl shadow-2xl',
+                        title: 'text-white font-bold text-lg',
+                        confirmButton: 'px-5 py-2.5 rounded-xl font-bold text-xs cursor-pointer'
+                    }
+                });
+                return false;
+            }
+
             Swal.fire({
-                title: 'Delete ' + (type === 'category' ? 'Category' : 'Food Item') + '?',
-                html: `Are you sure you want to delete category <strong class="text-orange-400">'${itemName}'</strong>?<br><span class="text-xs text-slate-400 mt-1 block">This will remove it from the catalog.</span>`,
+                title: 'Delete User \'' + userName + '\'?',
+                html: `Are you sure you want to permanently delete user <strong class="text-orange-400">'${userName}'</strong>?<br><span class="text-xs text-slate-400 mt-1 block">This will remove their account and order history access.</span>`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#ef4444',
                 cancelButtonColor: '#334155',
-                confirmButtonText: 'Yes, Delete Category',
+                confirmButtonText: 'Yes, Delete User',
                 cancelButtonText: 'Cancel',
                 background: '#0f172a',
                 color: '#f8fafc',
@@ -47,22 +64,18 @@
           mobileMenuOpen: false,
           createModalOpen: {{ $errors->any() && !old('_method') ? 'true' : 'false' }}, 
           editModalOpen: {{ $errors->any() && old('_method') === 'PUT' ? 'true' : 'false' }}, 
-          editCategoryId: {{ old('edit_category_id') ? old('edit_category_id') : 'null' }}, 
-          createCategoryName: '{{ old('name') && !old('_method') ? addslashes(old('name')) : '' }}',
-          editCategoryName: '{{ old('name') && old('_method') === 'PUT' ? addslashes(old('name')) : '' }}', 
-          editCategoryUrl: '{{ old('edit_category_url', '') }}',
-          
-          slugify(text) {
-              return text.toString().toLowerCase()
-                  .trim()
-                  .replace(/\s+/g, '-')           // Replace spaces with -
-                  .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
-                  .replace(/\-\-+/g, '-');        // Replace multiple - with single -
-          },
-          openEditModal(id, name, url) {
-              this.editCategoryId = id;
-              this.editCategoryName = name;
-              this.editCategoryUrl = url;
+          editUserId: {{ old('edit_user_id') ? old('edit_user_id') : 'null' }}, 
+          editUserName: '{{ old('name') && old('_method') === 'PUT' ? addslashes(old('name')) : '' }}', 
+          editUserEmail: '{{ old('email') && old('_method') === 'PUT' ? addslashes(old('email')) : '' }}', 
+          editUserRole: '{{ old('role') && old('_method') === 'PUT' ? old('role') : 'user' }}', 
+          editUserUrl: '{{ old('edit_user_url', '') }}',
+
+          openEditModal(id, name, email, role, url) {
+              this.editUserId = id;
+              this.editUserName = name;
+              this.editUserEmail = email;
+              this.editUserRole = role;
+              this.editUserUrl = url;
               this.editModalOpen = true;
           }
       }">
@@ -92,12 +105,11 @@
                         <span>Dashboard</span>
                     </a>
 
-                    <a href="{{ route('admin.categories.index') }}" class="flex items-center gap-3 px-4 py-3 bg-orange-500 text-white font-bold rounded-xl shadow-lg shadow-orange-500/25 transition-all">
+                    <a href="{{ route('admin.categories.index') }}" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all font-medium">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
                         </svg>
                         <span>Categories</span>
-                        <span class="ms-auto bg-white/20 text-white text-xs font-bold px-2 py-0.5 rounded-full">{{ $categories->total() }}</span>
                     </a>
 
                     <a href="{{ route('admin.menuItems.index') }}" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all font-medium">
@@ -114,11 +126,12 @@
                         <span>Orders</span>
                     </a>
 
-                    <a href="{{ route('admin.users.index') }}" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all font-medium">
+                    <a href="{{ route('admin.users.index') }}" class="flex items-center gap-3 px-4 py-3 bg-orange-500 text-white font-bold rounded-xl shadow-lg shadow-orange-500/25 transition-all">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
                         </svg>
                         <span>Users</span>
+                        <span class="ms-auto bg-white/20 text-white text-xs font-bold px-2 py-0.5 rounded-full">{{ $users->total() }}</span>
                     </a>
                 </nav>
             </div>
@@ -194,12 +207,11 @@
                         <span>Dashboard</span>
                     </a>
 
-                    <a href="{{ route('admin.categories.index') }}" class="flex items-center gap-3 px-4 py-3 bg-orange-500 text-white font-bold rounded-xl shadow-lg shadow-orange-500/25">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <a href="{{ route('admin.categories.index') }}" class="flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-all font-medium">
+                        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
                         </svg>
                         <span>Categories</span>
-                        <span class="ms-auto bg-white/20 text-white text-xs font-bold px-2 py-0.5 rounded-full">{{ $categories->total() }}</span>
                     </a>
 
                     <a href="{{ route('admin.menuItems.index') }}" class="flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-all font-medium">
@@ -209,11 +221,19 @@
                         <span>Menu Items</span>
                     </a>
 
-                    <a href="{{ route('admin.dashboard') }}#orders" class="flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-all font-medium">
+                    <a href="{{ route('admin.orders.index') }}" class="flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-all font-medium">
                         <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
                         </svg>
                         <span>Orders</span>
+                    </a>
+
+                    <a href="{{ route('admin.users.index') }}" class="flex items-center gap-3 px-4 py-3 bg-orange-500 text-white font-bold rounded-xl shadow-lg shadow-orange-500/25">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                        <span>Users</span>
+                        <span class="ms-auto bg-white/20 text-white text-xs font-bold px-2 py-0.5 rounded-full">{{ $users->total() }}</span>
                     </a>
                 </nav>
             </div>
@@ -255,12 +275,12 @@
 
                     <div>
                         <h1 class="text-xl font-black text-white tracking-tight flex items-center gap-2.5">
-                            <span>Food Categories</span>
+                            <span>User Accounts</span>
                             <span class="hidden sm:inline-flex bg-orange-500/20 text-orange-400 border border-orange-500/30 text-xs font-bold px-2.5 py-0.5 rounded-full">
-                                Management
+                                Access Control
                             </span>
                         </h1>
-                        <p class="text-xs text-slate-400 hidden sm:block">Organize menu catalog categories and item classifications</p>
+                        <p class="text-xs text-slate-400 hidden sm:block">Manage registered customer profiles, administrative roles, and system credentials</p>
                     </div>
                 </div>
 
@@ -274,7 +294,7 @@
                 </div>
             </header>
 
-            <!-- Main Scrollable Dashboard Content -->
+            <!-- Main Scrollable Content -->
             <main class="flex-1 p-4 sm:p-6 space-y-6 overflow-y-auto">
 
                 <!-- Success Alert Toast -->
@@ -299,6 +319,28 @@
                     </script>
                 @endif
 
+                <!-- Error Alert Toast -->
+                @if(session('error'))
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            Swal.fire({
+                                toast: true,
+                                position: 'top-end',
+                                icon: 'error',
+                                title: @json(session('error')),
+                                showConfirmButton: false,
+                                timer: 3500,
+                                timerProgressBar: true,
+                                background: '#0f172a',
+                                color: '#f8fafc',
+                                customClass: {
+                                    popup: 'border border-red-500/30 rounded-2xl shadow-xl'
+                                }
+                            });
+                        });
+                    </script>
+                @endif
+
                 <!-- Validation Errors Banner -->
                 @if($errors->any())
                     <div class="p-4 bg-red-500/10 border border-red-500/30 rounded-2xl text-red-400 text-xs font-semibold space-y-1.5 shadow-lg shadow-red-500/5">
@@ -314,176 +356,197 @@
                     </div>
                 @endif
 
-                <!-- Overview Stat Metric Cards -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                <!-- Overview Stat Metric Cards Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                     
-                    <!-- Metric Card 1: Total Categories -->
+                    <!-- Metric 1: Total Users -->
                     <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 relative overflow-hidden group hover:border-slate-700 transition-all">
                         <div class="flex items-center justify-between">
-                            <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Total Categories</span>
+                            <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Total User Accounts</span>
                             <div class="w-9 h-9 rounded-xl bg-orange-500/10 text-orange-400 flex items-center justify-center font-bold text-base">
-                                📂
+                                👥
                             </div>
                         </div>
-                        <div class="text-3xl font-black text-white mt-2">{{ $categories->total() }}</div>
+                        <div class="text-3xl font-black text-white mt-2">{{ number_format($totalUsersCount) }}</div>
                         <div class="text-xs text-slate-400 font-medium mt-2 flex items-center gap-1.5">
                             <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span>
-                            <span>Active food groupings</span>
+                            <span>Registered database users</span>
                         </div>
                     </div>
 
-                    <!-- Metric Card 2: Total Menu Items Categorized -->
+                    <!-- Metric 2: System Administrators -->
                     <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 relative overflow-hidden group hover:border-slate-700 transition-all">
                         <div class="flex items-center justify-between">
-                            <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Linked Food Items</span>
+                            <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider">System Admins</span>
                             <div class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold text-base">
-                                🍕
+                                👑
                             </div>
                         </div>
-                        <div class="text-3xl font-black text-amber-400 mt-2">
-                            {{ $categories->sum('menu_items_count') }} Items
-                        </div>
-                        <div class="text-xs text-slate-400 font-medium mt-2">Mapped to categories</div>
+                        <div class="text-3xl font-black text-amber-400 mt-2">{{ number_format($adminCount) }}</div>
+                        <div class="text-xs text-slate-400 font-medium mt-2">Administrative privileges</div>
                     </div>
 
-                    <!-- Metric Card 3: Filter / Active State Summary -->
-                    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 relative overflow-hidden group hover:border-slate-700 transition-all sm:col-span-2 lg:col-span-1">
+                    <!-- Metric 3: Customer Accounts -->
+                    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 relative overflow-hidden group hover:border-slate-700 transition-all">
                         <div class="flex items-center justify-between">
-                            <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Search Filter Status</span>
+                            <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Customer Accounts</span>
                             <div class="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold text-base">
-                                🔍
+                                🛒
                             </div>
                         </div>
-                        <div class="text-lg font-bold text-white mt-2 truncate">
-                            @if($search)
-                                Filtered: "<span class="text-orange-400">{{ $search }}</span>"
-                            @else
-                                Showing All Categories
-                            @endif
+                        <div class="text-3xl font-black text-blue-400 mt-2">{{ number_format($customerCount) }}</div>
+                        <div class="text-xs text-slate-400 font-medium mt-2">Food ordering buyers</div>
+                    </div>
+
+                    <!-- Metric 4: New Accounts This Month -->
+                    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 relative overflow-hidden group hover:border-slate-700 transition-all">
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider">New This Month</span>
+                            <div class="w-9 h-9 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center font-bold text-base">
+                                ✨
+                            </div>
                         </div>
-                        <div class="text-xs text-slate-400 font-medium mt-2 flex items-center justify-between">
-                            <span>Page {{ $categories->currentPage() }} of {{ max(1, $categories->lastPage()) }}</span>
-                            @if($search)
-                                <a href="{{ route('admin.categories.index') }}" class="text-orange-400 hover:text-orange-300 font-bold underline text-[11px]">Clear Filter</a>
-                            @endif
-                        </div>
+                        <div class="text-3xl font-black text-purple-400 mt-2">{{ number_format($newThisMonthCount) }}</div>
+                        <div class="text-xs text-slate-400 font-medium mt-2">Recent registrations</div>
                     </div>
 
                 </div>
 
-                <!-- Categories Management Header & Controls -->
+                <!-- Users Directory Header & Controls -->
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl space-y-6">
                     
                     <!-- Search & Action Toolbar -->
-                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                         <div>
-                            <h3 class="text-lg font-black text-white tracking-tight">Category List</h3>
-                            <p class="text-slate-400 text-xs mt-0.5">Manage category titles, slugs, and menu assignments</p>
+                            <h3 class="text-lg font-black text-white tracking-tight">User Account Directory</h3>
+                            <p class="text-slate-400 text-xs mt-0.5">Filter by role, search user name or email address</p>
                         </div>
 
                         <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                            <!-- Search Form -->
-                            <form method="GET" action="{{ route('admin.categories.index') }}" class="relative min-w-[220px]">
-                                <input type="text" 
-                                       name="search" 
-                                       value="{{ $search }}" 
-                                       placeholder="Search category name or slug..." 
-                                       class="w-full bg-slate-950 border border-slate-800 focus:border-orange-500 text-slate-200 text-xs rounded-xl px-3.5 py-2.5 pl-9 pr-8 focus:ring-0 transition-all placeholder-slate-500">
+                            <!-- Search & Filter Form -->
+                            <form method="GET" action="{{ route('admin.users.index') }}" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                                 
-                                <svg class="w-4 h-4 text-slate-500 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                                </svg>
+                                <div class="relative min-w-[220px]">
+                                    <input type="text" 
+                                           name="search" 
+                                           value="{{ $search }}" 
+                                           placeholder="Search name or email..." 
+                                           class="w-full bg-slate-950 border border-slate-800 focus:border-orange-500 text-slate-200 text-xs rounded-xl px-3.5 py-2.5 pl-9 pr-8 focus:ring-0 transition-all placeholder-slate-500">
+                                    
+                                    <svg class="w-4 h-4 text-slate-500 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
 
-                                @if($search)
-                                    <a href="{{ route('admin.categories.index') }}" 
-                                       title="Clear Search" 
-                                       class="absolute right-2.5 top-2.5 text-slate-500 hover:text-white p-0.5 text-xs font-bold rounded-full">
-                                        ✕
+                                    @if($search)
+                                        <a href="{{ route('admin.users.index') }}" title="Clear Search" class="absolute right-2.5 top-2.5 text-slate-500 hover:text-white p-0.5 text-xs font-bold rounded-full">✕</a>
+                                    @endif
+                                </div>
+
+                                <!-- Role Filter Dropdown -->
+                                <select name="role" onchange="this.form.submit()" class="bg-slate-950 border border-slate-800 focus:border-orange-500 text-slate-200 text-xs rounded-xl px-3.5 py-2.5 focus:ring-0 transition-all cursor-pointer">
+                                    <option value="">All Roles</option>
+                                    <option value="admin" {{ $role === 'admin' ? 'selected' : '' }}>👑 Admin</option>
+                                    <option value="user" {{ $role === 'user' ? 'selected' : '' }}>👤 Customer</option>
+                                </select>
+
+                                @if($search || $role)
+                                    <a href="{{ route('admin.users.index') }}" class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl border border-slate-700 flex items-center justify-center gap-1">
+                                        <span>✕</span>
+                                        <span>Reset</span>
                                     </a>
                                 @endif
                             </form>
 
-                            <!-- Add Category Trigger Button -->
+                            <!-- Add User Trigger Button -->
                             <button @click="createModalOpen = true" 
                                     class="px-4 py-2.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-orange-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                                 </svg>
-                                <span>Add Category</span>
+                                <span>Add New User</span>
                             </button>
                         </div>
                     </div>
 
-                    <!-- Categories Table -->
+                    <!-- Users Table -->
                     <div class="overflow-x-auto rounded-xl border border-slate-800">
                         <table class="w-full text-left text-xs">
                             <thead class="bg-slate-950 text-slate-400 font-bold uppercase tracking-wider border-b border-slate-800">
                                 <tr>
-                                    <th class="px-4 py-3.5 w-16">ID</th>
-                                    <th class="px-4 py-3.5">Category Name</th>
-                                    <th class="px-4 py-3.5">URL Slug</th>
-                                    <th class="px-4 py-3.5">Items Count</th>
-                                    <th class="px-4 py-3.5">Created Date</th>
+                                    <th class="px-4 py-3.5">User Profile</th>
+                                    <th class="px-4 py-3.5">Email Address</th>
+                                    <th class="px-4 py-3.5">Role</th>
+                                    <th class="px-4 py-3.5">Orders Placed</th>
+                                    <th class="px-4 py-3.5">Registered Date</th>
                                     <th class="px-4 py-3.5 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-800 text-slate-300 font-medium">
-                                @forelse($categories as $category)
+                                @forelse($users as $user)
                                     @php
-                                        $nameLower = strtolower($category->name);
-                                        $icon = '🍽️';
-                                        if (str_contains($nameLower, 'pizza')) { $icon = '🍕'; }
-                                        elseif (str_contains($nameLower, 'burger') || str_contains($nameLower, 'sandwich')) { $icon = '🍔'; }
-                                        elseif (str_contains($nameLower, 'noodle') || str_contains($nameLower, 'pasta') || str_contains($nameLower, 'ramen')) { $icon = '🍜'; }
-                                        elseif (str_contains($nameLower, 'beverage') || str_contains($nameLower, 'drink') || str_contains($nameLower, 'coffee') || str_contains($nameLower, 'juice')) { $icon = '🍹'; }
-                                        elseif (str_contains($nameLower, 'dessert') || str_contains($nameLower, 'cake') || str_contains($nameLower, 'ice cream')) { $icon = '🍰'; }
-                                        elseif (str_contains($nameLower, 'rice') || str_contains($nameLower, 'asian') || str_contains($nameLower, 'bento')) { $icon = '🍱'; }
-                                        elseif (str_contains($nameLower, 'chicken') || str_contains($nameLower, 'bbq') || str_contains($nameLower, 'meat')) { $icon = '🍗'; }
-                                        elseif (str_contains($nameLower, 'salad') || str_contains($nameLower, 'veggie')) { $icon = '🥗'; }
-                                        elseif (str_contains($nameLower, 'seafood') || str_contains($nameLower, 'fish')) { $icon = '🦐'; }
+                                        $initial = strtoupper(substr($user->name, 0, 1));
+                                        $isAdmin = $user->isAdmin();
+                                        $isSelf = (Auth::id() === $user->id);
                                     @endphp
 
                                     <tr class="hover:bg-slate-800/40 transition-colors">
-                                        <!-- ID -->
-                                        <td class="px-4 py-4 font-mono text-slate-500">
-                                            #{{ $category->id }}
-                                        </td>
-
-                                        <!-- Name -->
-                                        <td class="px-4 py-4 font-bold text-white">
+                                        
+                                        <!-- User Profile -->
+                                        <td class="px-4 py-4">
                                             <div class="flex items-center gap-3">
-                                                <div class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 text-orange-400 flex items-center justify-center text-sm shadow-sm shrink-0">
-                                                    {{ $icon }}
+                                                <div class="w-9 h-9 rounded-full {{ $isAdmin ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40' : 'bg-orange-500/20 text-orange-400 border border-orange-500/40' }} flex items-center justify-center font-black text-sm shrink-0">
+                                                    {{ $initial }}
                                                 </div>
-                                                <span class="text-sm font-extrabold">{{ $category->name }}</span>
+                                                <div>
+                                                    <div class="font-extrabold text-white text-sm flex items-center gap-2">
+                                                        <span>{{ $user->name }}</span>
+                                                        @if($isSelf)
+                                                            <span class="px-2 py-0.5 bg-orange-500/20 text-orange-400 border border-orange-500/30 text-[10px] font-bold rounded-full">You</span>
+                                                        @endif
+                                                    </div>
+                                                    <div class="text-[11px] text-slate-400 font-mono">ID: #{{ $user->id }}</div>
+                                                </div>
                                             </div>
                                         </td>
 
-                                        <!-- Slug -->
-                                        <td class="px-4 py-4 font-mono text-[11px]">
-                                            <span class="px-2.5 py-1 bg-slate-950 rounded-md border border-slate-800 text-slate-400 font-semibold inline-block">
-                                                {{ $category->slug }}
-                                            </span>
+                                        <!-- Email Address -->
+                                        <td class="px-4 py-4 font-mono text-slate-300">
+                                            {{ $user->email }}
                                         </td>
 
-                                        <!-- Items Count -->
+                                        <!-- Role Badge -->
                                         <td class="px-4 py-4">
-                                            <span class="px-2.5 py-1 bg-amber-500/10 text-amber-400 rounded-full border border-amber-500/20 text-[11px] font-bold inline-flex items-center gap-1.5">
-                                                <span>{{ $category->menu_items_count }}</span>
-                                                <span class="text-amber-500/70 font-normal">Food Items</span>
+                                            @if($isAdmin)
+                                                <span class="px-2.5 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[11px] font-bold rounded-full inline-flex items-center gap-1">
+                                                    <span>👑</span>
+                                                    <span>System Admin</span>
+                                                </span>
+                                            @else
+                                                <span class="px-2.5 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/30 text-[11px] font-bold rounded-full inline-flex items-center gap-1">
+                                                    <span>👤</span>
+                                                    <span>Customer</span>
+                                                </span>
+                                            @endif
+                                        </td>
+
+                                        <!-- Orders Placed -->
+                                        <td class="px-4 py-4">
+                                            <span class="px-2.5 py-1 bg-slate-950 border border-slate-800 rounded-lg text-slate-300 text-[11px] font-bold">
+                                                {{ $user->orders_count }} Orders
                                             </span>
                                         </td>
 
-                                        <!-- Created Date -->
+                                        <!-- Registered Date -->
                                         <td class="px-4 py-4 text-slate-400 text-[11px]">
-                                            {{ $category->created_at ? $category->created_at->format('M d, Y') : 'N/A' }}
+                                            <div>{{ $user->created_at ? $user->created_at->format('M d, Y') : 'N/A' }}</div>
+                                            <div class="text-[10px] text-slate-500 font-mono mt-0.5">{{ $user->created_at ? $user->created_at->diffForHumans() : '' }}</div>
                                         </td>
 
                                         <!-- Actions -->
                                         <td class="px-4 py-4 text-right">
                                             <div class="flex items-center justify-end gap-2">
                                                 <!-- Edit Trigger -->
-                                                <button @click="openEditModal({{ $category->id }}, '{{ addslashes($category->name) }}', '{{ route('admin.categories.update', $category) }}')" 
+                                                <button @click="openEditModal({{ $user->id }}, '{{ addslashes($user->name) }}', '{{ addslashes($user->email) }}', '{{ $user->role }}', '{{ route('admin.users.update', $user) }}')" 
                                                         class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-lg border border-slate-700 transition-all text-[11px] font-bold flex items-center gap-1 cursor-pointer">
                                                     <span>✏️</span>
                                                     <span>Edit</span>
@@ -491,11 +554,13 @@
 
                                                 <!-- Delete Form -->
                                                 <form method="POST" 
-                                                      action="{{ route('admin.categories.destroy', $category) }}" 
-                                                      onsubmit="return confirmDelete(this, '{{ addslashes($category->name) }}', 'category');">
+                                                      action="{{ route('admin.users.destroy', $user) }}" 
+                                                      onsubmit="return confirmDeleteUser(this, '{{ addslashes($user->name) }}', {{ $isSelf ? 'true' : 'false' }});">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" class="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg transition-all text-[11px] font-bold flex items-center gap-1 cursor-pointer">
+                                                    <button type="submit" 
+                                                            {{ $isSelf ? 'disabled' : '' }} 
+                                                            class="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg transition-all text-[11px] font-bold flex items-center gap-1 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
                                                         <span>🗑️</span>
                                                         <span>Delete</span>
                                                     </button>
@@ -507,19 +572,17 @@
                                     <tr>
                                         <td colspan="6" class="px-4 py-12 text-center text-slate-500">
                                             <div class="max-w-xs mx-auto space-y-3">
-                                                <div class="text-3xl">🍽️</div>
-                                                <div class="font-bold text-slate-300 text-sm">No Food Categories Found</div>
+                                                <div class="text-3xl">👥</div>
+                                                <div class="font-bold text-slate-300 text-sm">No Users Found</div>
                                                 <p class="text-xs text-slate-500">
-                                                    @if($search)
-                                                        No category matching "<span class="text-orange-400">{{ $search }}</span>". Try clearing your search keyword.
+                                                    @if($search || $role)
+                                                        No user accounts matching current filter criteria. Try clearing search keyword.
                                                     @else
-                                                        Get started by creating your first food category for your restaurant menu.
+                                                        No user accounts registered yet.
                                                     @endif
                                                 </p>
-                                                @if($search)
-                                                    <a href="{{ route('admin.categories.index') }}" class="inline-block px-4 py-2 bg-slate-800 text-slate-300 text-xs font-bold rounded-xl border border-slate-700 hover:text-white">Clear Search</a>
-                                                @else
-                                                    <button @click="createModalOpen = true" class="inline-block px-4 py-2 bg-orange-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-orange-500/20">Add First Category</button>
+                                                @if($search || $role)
+                                                    <a href="{{ route('admin.users.index') }}" class="inline-block px-4 py-2 bg-slate-800 text-slate-300 text-xs font-bold rounded-xl border border-slate-700 hover:text-white">Clear Search Filter</a>
                                                 @endif
                                             </div>
                                         </td>
@@ -530,9 +593,9 @@
                     </div>
 
                     <!-- Custom Pagination Footer -->
-                    @if($categories->hasPages())
+                    @if($users->hasPages())
                         <div class="pt-2 border-t border-slate-800">
-                            {{ $categories->links() }}
+                            {{ $users->links() }}
                         </div>
                     @endif
 
@@ -543,7 +606,7 @@
 
     </div>
 
-    <!-- ================= CREATE CATEGORY MODAL ================= -->
+    <!-- ================= CREATE USER MODAL ================= -->
     <div x-show="createModalOpen" 
          x-cloak
          x-transition:enter="transition ease-out duration-200"
@@ -564,52 +627,80 @@
                         ➕
                     </div>
                     <div>
-                        <h3 class="text-lg font-black text-white">Create New Category</h3>
-                        <p class="text-slate-400 text-xs">Add a new food category to organize menu items</p>
+                        <h3 class="text-lg font-black text-white">Create New User Account</h3>
+                        <p class="text-slate-400 text-xs">Add a new admin or customer profile</p>
                     </div>
                 </div>
                 <button @click="createModalOpen = false" class="text-slate-500 hover:text-white p-1 text-lg font-bold">✕</button>
             </div>
 
             <!-- Modal Form -->
-            <form method="POST" action="{{ route('admin.categories.store') }}" class="space-y-5">
+            <form method="POST" action="{{ route('admin.users.store') }}" class="space-y-4">
                 @csrf
 
+                <!-- Name -->
                 <div>
-                    <label for="create_category_name" class="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">
-                        Category Name <span class="text-orange-500">*</span>
+                    <label class="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">
+                        Full Name <span class="text-orange-500">*</span>
                     </label>
                     <input type="text" 
-                           id="create_category_name" 
                            name="name" 
-                           x-model="createCategoryName"
+                           value="{{ old('name') }}"
                            required 
                            autofocus
-                           placeholder="e.g. Italian Pasta, Tacos, Refreshing Drinks" 
-                           class="w-full bg-slate-950 border border-slate-800 focus:border-orange-500 text-slate-100 text-sm rounded-xl px-4 py-3 focus:ring-0 transition-all placeholder-slate-600">
+                           placeholder="e.g. John Doe" 
+                           class="w-full bg-slate-950 border border-slate-800 focus:border-orange-500 text-slate-100 text-sm rounded-xl px-4 py-2.5 focus:ring-0 transition-all placeholder-slate-600">
                 </div>
 
-                <!-- Slug Preview Indicator -->
-                <div class="p-3 bg-slate-950/70 rounded-xl border border-slate-800/80 space-y-1">
-                    <span class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Auto-Generated URL Slug</span>
-                    <div class="font-mono text-xs text-orange-400 font-bold truncate">
-                        <span x-text="createCategoryName ? slugify(createCategoryName) : 'category-slug-preview'"></span>
-                    </div>
+                <!-- Email -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">
+                        Email Address <span class="text-orange-500">*</span>
+                    </label>
+                    <input type="email" 
+                           name="email" 
+                           value="{{ old('email') }}"
+                           required 
+                           placeholder="name@example.com" 
+                           class="w-full bg-slate-950 border border-slate-800 focus:border-orange-500 text-slate-100 text-sm rounded-xl px-4 py-2.5 focus:ring-0 transition-all placeholder-slate-600">
                 </div>
 
-                <div class="pt-2 flex items-center justify-end gap-3 border-t border-slate-800">
+                <!-- Role -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">
+                        Access Role <span class="text-orange-500">*</span>
+                    </label>
+                    <select name="role" required class="w-full bg-slate-950 border border-slate-800 focus:border-orange-500 text-slate-100 text-sm rounded-xl px-4 py-2.5 focus:ring-0 transition-all cursor-pointer">
+                        <option value="user" {{ old('role') === 'user' ? 'selected' : '' }}>👤 Customer (Standard Buyer Access)</option>
+                        <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>👑 System Administrator (Full Access)</option>
+                    </select>
+                </div>
+
+                <!-- Password -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">
+                        Password <span class="text-orange-500">*</span>
+                    </label>
+                    <input type="password" 
+                           name="password" 
+                           required 
+                           placeholder="••••••••" 
+                           class="w-full bg-slate-950 border border-slate-800 focus:border-orange-500 text-slate-100 text-sm rounded-xl px-4 py-2.5 focus:ring-0 transition-all placeholder-slate-600">
+                </div>
+
+                <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-800">
                     <button type="button" @click="createModalOpen = false" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition-all cursor-pointer">
                         Cancel
                     </button>
                     <button type="submit" class="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-orange-500/25 transition-all cursor-pointer">
-                        Create Category
+                        Create Account
                     </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- ================= EDIT CATEGORY MODAL ================= -->
+    <!-- ================= EDIT USER MODAL ================= -->
     <div x-show="editModalOpen" 
          x-cloak
          x-transition:enter="transition ease-out duration-200"
@@ -630,48 +721,74 @@
                         ✏️
                     </div>
                     <div>
-                        <h3 class="text-lg font-black text-white">Edit Category</h3>
-                        <p class="text-slate-400 text-xs">Update existing food category details</p>
+                        <h3 class="text-lg font-black text-white">Edit User Profile</h3>
+                        <p class="text-slate-400 text-xs">Update account information & privileges</p>
                     </div>
                 </div>
                 <button @click="editModalOpen = false" class="text-slate-500 hover:text-white p-1 text-lg font-bold">✕</button>
             </div>
 
             <!-- Modal Form -->
-            <form method="POST" :action="editCategoryUrl" class="space-y-5">
+            <form method="POST" :action="editUserUrl" class="space-y-4">
                 @csrf
                 @method('PUT')
 
-                <!-- Hidden inputs to retain state on validation failure -->
-                <input type="hidden" name="edit_category_id" :value="editCategoryId">
-                <input type="hidden" name="edit_category_url" :value="editCategoryUrl">
+                <input type="hidden" name="edit_user_id" :value="editUserId">
+                <input type="hidden" name="edit_user_url" :value="editUserUrl">
 
+                <!-- Name -->
                 <div>
-                    <label for="edit_category_name_input" class="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">
-                        Category Name <span class="text-orange-500">*</span>
+                    <label class="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">
+                        Full Name <span class="text-orange-500">*</span>
                     </label>
                     <input type="text" 
-                           id="edit_category_name_input" 
                            name="name" 
-                           x-model="editCategoryName" 
+                           x-model="editUserName"
                            required 
-                           class="w-full bg-slate-950 border border-slate-800 focus:border-orange-500 text-slate-100 text-sm rounded-xl px-4 py-3 focus:ring-0 transition-all">
+                           class="w-full bg-slate-950 border border-slate-800 focus:border-orange-500 text-slate-100 text-sm rounded-xl px-4 py-2.5 focus:ring-0 transition-all">
                 </div>
 
-                <!-- Slug Preview Indicator -->
-                <div class="p-3 bg-slate-950/70 rounded-xl border border-slate-800/80 space-y-1">
-                    <span class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Updated URL Slug</span>
-                    <div class="font-mono text-xs text-orange-400 font-bold truncate">
-                        <span x-text="editCategoryName ? slugify(editCategoryName) : 'category-slug-preview'"></span>
-                    </div>
+                <!-- Email -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">
+                        Email Address <span class="text-orange-500">*</span>
+                    </label>
+                    <input type="email" 
+                           name="email" 
+                           x-model="editUserEmail"
+                           required 
+                           class="w-full bg-slate-950 border border-slate-800 focus:border-orange-500 text-slate-100 text-sm rounded-xl px-4 py-2.5 focus:ring-0 transition-all">
                 </div>
 
-                <div class="pt-2 flex items-center justify-end gap-3 border-t border-slate-800">
+                <!-- Role -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">
+                        Access Role <span class="text-orange-500">*</span>
+                    </label>
+                    <select name="role" x-model="editUserRole" required class="w-full bg-slate-950 border border-slate-800 focus:border-orange-500 text-slate-100 text-sm rounded-xl px-4 py-2.5 focus:ring-0 transition-all cursor-pointer">
+                        <option value="user">👤 Customer (Standard Buyer Access)</option>
+                        <option value="admin">👑 System Administrator (Full Access)</option>
+                    </select>
+                </div>
+
+                <!-- Optional Password Reset -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1 flex items-center justify-between">
+                        <span>New Password</span>
+                        <span class="text-slate-500 font-normal lowercase">(leave blank to keep unchanged)</span>
+                    </label>
+                    <input type="password" 
+                           name="password" 
+                           placeholder="••••••••" 
+                           class="w-full bg-slate-950 border border-slate-800 focus:border-orange-500 text-slate-100 text-sm rounded-xl px-4 py-2.5 focus:ring-0 transition-all placeholder-slate-600">
+                </div>
+
+                <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-800">
                     <button type="button" @click="editModalOpen = false" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition-all cursor-pointer">
                         Cancel
                     </button>
                     <button type="submit" class="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-orange-500/25 transition-all cursor-pointer">
-                        Update Category
+                        Update User
                     </button>
                 </div>
             </form>

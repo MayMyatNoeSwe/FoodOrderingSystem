@@ -38,5 +38,21 @@ class Order extends Model
                     ->withPivot('quantity', 'unit_price', 'subtotal')
                     ->withTimestamps();
     }
+
+    /**
+     * The "booted" method of the model.
+     */
+    protected static function booted(): void
+    {
+        static::saving(function (Order $order) {
+            if (isset($order->payment_method)) {
+                if ($order->payment_method === 'cod') {
+                    $order->payment_status = 'unpaid';
+                } elseif (in_array($order->payment_method, ['kbzpay', 'wavepay'])) {
+                    $order->payment_status = 'paid';
+                }
+            }
+        });
+    }
 }
 

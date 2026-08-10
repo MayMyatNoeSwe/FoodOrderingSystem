@@ -4,6 +4,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\MenuItemController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\UserController;
 use App\Models\Category;
 use App\Models\MenuItem;
 use App\Models\Order;
@@ -53,10 +54,11 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         ));
     })->name('dashboard');
 
-    // Admin Category, Menu Item & Order Management Resource Routes
+    // Admin Resource Routes
     Route::resource('categories', CategoryController::class)->except(['create', 'show', 'edit']);
     Route::resource('menuItems', MenuItemController::class)->except(['create', 'show', 'edit']);
     Route::resource('orders', OrderController::class)->except(['create', 'show', 'edit']);
+    Route::resource('users', UserController::class)->except(['create', 'show', 'edit']);
 });
 
 // Dashboard Redirect Handler (Breeze Default Route)
