@@ -157,6 +157,7 @@ class DatabaseSeeder extends Seeder
                     'description' => $itemInfo['description'],
                     'price' => $itemInfo['price'],
                     'image' => $itemInfo['image'],
+                    'stock' => $itemInfo['stock'] ?? rand(10, 75),
                     'is_available' => true,
                 ]);
             }

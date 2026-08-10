@@ -16,22 +16,49 @@ class MenuItemController extends Controller
     {
         $search = $request->query('search');
         $categoryId = $request->query('category_id');
+        $stockStatus = $request->query('stock_status');
 
         $categories = Category::orderBy('name', 'asc')->get();
 
+        // Stock stats
+        $totalItemsCount = MenuItem::count();
+        $inStockCount = MenuItem::where('stock', '>', 10)->count();
+        $lowStockCount = MenuItem::where('stock', '>', 0)->where('stock', '<=', 10)->count();
+        $outOfStockCount = MenuItem::where('stock', 0)->count();
+
         $menuItems = MenuItem::with('category')
             ->when($search, function ($query, $search) {
-                return $query->where('name', 'like', "%{$search}%")
-                             ->orWhere('description', 'like', "%{$search}%");
+                $query->where('name', 'like', '%' . $search . '%')
+                      ->orWhere('description', 'like', '%' . $search . '%');
             })
             ->when($categoryId, function ($query, $categoryId) {
                 return $query->where('category_id', $categoryId);
+            })
+            ->when($stockStatus, function ($query, $stockStatus) {
+                if ($stockStatus === 'in_stock') {
+                    return $query->where('stock', '>', 10);
+                } elseif ($stockStatus === 'low_stock') {
+                    return $query->where('stock', '>', 0)->where('stock', '<=', 10);
+                } elseif ($stockStatus === 'out_of_stock') {
+                    return $query->where('stock', 0);
+                }
+                return $query;
             })
             ->latest()
             ->paginate(10)
             ->withQueryString();
 
-        return view('admin.menuItems.index', compact('menuItems', 'categories', 'search', 'categoryId'));
+        return view('admin.menuItems.index', compact(
+            'menuItems', 
+            'categories', 
+            'search', 
+            'categoryId', 
+            'stockStatus',
+            'totalItemsCount',
+            'inStockCount',
+            'lowStockCount',
+            'outOfStockCount'
+        ));
     }
 
     /**
@@ -43,6 +70,7 @@ class MenuItemController extends Controller
             'name' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
             'price' => 'required|numeric|min:0',
+            'stock' => 'required|integer|min:0',
             'description' => 'nullable|string',
             'image' => 'nullable|string|max:500',
             'image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
@@ -58,6 +86,7 @@ class MenuItemController extends Controller
             'name' => $validated['name'],
             'category_id' => $validated['category_id'],
             'price' => $validated['price'],
+            'stock' => $validated['stock'],
             'description' => $validated['description'] ?? null,
             'image' => $imagePath,
             'is_available' => $request->has('is_available') ? $request->boolean('is_available') : true,
@@ -75,6 +104,7 @@ class MenuItemController extends Controller
             'name' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
             'price' => 'required|numeric|min:0',
+            'stock' => 'required|integer|min:0',
             'description' => 'nullable|string',
             'image' => 'nullable|string|max:500',
             'image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
@@ -95,6 +125,7 @@ class MenuItemController extends Controller
             'name' => $validated['name'],
             'category_id' => $validated['category_id'],
             'price' => $validated['price'],
+            'stock' => $validated['stock'],
             'description' => $validated['description'] ?? null,
             'image' => $imagePath,
             'is_available' => $request->has('is_available') ? $request->boolean('is_available') : false,

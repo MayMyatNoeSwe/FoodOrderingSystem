@@ -13,13 +13,41 @@
 
     <!-- Scripts & Styles -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function confirmDelete(form, itemName, type = 'category') {
+            Swal.fire({
+                title: 'Delete ' + (type === 'category' ? 'Category' : 'Food Item') + '?',
+                html: `Are you sure you want to delete category <strong class="text-orange-400">'${itemName}'</strong>?<br><span class="text-xs text-slate-400 mt-1 block">This will remove it from the catalog.</span>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#334155',
+                confirmButtonText: 'Yes, Delete Category',
+                cancelButtonText: 'Cancel',
+                background: '#0f172a',
+                color: '#f8fafc',
+                customClass: {
+                    popup: 'border border-slate-800 rounded-3xl shadow-2xl',
+                    title: 'text-white font-bold text-lg',
+                    confirmButton: 'px-5 py-2.5 rounded-xl font-bold text-xs shadow-lg shadow-red-500/20 cursor-pointer',
+                    cancelButton: 'px-5 py-2.5 rounded-xl font-bold text-xs cursor-pointer'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+            return false;
+        }
+    </script>
 </head>
 <body class="font-sans antialiased text-slate-800 bg-slate-950 selection:bg-orange-500 selection:text-white min-h-screen"
       x-data="{ 
           mobileMenuOpen: false,
           createModalOpen: {{ $errors->any() && !old('_method') ? 'true' : 'false' }}, 
           editModalOpen: {{ $errors->any() && old('_method') === 'PUT' ? 'true' : 'false' }}, 
-          editCategoryId: {{ old('edit_category_id', 'null') }}, 
+          editCategoryId: {{ old('edit_category_id') ? old('edit_category_id') : 'null' }}, 
           createCategoryName: '{{ old('name') && !old('_method') ? addslashes(old('name')) : '' }}',
           editCategoryName: '{{ old('name') && old('_method') === 'PUT' ? addslashes(old('name')) : '' }}', 
           editCategoryUrl: '{{ old('edit_category_url', '') }}',
@@ -242,20 +270,26 @@
             <!-- Main Scrollable Dashboard Content -->
             <main class="flex-1 p-4 sm:p-6 space-y-6 overflow-y-auto">
 
-                <!-- Success Banner Notification -->
+                <!-- Success Alert Toast -->
                 @if(session('success'))
-                    <div x-data="{ show: true }" 
-                         x-show="show" 
-                         x-transition:leave="transition ease-in duration-200 opacity-0"
-                         class="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-emerald-400 text-xs font-semibold flex items-center justify-between shadow-lg shadow-emerald-500/5">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center font-bold text-sm shrink-0">
-                                ✓
-                            </div>
-                            <span>{{ session('success') }}</span>
-                        </div>
-                        <button @click="show = false" class="text-emerald-400/70 hover:text-emerald-300 p-1 text-sm font-bold">✕</button>
-                    </div>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            Swal.fire({
+                                toast: true,
+                                position: 'top-end',
+                                icon: 'success',
+                                title: @json(session('success')),
+                                showConfirmButton: false,
+                                timer: 3500,
+                                timerProgressBar: true,
+                                background: '#0f172a',
+                                color: '#f8fafc',
+                                customClass: {
+                                    popup: 'border border-emerald-500/30 rounded-2xl shadow-xl'
+                                }
+                            });
+                        });
+                    </script>
                 @endif
 
                 <!-- Validation Errors Banner -->
@@ -451,7 +485,7 @@
                                                 <!-- Delete Form -->
                                                 <form method="POST" 
                                                       action="{{ route('admin.categories.destroy', $category) }}" 
-                                                      onsubmit="return confirm('Are you sure you want to delete category \'{{ addslashes($category->name) }}\'? This will remove it from the catalog.');">
+                                                      onsubmit="return confirmDelete(this, '{{ addslashes($category->name) }}', 'category');">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg transition-all text-[11px] font-bold flex items-center gap-1 cursor-pointer">

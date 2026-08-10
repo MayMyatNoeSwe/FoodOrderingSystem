@@ -9,7 +9,7 @@ class MenuItem extends Model
 {
     /** @use HasFactory<\Database\Factories\MenuItemFactory> */
     use HasFactory;
-    protected $fillable = ['category_id','name','description','price','image','is_available'];
+    protected $fillable = ['category_id','name','description','price','image','is_available','stock'];
 
     public function category(){
         return $this->belongsTo(Category::class);

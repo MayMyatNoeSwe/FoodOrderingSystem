@@ -13,6 +13,34 @@
 
     <!-- Scripts & Styles -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function confirmDelete(form, itemName, type = 'item') {
+            Swal.fire({
+                title: 'Delete ' + (type === 'category' ? 'Category' : 'Food Item') + '?',
+                html: `Are you sure you want to delete <strong class="text-orange-400">'${itemName}'</strong>?<br><span class="text-xs text-slate-400 mt-1 block">This action cannot be undone.</span>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#334155',
+                confirmButtonText: 'Yes, Delete',
+                cancelButtonText: 'Cancel',
+                background: '#0f172a',
+                color: '#f8fafc',
+                customClass: {
+                    popup: 'border border-slate-800 rounded-3xl shadow-2xl',
+                    title: 'text-white font-bold text-lg',
+                    confirmButton: 'px-5 py-2.5 rounded-xl font-bold text-xs shadow-lg shadow-red-500/20 cursor-pointer',
+                    cancelButton: 'px-5 py-2.5 rounded-xl font-bold text-xs cursor-pointer'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+            return false;
+        }
+    </script>
 </head>
 <body class="font-sans antialiased text-slate-800 bg-slate-950 selection:bg-orange-500 selection:text-white min-h-screen"
       x-data="{ 
@@ -20,22 +48,50 @@
           createModalOpen: {{ $errors->any() && !old('_method') ? 'true' : 'false' }}, 
           editModalOpen: {{ $errors->any() && old('_method') === 'PUT' ? 'true' : 'false' }}, 
           
-          editItemId: {{ old('edit_item_id', 'null') }}, 
+          editItemId: {{ old('edit_item_id') ? old('edit_item_id') : 'null' }}, 
           editItemName: '{{ old('name') && old('_method') === 'PUT' ? addslashes(old('name')) : '' }}',
           editItemCategoryId: '{{ old('category_id') && old('_method') === 'PUT' ? old('category_id') : '' }}',
           editItemPrice: '{{ old('price') && old('_method') === 'PUT' ? old('price') : '' }}',
+          editItemStock: '{{ old('stock') && old('_method') === 'PUT' ? old('stock') : '' }}',
           editItemDescription: '{{ old('description') && old('_method') === 'PUT' ? addslashes(old('description')) : '' }}',
           editItemImage: '{{ old('image') && old('_method') === 'PUT' ? addslashes(old('image')) : '' }}',
           editItemIsAvailable: {{ old('is_available') && old('_method') === 'PUT' ? 'true' : 'false' }},
           editItemUrl: '{{ old('edit_item_url', '') }}',
+
+          createImageInput: '',
+          createPreviewUrl: '',
+          editPreviewUrl: '',
+
+          handleCreateFile(e) {
+              const file = e.target.files[0];
+              if (file) {
+                  this.createPreviewUrl = URL.createObjectURL(file);
+              }
+          },
+          handleEditFile(e) {
+              const file = e.target.files[0];
+              if (file) {
+                  this.editPreviewUrl = URL.createObjectURL(file);
+              }
+          },
+          resolveImageSrc(imgPath) {
+              if (!imgPath) return '';
+              const img = imgPath.trim();
+              if (img.startsWith('http://') || img.startsWith('https://')) return img;
+              if (img.startsWith('/images/') || img.startsWith('images/')) return '/' + img.replace(/^\//, '');
+              if (img.startsWith('/storage/') || img.startsWith('storage/')) return '/' + img.replace(/^\//, '');
+              return '/storage/' + img;
+          },
 
           openEditModal(item, url) {
               this.editItemId = item.id;
               this.editItemName = item.name;
               this.editItemCategoryId = item.category_id;
               this.editItemPrice = item.price;
+              this.editItemStock = item.stock !== undefined ? item.stock : 50;
               this.editItemDescription = item.description || '';
               this.editItemImage = item.image || '';
+              this.editPreviewUrl = item.image ? this.resolveImageSrc(item.image) : '';
               this.editItemIsAvailable = item.is_available ? true : false;
               this.editItemUrl = url;
               this.editModalOpen = true;
@@ -247,19 +303,26 @@
             <main class="flex-1 p-4 sm:p-6 space-y-6 overflow-y-auto">
 
                 <!-- Success Banner Notification -->
+                <!-- Success Alert Toast -->
                 @if(session('success'))
-                    <div x-data="{ show: true }" 
-                         x-show="show" 
-                         x-transition:leave="transition ease-in duration-200 opacity-0"
-                         class="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-emerald-400 text-xs font-semibold flex items-center justify-between shadow-lg shadow-emerald-500/5">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center font-bold text-sm shrink-0">
-                                ✓
-                            </div>
-                            <span>{{ session('success') }}</span>
-                        </div>
-                        <button @click="show = false" class="text-emerald-400/70 hover:text-emerald-300 p-1 text-sm font-bold">✕</button>
-                    </div>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            Swal.fire({
+                                toast: true,
+                                position: 'top-end',
+                                icon: 'success',
+                                title: @json(session('success')),
+                                showConfirmButton: false,
+                                timer: 3500,
+                                timerProgressBar: true,
+                                background: '#0f172a',
+                                color: '#f8fafc',
+                                customClass: {
+                                    popup: 'border border-emerald-500/30 rounded-2xl shadow-xl'
+                                }
+                            });
+                        });
+                    </script>
                 @endif
 
                 <!-- Validation Errors Banner -->
@@ -288,50 +351,50 @@
                                 🍕
                             </div>
                         </div>
-                        <div class="text-3xl font-black text-white mt-2">{{ $menuItems->total() }}</div>
-                        <div class="text-xs text-slate-400 font-medium mt-2">Dishes & Drinks in catalog</div>
+                        <div class="text-3xl font-black text-white mt-2">{{ $totalItemsCount ?? $menuItems->total() }}</div>
+                        <div class="text-xs text-slate-400 font-medium mt-2">Total Dishes in catalog</div>
                     </div>
 
-                    <!-- Metric Card 2: Available Items -->
+                    <!-- Metric Card 2: In Stock -->
                     <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 relative overflow-hidden group hover:border-slate-700 transition-all">
                         <div class="flex items-center justify-between">
-                            <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Available (In Stock)</span>
+                            <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider">In Stock (> 10)</span>
                             <div class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold text-base">
-                                ✅
+                                📦
                             </div>
                         </div>
                         <div class="text-3xl font-black text-emerald-400 mt-2">
-                            {{ $menuItems->where('is_available', true)->count() }}
+                            {{ $inStockCount ?? 0 }}
                         </div>
-                        <div class="text-xs text-slate-400 font-medium mt-2">Ready for customer ordering</div>
+                        <div class="text-xs text-slate-400 font-medium mt-2">Healthy inventory levels</div>
                     </div>
 
-                    <!-- Metric Card 3: Out of Stock -->
+                    <!-- Metric Card 3: Low Stock Alert -->
                     <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 relative overflow-hidden group hover:border-slate-700 transition-all">
                         <div class="flex items-center justify-between">
-                            <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Out of Stock</span>
+                            <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Low Stock (1-10)</span>
+                            <div class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold text-base">
+                                ⚠️
+                            </div>
+                        </div>
+                        <div class="text-3xl font-black text-amber-400 mt-2">
+                            {{ $lowStockCount ?? 0 }}
+                        </div>
+                        <div class="text-xs text-slate-400 font-medium mt-2">Needs restocking soon</div>
+                    </div>
+
+                    <!-- Metric Card 4: Out of Stock -->
+                    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 relative overflow-hidden group hover:border-slate-700 transition-all">
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Out of Stock (0)</span>
                             <div class="w-9 h-9 rounded-xl bg-red-500/10 text-red-400 flex items-center justify-center font-bold text-base">
                                 🚫
                             </div>
                         </div>
                         <div class="text-3xl font-black text-red-400 mt-2">
-                            {{ $menuItems->where('is_available', false)->count() }}
+                            {{ $outOfStockCount ?? 0 }}
                         </div>
-                        <div class="text-xs text-slate-400 font-medium mt-2">Temporarily unavailable</div>
-                    </div>
-
-                    <!-- Metric Card 4: Active Category Filter Status -->
-                    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 relative overflow-hidden group hover:border-slate-700 transition-all">
-                        <div class="flex items-center justify-between">
-                            <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Categories Mapped</span>
-                            <div class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold text-base">
-                                📁
-                            </div>
-                        </div>
-                        <div class="text-3xl font-black text-amber-400 mt-2">
-                            {{ $categories->count() }}
-                        </div>
-                        <div class="text-xs text-slate-400 font-medium mt-2">Active Food Categories</div>
+                        <div class="text-xs text-slate-400 font-medium mt-2">Items depleted</div>
                     </div>
 
                 </div>
@@ -361,6 +424,16 @@
                                             {{ $cat->name }}
                                         </option>
                                     @endforeach
+                                </select>
+
+                                <!-- Stock Status Select Filter -->
+                                <select name="stock_status" 
+                                        onchange="this.form.submit()" 
+                                        class="bg-slate-950 border border-slate-800 focus:border-orange-500 text-slate-200 text-xs rounded-xl px-3 py-2.5 focus:ring-0 cursor-pointer w-full sm:w-auto">
+                                    <option value="">All Stock Levels</option>
+                                    <option value="in_stock" {{ ($stockStatus ?? '') === 'in_stock' ? 'selected' : '' }}>In Stock (> 10)</option>
+                                    <option value="low_stock" {{ ($stockStatus ?? '') === 'low_stock' ? 'selected' : '' }}>Low Stock (1-10)</option>
+                                    <option value="out_of_stock" {{ ($stockStatus ?? '') === 'out_of_stock' ? 'selected' : '' }}>Out of Stock (0)</option>
                                 </select>
 
                                 <!-- Text Search Input -->
@@ -405,6 +478,7 @@
                                     <th class="px-4 py-3.5">Name & Description</th>
                                     <th class="px-4 py-3.5">Category</th>
                                     <th class="px-4 py-3.5">Price</th>
+                                    <th class="px-4 py-3.5">Stock</th>
                                     <th class="px-4 py-3.5">Status</th>
                                     <th class="px-4 py-3.5 text-right">Actions</th>
                                 </tr>
@@ -467,6 +541,23 @@
                                             {{ number_format($item->price) }} MMK
                                         </td>
 
+                                        <!-- Stock -->
+                                        <td class="px-4 py-4 font-bold text-xs">
+                                            @if($item->stock > 10)
+                                                <span class="px-2.5 py-1 bg-slate-800 text-slate-200 rounded-lg border border-slate-700 font-mono">
+                                                    📦 {{ number_format($item->stock) }} left
+                                                </span>
+                                            @elseif($item->stock > 0)
+                                                <span class="px-2.5 py-1 bg-amber-500/10 text-amber-400 rounded-lg border border-amber-500/30 font-mono font-bold">
+                                                    ⚠️ {{ number_format($item->stock) }} left
+                                                </span>
+                                            @else
+                                                <span class="px-2.5 py-1 bg-red-500/10 text-red-400 rounded-lg border border-red-500/30 font-mono font-bold">
+                                                    🚫 0 left
+                                                </span>
+                                            @endif
+                                        </td>
+
                                         <!-- Availability Status -->
                                         <td class="px-4 py-4">
                                             @if($item->is_available)
@@ -495,7 +586,7 @@
                                                 <!-- Delete Form Button -->
                                                 <form method="POST" 
                                                       action="{{ route('admin.menuItems.destroy', $item) }}" 
-                                                      onsubmit="return confirm('Are you sure you want to delete dish \'{{ addslashes($item->name) }}\'?');">
+                                                      onsubmit="return confirmDelete(this, '{{ addslashes($item->name) }}', 'item');">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg transition-all text-[11px] font-bold flex items-center gap-1 cursor-pointer">
@@ -590,8 +681,8 @@
                            class="w-full bg-slate-950 border border-slate-800 focus:border-orange-500 text-slate-100 text-sm rounded-xl px-4 py-3 focus:ring-0 transition-all placeholder-slate-600">
                 </div>
 
-                <!-- Category & Price Row -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Category, Price & Stock -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">
                             Category <span class="text-orange-500">*</span>
@@ -618,6 +709,19 @@
                                placeholder="15000" 
                                class="w-full bg-slate-950 border border-slate-800 focus:border-orange-500 text-slate-100 text-sm rounded-xl px-4 py-3 focus:ring-0 transition-all placeholder-slate-600">
                     </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">
+                            Stock Total <span class="text-orange-500">*</span>
+                        </label>
+                        <input type="number" 
+                               name="stock" 
+                               min="0" 
+                               value="50" 
+                               required 
+                               placeholder="50" 
+                               class="w-full bg-slate-950 border border-slate-800 focus:border-orange-500 text-slate-100 text-sm rounded-xl px-4 py-3 focus:ring-0 transition-all placeholder-slate-600">
+                    </div>
                 </div>
 
                 <!-- Description -->
@@ -629,18 +733,41 @@
                               class="w-full bg-slate-950 border border-slate-800 focus:border-orange-500 text-slate-100 text-sm rounded-xl px-4 py-3 focus:ring-0 transition-all placeholder-slate-600"></textarea>
                 </div>
 
-                <!-- Image URL or Upload -->
-                <div class="space-y-2">
-                    <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider">Image (URL or File)</label>
+                <!-- Live Image Preview Widget -->
+                <div class="space-y-3">
+                    <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider">Image Preview & Upload</label>
+                    
+                    <div class="p-3 bg-slate-950 border border-slate-800 rounded-2xl flex items-center gap-3.5">
+                        <div class="w-16 h-16 rounded-xl overflow-hidden bg-slate-900 border border-slate-800 shrink-0 flex items-center justify-center relative">
+                            <template x-if="createPreviewUrl || (createImageInput && resolveImageSrc(createImageInput))">
+                                <img :src="createPreviewUrl || resolveImageSrc(createImageInput)" 
+                                     alt="Preview" 
+                                     class="w-full h-full object-cover">
+                            </template>
+                            <template x-if="!createPreviewUrl && (!createImageInput || !resolveImageSrc(createImageInput))">
+                                <span class="text-2xl opacity-60">🖼️</span>
+                            </template>
+                        </div>
+                        <div class="space-y-1 min-w-0 flex-1">
+                            <div class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full" :class="(createPreviewUrl || createImageInput) ? 'bg-emerald-400 animate-pulse' : 'bg-slate-600'"></span>
+                                <span x-text="(createPreviewUrl || createImageInput) ? 'Image Selected' : 'No Image Selected'"></span>
+                            </div>
+                            <p class="text-[11px] text-slate-400 truncate" x-text="createPreviewUrl || createImageInput || 'Upload a file or enter image URL'"></p>
+                        </div>
+                    </div>
+
                     <input type="text" 
                            name="image" 
+                           x-model="createImageInput"
                            placeholder="https://images.unsplash.com/photo-..." 
                            class="w-full bg-slate-950 border border-slate-800 focus:border-orange-500 text-slate-100 text-xs rounded-xl px-4 py-2.5 focus:ring-0 transition-all placeholder-slate-600">
-                    <div class="text-[10px] text-slate-500">Or upload an image file:</div>
+                    <div class="text-[10px] text-slate-500 font-medium">Or replace with file upload:</div>
                     <input type="file" 
                            name="image_file" 
                            accept="image/*" 
-                           class="block w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-slate-800 file:text-slate-200 hover:file:bg-slate-700">
+                           @change="handleCreateFile($event)"
+                           class="block w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-slate-800 file:text-slate-200 hover:file:bg-slate-700 cursor-pointer">
                 </div>
 
                 <!-- Availability Toggle -->
@@ -716,8 +843,8 @@
                            class="w-full bg-slate-950 border border-slate-800 focus:border-orange-500 text-slate-100 text-sm rounded-xl px-4 py-3 focus:ring-0 transition-all">
                 </div>
 
-                <!-- Category & Price Row -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Category, Price & Stock -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">
                             Category <span class="text-orange-500">*</span>
@@ -745,6 +872,18 @@
                                required 
                                class="w-full bg-slate-950 border border-slate-800 focus:border-orange-500 text-slate-100 text-sm rounded-xl px-4 py-3 focus:ring-0 transition-all">
                     </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">
+                            Stock Total <span class="text-orange-500">*</span>
+                        </label>
+                        <input type="number" 
+                               name="stock" 
+                               min="0" 
+                               x-model="editItemStock" 
+                               required 
+                               class="w-full bg-slate-950 border border-slate-800 focus:border-orange-500 text-slate-100 text-sm rounded-xl px-4 py-3 focus:ring-0 transition-all">
+                    </div>
                 </div>
 
                 <!-- Description -->
@@ -756,19 +895,41 @@
                               class="w-full bg-slate-950 border border-slate-800 focus:border-orange-500 text-slate-100 text-sm rounded-xl px-4 py-3 focus:ring-0 transition-all"></textarea>
                 </div>
 
-                <!-- Image URL or Upload -->
-                <div class="space-y-2">
-                    <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider">Image (URL or File)</label>
+                <!-- Live Image Preview Widget -->
+                <div class="space-y-3">
+                    <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider">Image Preview & Upload</label>
+                    
+                    <div class="p-3 bg-slate-950 border border-slate-800 rounded-2xl flex items-center gap-3.5">
+                        <div class="w-16 h-16 rounded-xl overflow-hidden bg-slate-900 border border-slate-800 shrink-0 flex items-center justify-center relative">
+                            <template x-if="editPreviewUrl || (editItemImage && resolveImageSrc(editItemImage))">
+                                <img :src="editPreviewUrl || resolveImageSrc(editItemImage)" 
+                                     alt="Preview" 
+                                     class="w-full h-full object-cover">
+                            </template>
+                            <template x-if="!editPreviewUrl && (!editItemImage || !resolveImageSrc(editItemImage))">
+                                <span class="text-2xl opacity-60">🖼️</span>
+                            </template>
+                        </div>
+                        <div class="space-y-1 min-w-0 flex-1">
+                            <div class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full" :class="(editPreviewUrl || editItemImage) ? 'bg-emerald-400 animate-pulse' : 'bg-slate-600'"></span>
+                                <span x-text="(editPreviewUrl || editItemImage) ? 'Current Image Preview' : 'No Image Set'"></span>
+                            </div>
+                            <p class="text-[11px] text-slate-400 truncate font-mono" x-text="editPreviewUrl || editItemImage || 'Upload a file or enter image URL'"></p>
+                        </div>
+                    </div>
+
                     <input type="text" 
                            name="image" 
                            x-model="editItemImage" 
-                           placeholder="https://..." 
-                           class="w-full bg-slate-950 border border-slate-800 focus:border-orange-500 text-slate-100 text-xs rounded-xl px-4 py-2.5 focus:ring-0 transition-all">
-                    <div class="text-[10px] text-slate-500">Or replace with file upload:</div>
+                           placeholder="https://images.unsplash.com/photo-..." 
+                           class="w-full bg-slate-950 border border-slate-800 focus:border-orange-500 text-slate-100 text-xs rounded-xl px-4 py-2.5 focus:ring-0 transition-all placeholder-slate-600">
+                    <div class="text-[10px] text-slate-500 font-medium">Or replace with file upload:</div>
                     <input type="file" 
                            name="image_file" 
                            accept="image/*" 
-                           class="block w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-slate-800 file:text-slate-200 hover:file:bg-slate-700">
+                           @change="handleEditFile($event)"
+                           class="block w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-slate-800 file:text-slate-200 hover:file:bg-slate-700 cursor-pointer">
                 </div>
 
                 <!-- Availability Toggle -->
