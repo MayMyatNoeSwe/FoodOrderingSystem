@@ -21,7 +21,7 @@ class OrderFactory extends Factory
     {
         return [
             'order_number'=>'ORD-'.strtoupper(Str::random(10)),
-            'user_id'=>optional(User::inRandomOrder()->first())->id ?? User::factory(1)->create()->id,
+            'user_id'=>optional(User::inRandomOrder()->first())->id ?? User::factory()->create()->id,
             'total_amount'=>fake()->randomFloat(2,5000,10000),
             'delivery_fee'=>fake()->randomElement([1000,1500,2000,3000,4000]),
             'delivery_address'=>fake()->address(),
@@ -31,5 +31,6 @@ class OrderFactory extends Factory
             'payment_status'=>fake()->randomElement(['paid','unpaid']),
             'notes'=>fake()->optional(0.3)->sentence()
         ];
+        
     }
 }
