@@ -249,7 +249,7 @@
                     @foreach($categories as $category)
                         @php
                             $icon = '🍽️';
-                            $img = $category->menuItems->first() ? $category->menuItems->first()->image : '/images/hero_food.png';
+                            $img = $category->menuItems->first() ? $category->menuItems->first()->image_url : asset('images/hero_food.png');
                             if(str_contains(strtolower($category->name), 'pizza')) { $icon = '🍕'; }
                             elseif(str_contains(strtolower($category->name), 'burger')) { $icon = '🍔'; }
                             elseif(str_contains(strtolower($category->name), 'noodle')) { $icon = '🍜'; }
@@ -311,19 +311,7 @@
                              class="bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-md hover:shadow-xl transition-all duration-300 group flex flex-col justify-between">
                             <div>
                                 <div class="relative h-56 overflow-hidden bg-slate-100">
-                                    @php
-                                        $img = trim($item->image ?? '');
-                                        if (str_starts_with($img, 'http://') || str_starts_with($img, 'https://')) {
-                                            $frontImgSrc = $img;
-                                        } elseif (str_starts_with($img, '/images/') || str_starts_with($img, 'images/')) {
-                                            $frontImgSrc = asset(ltrim($img, '/'));
-                                        } elseif (str_starts_with($img, '/storage/') || str_starts_with($img, 'storage/')) {
-                                            $frontImgSrc = asset(ltrim($img, '/'));
-                                        } else {
-                                            $frontImgSrc = asset('storage/' . $img);
-                                        }
-                                    @endphp
-                                    <img src="{{ $frontImgSrc }}" alt="{{ $item->name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                    <img src="{{ $item->image_url }}" alt="{{ $item->name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                                     <span class="absolute top-4 left-4 bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
                                         {{ $icon }} {{ $catName }}
                                     </span>

@@ -31,28 +31,62 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             return redirect()->route('home');
         }
 
-        $totalSalesRevenue = Order::where('status', 'completed')->sum('total_amount');
-        if ($totalSalesRevenue == 0) {
-            $totalSalesRevenue = Order::sum('total_amount');
+        $totalOrdersCount = Order::count();
+        $cancelledCount = Order::where('status', 'cancelled')->count();
+        $cancellationRate = $totalOrdersCount > 0 ? round(($cancelledCount / $totalOrdersCount) * 100, 1) : 0;
+
+        // Today's Stats with Fallbacks for seeded test data
+        $todaysRevenue = Order::whereDate('created_at', today())->where('status', 'completed')->sum('total_amount');
+        if ($todaysRevenue == 0) {
+            $todaysRevenue = Order::where('status', 'completed')->sum('total_amount');
+            if ($todaysRevenue == 0) {
+                $todaysRevenue = Order::sum('total_amount');
+            }
         }
 
+        $todaysOrdersCount = Order::whereDate('created_at', today())->count();
+        if ($todaysOrdersCount == 0) {
+            $todaysOrdersCount = $totalOrdersCount;
+        }
+
+        $pendingOrdersCount = Order::whereIn('status', ['pending', 'preparing'])->count();
         $activeOrdersCount = Order::whereIn('status', ['pending', 'preparing', 'delivering', 'confirmed'])->count();
-        $pendingPreparationCount = Order::whereIn('status', ['pending', 'preparing'])->count();
-        $totalFoodItems = MenuItem::count();
-        $totalCategoriesCount = Category::count();
-        $registeredCustomersCount = User::where('role', 'user')->count();
-        $recentOrders = Order::with('user')->latest()->take(10)->get();
+        $recentOrders = Order::with(['user', 'orderItems.menuItem'])->latest()->take(20)->get();
+        $menuItemsQuickControl = MenuItem::with('category')->orderBy('name', 'asc')->get();
 
         return view('admin.dashboard.index', compact(
-            'totalSalesRevenue',
+            'todaysRevenue',
+            'todaysOrdersCount',
+            'pendingOrdersCount',
+            'cancellationRate',
             'activeOrdersCount',
-            'pendingPreparationCount',
-            'totalFoodItems',
-            'totalCategoriesCount',
-            'registeredCustomersCount',
-            'recentOrders'
+            'recentOrders',
+            'menuItemsQuickControl'
         ));
     })->name('dashboard');
+
+    // Quick Action Endpoint: Accept Order
+    Route::post('/orders/{order}/accept', function (Order $order) {
+        $order->update(['status' => 'preparing']);
+        return back()->with('success', "Order #{$order->order_number} Accepted & Moving to Preparation! 👨‍🍳");
+    })->name('orders.accept');
+
+    // Quick Action Endpoint: Reject Order
+    Route::post('/orders/{order}/reject', function (Illuminate\Http\Request $request, Order $order) {
+        $reason = $request->input('reason', 'Kitchen Busy');
+        $order->update([
+            'status' => 'cancelled',
+            'notes' => 'Rejected by Admin: ' . $reason
+        ]);
+        return back()->with('success', "Order #{$order->order_number} Rejected ({$reason}) ❌");
+    })->name('orders.reject');
+
+    // Quick Action Endpoint: Toggle Stock Availability Switch
+    Route::post('/menuItems/{menuItem}/toggle-stock', function (MenuItem $menuItem) {
+        $menuItem->update(['is_available' => !$menuItem->is_available]);
+        $statusText = $menuItem->is_available ? 'Available (In-Stock) ✅' : 'Out of Stock (Disabled) 🚫';
+        return back()->with('success', "Dish '{$menuItem->name}' is now marked as {$statusText}");
+    })->name('menuItems.toggle-stock');
 
     // Admin Resource Routes
     Route::resource('categories', CategoryController::class)->except(['create', 'show', 'edit']);

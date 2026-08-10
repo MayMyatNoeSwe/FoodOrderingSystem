@@ -508,20 +508,8 @@
                                         <!-- Image Thumbnail -->
                                         <td class="px-4 py-4">
                                             @if($item->image)
-                                                @php
-                                                    $img = trim($item->image);
-                                                    if (str_starts_with($img, 'http://') || str_starts_with($img, 'https://')) {
-                                                        $imageSrc = $img;
-                                                    } elseif (str_starts_with($img, '/images/') || str_starts_with($img, 'images/')) {
-                                                        $imageSrc = asset(ltrim($img, '/'));
-                                                    } elseif (str_starts_with($img, '/storage/') || str_starts_with($img, 'storage/')) {
-                                                        $imageSrc = asset(ltrim($img, '/'));
-                                                    } else {
-                                                        $imageSrc = asset('storage/' . $img);
-                                                    }
-                                                @endphp
                                                 <div class="w-12 h-12 rounded-xl overflow-hidden bg-slate-950 border border-slate-800 shrink-0">
-                                                    <img src="{{ $imageSrc }}" alt="{{ $item->name }}" class="w-full h-full object-cover">
+                                                    <img src="{{ $item->image_url }}" alt="{{ $item->name }}" class="w-full h-full object-cover">
                                                 </div>
                                             @else
                                                 <div class="w-12 h-12 rounded-xl bg-slate-800 border border-slate-700 text-orange-400 flex items-center justify-center text-xl shrink-0">
