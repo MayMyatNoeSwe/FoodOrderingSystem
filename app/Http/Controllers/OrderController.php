@@ -74,7 +74,7 @@ class OrderController extends Controller
         $updateData = ['status' => $validated['status']];
         if (isset($validated['payment_status'])) {
             $updateData['payment_status'] = $validated['payment_status'];
-        } elseif ($validated['status'] === 'completed') {
+        } elseif (in_array($validated['status'], ['confirmed', 'preparing', 'delivering', 'completed'])) {
             $updateData['payment_status'] = 'paid';
         }
 

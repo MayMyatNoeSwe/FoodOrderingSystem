@@ -9,12 +9,30 @@
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800,900&display=swap" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="font-sans antialiased bg-slate-50 text-slate-800 selection:bg-orange-500 selection:text-white" x-data="{ imgModal: false, imgSrc: '' }">
-
-    <!-- Clear Cart on Order Complete -->
-    <script>
+<body class="font-sans antialiased bg-slate-50 text-slate-800 selection:bg-orange-500 selection:text-white"
+    x-data="{
+        imgModal: false,
+        imgSrc: '',
+        currentStatus: '{{ $order->status }}',
+        currentPaymentStatus: '{{ $order->payment_status }}',
+        justApproved: false
+    }"
+    x-init="
         localStorage.removeItem('foodorder_cart');
-    </script>
+        setInterval(() => {
+            fetch('{{ route('user.orders.json_status', $order) }}')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status && data.status !== currentStatus) {
+                        if ((data.status === 'confirmed' || data.status === 'preparing') && currentStatus === 'pending') {
+                            justApproved = true;
+                        }
+                        currentStatus = data.status;
+                        currentPaymentStatus = data.payment_status;
+                    }
+                }).catch(() => {});
+        }, 3000);
+    ">
 
     <!-- ===== NAVBAR ===== -->
     <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-100 shadow-sm">
@@ -29,6 +47,8 @@
                     <span class="text-xl font-black tracking-tight text-slate-900">Food<span class="text-orange-500">Order</span></span>
                 </a>
                 <div class="flex items-center gap-4">
+                    <a href="{{ route('user.orders.index') }}" class="text-sm font-semibold text-slate-600 hover:text-orange-500 transition-colors">📦 My Orders</a>
+                    <span class="text-slate-300">|</span>
                     <a href="/" class="text-sm font-semibold text-slate-600 hover:text-orange-500 transition-colors">&larr; Back to Menu</a>
                 </div>
             </div>
@@ -37,18 +57,56 @@
 
     <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
-        <!-- Flash Success Notification -->
-        @if (session('success'))
-            <div class="mb-8 p-4 bg-green-500 text-white rounded-2xl shadow-xl shadow-green-500/20 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <span class="text-2xl">🎉</span>
-                    <div>
-                        <h3 class="font-black text-base">{{ session('success') }}</h3>
-                        <p class="text-xs text-green-100 mt-0.5">သင်၏ Order ကို လက်ခံရရှိပါပြီ။</p>
-                    </div>
+        <!-- ===== LIVE NOTIFICATION BANNER (State Dependent) ===== -->
+        <!-- 1. PENDING STATE BANNER -->
+        <div x-show="currentStatus === 'pending'" x-transition class="mb-8 p-5 bg-amber-500 text-white rounded-3xl shadow-xl shadow-amber-500/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-amber-400">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center text-2xl shrink-0 animate-bounce">
+                    ⏳
+                </div>
+                <div>
+                    <h3 class="font-black text-base">Admin ထံသို့ Notification ပေးပို့ထားပြီး ဖြစ်ပါသည်။</h3>
+                    <p class="text-xs text-amber-100 mt-0.5 leading-relaxed">Admin မှ စစ်ဆေးပြီး အတည်ပြု (Approve) လုပ်ပေးသည်နှင့် ချက်ချင်း ဤနေရာတွင် အလိုအလျောက် ပြောင်းလဲပေးပါမည်။</p>
                 </div>
             </div>
-        @endif
+            <div class="shrink-0 flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl text-xs font-bold">
+                <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
+                <span>Live Checking...</span>
+            </div>
+        </div>
+
+        <!-- 2. APPROVED / CONFIRMED BANNER -->
+        <div x-show="currentStatus === 'confirmed' || currentStatus === 'preparing'" x-transition class="mb-8 p-5 bg-emerald-600 text-white rounded-3xl shadow-xl shadow-emerald-600/20 flex items-center gap-4 border border-emerald-500">
+            <div class="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-3xl shrink-0">
+                🎉
+            </div>
+            <div>
+                <h3 class="font-black text-lg">Admin မှ သင်၏ Order ကို အတည်ပြုပေးလိုက်ပါပြီ! (Order Confirmed)</h3>
+                <p class="text-xs text-emerald-100 mt-0.5">မီးဖိုချောင်မှ သင်၏ အစားအစာများကို စတင် ပြင်ဆင်နေပါပြီ။</p>
+            </div>
+        </div>
+
+        <!-- 3. DISPATCHED / DELIVERING BANNER -->
+        <div x-show="currentStatus === 'delivering'" x-transition class="mb-8 p-5 bg-purple-600 text-white rounded-3xl shadow-xl shadow-purple-600/20 flex items-center gap-4 border border-purple-500">
+            <div class="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-3xl shrink-0">
+                🛵
+            </div>
+            <div>
+                <h3 class="font-black text-lg">Order ပို့ဆောင်နေပါပြီ! (On the Way)</h3>
+                <p class="text-xs text-purple-100 mt-0.5">Delivery Rider မှ သင့်ထံသို့ ပို့ဆောင်ရန် ထွက်ခွာနေပါပြီ။</p>
+            </div>
+        </div>
+
+        <!-- 4. COMPLETED BANNER -->
+        <div x-show="currentStatus === 'completed'" x-transition class="mb-8 p-5 bg-blue-600 text-white rounded-3xl shadow-xl shadow-blue-600/20 flex items-center gap-4 border border-blue-500">
+            <div class="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-3xl shrink-0">
+                ✅
+            </div>
+            <div>
+                <h3 class="font-black text-lg">Order ပို့ဆောင်မှု ပြီးစီးပါပြီ! (Completed)</h3>
+                <p class="text-xs text-blue-100 mt-0.5">ကျေးဇူးတင်ပါသည်။ အစားအစာများကို သုံးဆောင်ခံစားကြည့်ပါ!</p>
+            </div>
+        </div>
 
         <!-- Header Status Card -->
         <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8 mb-8">
@@ -62,22 +120,26 @@
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2">
-                    <!-- Status Badge -->
-                    <span class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider
-                        @if($order->status === 'pending') bg-amber-100 text-amber-700 border border-amber-200
-                        @elseif($order->status === 'confirmed') bg-blue-100 text-blue-700 border border-blue-200
-                        @elseif($order->status === 'completed') bg-green-100 text-green-700 border border-green-200
-                        @elseif($order->status === 'cancelled') bg-red-100 text-red-700 border border-red-200
-                        @else bg-slate-100 text-slate-700 @endif">
-                        Order Status: {{ strtoupper($order->status) }}
+                    <!-- Dynamic Status Badge -->
+                    <span class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all"
+                        :class="{
+                            'bg-amber-100 text-amber-700 border border-amber-200': currentStatus === 'pending',
+                            'bg-emerald-100 text-emerald-700 border border-emerald-200': currentStatus === 'confirmed' || currentStatus === 'preparing',
+                            'bg-purple-100 text-purple-700 border border-purple-200': currentStatus === 'delivering',
+                            'bg-blue-100 text-blue-700 border border-blue-200': currentStatus === 'completed',
+                            'bg-red-100 text-red-700 border border-red-200': currentStatus === 'cancelled'
+                        }">
+                        Order Status: <span x-text="currentStatus.toUpperCase()"></span>
                     </span>
 
-                    <!-- Payment Status Badge -->
-                    <span class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider
-                        @if($order->payment_status === 'paid') bg-green-100 text-green-700 border border-green-200
-                        @elseif($order->payment_status === 'pending_verification') bg-purple-100 text-purple-700 border border-purple-200
-                        @else bg-orange-100 text-orange-700 border border-orange-200 @endif">
-                        Payment: {{ str_replace('_', ' ', strtoupper($order->payment_status)) }}
+                    <!-- Dynamic Payment Status Badge -->
+                    <span class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all"
+                        :class="{
+                            'bg-green-100 text-green-700 border border-green-200': currentPaymentStatus === 'paid',
+                            'bg-purple-100 text-purple-700 border border-purple-200': currentPaymentStatus === 'pending_verification',
+                            'bg-orange-100 text-orange-700 border border-orange-200': currentPaymentStatus === 'unpaid'
+                        }">
+                        Payment: <span x-text="currentPaymentStatus.replace('_', ' ').toUpperCase()"></span>
                     </span>
                 </div>
             </div>
@@ -172,6 +234,9 @@
         <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
             <a href="/" class="w-full sm:w-auto px-8 py-3.5 bg-orange-500 hover:bg-orange-600 text-white font-black text-sm rounded-2xl shadow-lg shadow-orange-500/25 transition-all text-center">
                 ← မနူးစာမျက်နှာသို့ ပြန်သွားမည်
+            </a>
+            <a href="{{ route('user.orders.index') }}" class="w-full sm:w-auto px-8 py-3.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-black text-sm rounded-2xl transition-all text-center">
+                📦 ကျွန်ုပ်၏ Order များ ကြည့်မည်
             </a>
         </div>
 

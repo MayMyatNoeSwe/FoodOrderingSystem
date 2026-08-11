@@ -90,6 +90,17 @@ Route::middleware('auth')->prefix('user')->name('user.')->group(function () {
         return view('user.orders.index', compact('orders'));
     })->name('orders.index');
 
+    // Order Status JSON endpoint for real-time polling
+    Route::get('/orders/{order}/json-status', function (Order $order) {
+        if ($order->user_id !== Auth::id() && (!Auth::user()->isAdmin())) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+        return response()->json([
+            'status'         => $order->status,
+            'payment_status' => $order->payment_status,
+        ]);
+    })->name('orders.json_status');
+
     // Order Detail (tracking)
     Route::get('/orders/{order}', function (Order $order) {
         if ($order->user_id !== Auth::id() && (!Auth::user()->isAdmin())) {
@@ -149,8 +160,11 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
     // Quick Action Endpoint: Accept Order
     Route::post('/orders/{order}/accept', function (Order $order) {
-        $order->update(['status' => 'preparing']);
-        return back()->with('success', "Order #{$order->order_number} Accepted & Moving to Preparation! 👨‍🍳");
+        $order->update([
+            'status' => 'confirmed',
+            'payment_status' => 'paid'
+        ]);
+        return back()->with('success', "Order #{$order->order_number} Confirmed & Accepted! 🎉");
     })->name('orders.accept');
 
     // Quick Action Endpoint: Reject Order
