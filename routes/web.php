@@ -30,11 +30,14 @@ Route::middleware('auth')->prefix('user')->name('user.')->group(function () {
     // Place order from cart
     Route::post('/orders', function (\Illuminate\Http\Request $request) {
         $request->validate([
-            'delivery_address' => 'required|string|max:500',
-            'delivery_phone'   => 'required|string|max:30',
-            'payment_method'   => 'required|in:cod,kbzpay,wavepay',
-            'cart_items'       => 'required|string',
-            'total_amount'     => 'required|numeric|min:1',
+            'delivery_address'   => 'required|string|max:500',
+            'delivery_phone'     => 'required|string|max:30',
+            'payment_method'     => 'required|in:cod,kbzpay,wavepay',
+            'cart_items'         => 'required|string',
+            'total_amount'       => 'required|numeric|min:1',
+            'payment_screenshot' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'region_type'        => 'nullable|string',
+            'delivery_township'  => 'nullable|string',
         ]);
 
         $cartItems = json_decode($request->cart_items, true);
@@ -42,16 +45,27 @@ Route::middleware('auth')->prefix('user')->name('user.')->group(function () {
             return redirect()->route('cart')->with('error', 'Your cart is empty.');
         }
 
+        $screenshotPath = null;
+        if ($request->hasFile('payment_screenshot')) {
+            $file = $request->file('payment_screenshot');
+            $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('uploads/payments'), $fileName);
+            $screenshotPath = 'uploads/payments/' . $fileName;
+        }
+
         $order = Order::create([
-            'order_number'     => 'ORD-' . strtoupper(uniqid()),
-            'user_id'          => Auth::id(),
-            'total_amount'     => $request->total_amount,
-            'delivery_fee'     => $request->delivery_fee ?? 2000,
-            'delivery_address' => $request->delivery_address,
-            'delivery_phone'   => $request->delivery_phone,
-            'payment_method'   => $request->payment_method,
-            'notes'            => $request->notes,
-            'status'           => 'pending',
+            'order_number'       => 'ORD-' . strtoupper(uniqid()),
+            'user_id'            => Auth::id(),
+            'total_amount'       => $request->total_amount,
+            'delivery_fee'       => $request->delivery_fee ?? 0,
+            'delivery_address'   => $request->delivery_address,
+            'region_type'        => $request->region_type ?? 'yangon',
+            'delivery_township'  => $request->delivery_township,
+            'delivery_phone'     => $request->delivery_phone,
+            'payment_method'     => $request->payment_method,
+            'payment_screenshot' => $screenshotPath,
+            'notes'              => $request->notes,
+            'status'             => 'pending',
         ]);
 
         foreach ($cartItems as $cartItem) {
@@ -70,9 +84,15 @@ Route::middleware('auth')->prefix('user')->name('user.')->group(function () {
             ->with('success', "Order #{$order->order_number} placed successfully! 🎉");
     })->name('orders.store');
 
+    // User Orders History List (My Orders)
+    Route::get('/orders', function () {
+        $orders = Order::where('user_id', Auth::id())->with('orderItems')->latest()->get();
+        return view('user.orders.index', compact('orders'));
+    })->name('orders.index');
+
     // Order Detail (tracking)
     Route::get('/orders/{order}', function (Order $order) {
-        if ($order->user_id !== Auth::id()) {
+        if ($order->user_id !== Auth::id() && (!Auth::user()->isAdmin())) {
             abort(403);
         }
         $order->load('orderItems.menuItem');

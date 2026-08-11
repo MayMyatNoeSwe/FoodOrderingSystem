@@ -17,10 +17,13 @@ class Order extends Model
         'total_amount',
         'delivery_fee',
         'delivery_address',
+        'delivery_township',
+        'region_type',
         'delivery_phone',
         'status',
         'payment_method',
         'payment_status',
+        'payment_screenshot',
         'notes'
     ];
     public function user() :BelongsTo{
@@ -47,9 +50,10 @@ class Order extends Model
         static::saving(function (Order $order) {
             if (isset($order->payment_method)) {
                 if ($order->payment_method === 'cod') {
-                    $order->payment_status = 'unpaid';
+                    $order->payment_status = 'unpaid'; // Pay on delivery
                 } elseif (in_array($order->payment_method, ['kbzpay', 'wavepay'])) {
-                    $order->payment_status = 'paid';
+                    // Needs admin to verify screenshot before confirming
+                    $order->payment_status = 'pending_verification';
                 }
             }
         });
