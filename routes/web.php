@@ -14,11 +14,73 @@ use Illuminate\Support\Facades\Route;
 
 // Customer Frontstore Index (Home Page)
 Route::get('/', function () {
-    $categories = Category::withCount('menuItems')->get();
+    $categories = Category::withCount('menuItems')->with('menuItems')->get();
     $menuItems = MenuItem::with('category')->where('is_available', true)->get();
 
     return view('welcome', compact('categories', 'menuItems'));
 })->name('home');
+
+// Cart Page
+Route::get('/cart', function () {
+    return view('cart');
+})->name('cart');
+
+// User Order Routes (auth required)
+Route::middleware('auth')->prefix('user')->name('user.')->group(function () {
+    // Place order from cart
+    Route::post('/orders', function (\Illuminate\Http\Request $request) {
+        $request->validate([
+            'delivery_address' => 'required|string|max:500',
+            'delivery_phone'   => 'required|string|max:30',
+            'payment_method'   => 'required|in:cod,kbzpay,wavepay',
+            'cart_items'       => 'required|string',
+            'total_amount'     => 'required|numeric|min:1',
+        ]);
+
+        $cartItems = json_decode($request->cart_items, true);
+        if (empty($cartItems)) {
+            return redirect()->route('cart')->with('error', 'Your cart is empty.');
+        }
+
+        $order = Order::create([
+            'order_number'     => 'ORD-' . strtoupper(uniqid()),
+            'user_id'          => Auth::id(),
+            'total_amount'     => $request->total_amount,
+            'delivery_fee'     => $request->delivery_fee ?? 2000,
+            'delivery_address' => $request->delivery_address,
+            'delivery_phone'   => $request->delivery_phone,
+            'payment_method'   => $request->payment_method,
+            'notes'            => $request->notes,
+            'status'           => 'pending',
+        ]);
+
+        foreach ($cartItems as $cartItem) {
+            $menuItem = MenuItem::find($cartItem['id']);
+            if ($menuItem) {
+                $order->orderItems()->create([
+                    'menu_item_id' => $menuItem->id,
+                    'quantity'     => $cartItem['qty'],
+                    'unit_price'   => $menuItem->price,
+                    'subtotal'     => $menuItem->price * $cartItem['qty'],
+                ]);
+            }
+        }
+
+        return redirect()->route('user.orders.show', $order)
+            ->with('success', "Order #{$order->order_number} placed successfully! 🎉");
+    })->name('orders.store');
+
+    // Order Detail (tracking)
+    Route::get('/orders/{order}', function (Order $order) {
+        if ($order->user_id !== Auth::id()) {
+            abort(403);
+        }
+        $order->load('orderItems.menuItem');
+        return view('user.orders.show', compact('order'));
+    })->name('orders.show');
+});
+
+
 
 // Admin Protected Routes Group
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {

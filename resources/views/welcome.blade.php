@@ -14,7 +14,22 @@
     <!-- Scripts & Styles -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="font-sans antialiased text-slate-800 bg-slate-50 selection:bg-orange-500 selection:text-white">
+<body x-data="{
+    activeCategory: '{{ $categories->first()?->slug ?? '' }}',
+    cartCount: JSON.parse(localStorage.getItem('foodorder_cart') || '[]').reduce((s,i) => s + i.qty, 0),
+    toastVisible: false,
+    toastName: '',
+    addToCart(item) {
+        const cart = JSON.parse(localStorage.getItem('foodorder_cart') || '[]');
+        const existing = cart.find(i => i.id === item.id);
+        if (existing) { existing.qty++; } else { cart.push({ ...item, qty: 1 }); }
+        localStorage.setItem('foodorder_cart', JSON.stringify(cart));
+        this.cartCount = cart.reduce((s,i) => s + i.qty, 0);
+        this.toastName = item.name;
+        this.toastVisible = true;
+        setTimeout(() => { this.toastVisible = false; }, 2500);
+    }
+}" class="font-sans antialiased text-slate-800 bg-white selection:bg-orange-500 selection:text-white">
 
     <!-- 60% Dominant Base Container -->
     <div class="min-h-screen flex flex-col justify-between">
@@ -45,15 +60,20 @@
                     <!-- Header Actions -->
                     <div class="flex items-center space-x-4">
                         <!-- Shopping Cart Button -->
-                        <button class="relative p-2.5 bg-slate-100 hover:bg-orange-50 text-slate-700 hover:text-orange-600 rounded-xl transition-all duration-200 cursor-pointer">
+                        <a href="{{ route('cart') }}" class="relative p-2.5 bg-slate-100 hover:bg-orange-50 text-slate-700 hover:text-orange-600 rounded-xl transition-all duration-200 cursor-pointer inline-flex items-center justify-center">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
                             </svg>
                             <!-- Cart Item Count Badge -->
-                            <span class="absolute -top-1 -right-1 bg-orange-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-md">
-                                3
+                            <span
+                                x-show="cartCount > 0"
+                                x-text="cartCount"
+                                x-transition:enter="transition ease-out duration-200"
+                                x-transition:enter-start="opacity-0 scale-50"
+                                x-transition:enter-end="opacity-100 scale-100"
+                                class="absolute -top-1.5 -right-1.5 bg-orange-500 text-white text-xs font-black min-w-[20px] h-5 px-1 rounded-full flex items-center justify-center shadow-md">
                             </span>
-                        </button>
+                        </a>
 
                         @if (Route::has('login'))
                             @auth
@@ -126,7 +146,7 @@
         </header>
 
         <!-- ================= HERO SECTION ================= -->
-        <section id="hero" class="relative py-12 lg:py-20 bg-gradient-to-b from-orange-50/60 via-white to-slate-50 overflow-hidden">
+        <section id="hero" class="relative py-12 lg:py-20 bg-white overflow-hidden">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
                     
@@ -224,27 +244,16 @@
                 </div>
             </div>
          <!-- ================= CATEGORIES SECTION ================= -->
-        <section id="categories" class="py-16 bg-white">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                
-                <div class="text-center max-w-xl mx-auto mb-10">
-                    <h2 class="text-3xl font-extrabold text-slate-900">Explore Food Categories</h2>
-                    <p class="mt-2 text-slate-600 text-sm">Select a category to filter your favorite dish options in real-time</p>
+        <section id="categories" class="py-8 bg-white">
+            <div class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+
+                <div class="flex items-center gap-3 mb-6">
+                    <span class="text-orange-500 text-xs font-black tracking-widest uppercase">Browse By</span>
+                    <div class="flex-1 h-px bg-slate-100"></div>
                 </div>
 
-                <!-- Dynamic Category Cards Grid -->
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
-                    
-                    <!-- All Items Button -->
-                    <div @click="activeCategory = 'all'" 
-                         :class="activeCategory === 'all' ? 'bg-orange-500 text-white border-orange-500 shadow-lg shadow-orange-500/25 scale-105' : 'bg-slate-50 hover:bg-orange-50 text-slate-800 border-slate-100 hover:border-orange-200'"
-                         class="border rounded-3xl p-4 text-center cursor-pointer transition-all duration-300 shadow-sm group flex flex-col items-center justify-center min-h-[140px]">
-                        <div class="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-3xl mb-2">
-                            🍽️
-                        </div>
-                        <div class="font-bold text-sm sm:text-base">All Items</div>
-                        <div class="text-xs opacity-80 mt-1">{{ count($menuItems) }} Total Dishes</div>
-                    </div>
+                <!-- Horizontal Pill Tabs -->
+                <div class="flex flex-wrap gap-3 justify-center">
 
                     @foreach($categories as $category)
                         @php
@@ -257,17 +266,25 @@
                             elseif(str_contains(strtolower($category->name), 'dessert')) { $icon = '🍰'; }
                         @endphp
 
-                        <div @click="activeCategory = '{{ $category->slug }}'" 
-                             :class="activeCategory === '{{ $category->slug }}' ? 'bg-orange-500 text-white border-orange-500 shadow-lg shadow-orange-500/25 scale-105' : 'bg-slate-50 hover:bg-orange-50 text-slate-800 border-slate-100 hover:border-orange-200'"
-                             class="border rounded-3xl p-4 text-center cursor-pointer transition-all duration-300 shadow-sm group">
-                            <div class="relative w-20 h-20 mx-auto mb-3 rounded-2xl overflow-hidden shadow-md">
-                                <img src="{{ $img }}" alt="{{ $category->name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                        <button
+                            @click="activeCategory = '{{ $category->slug }}'"
+                            :class="activeCategory === '{{ $category->slug }}'
+                                ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30 scale-105'
+                                : 'bg-slate-100 text-slate-700 hover:bg-orange-50 hover:text-orange-600'"
+                            class="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl font-semibold text-sm cursor-pointer transition-all duration-200 border border-transparent"
+                        >
+                            <!-- Tiny circular image -->
+                            <div class="w-8 h-8 rounded-full overflow-hidden shrink-0 ring-2"
+                                 :class="activeCategory === '{{ $category->slug }}' ? 'ring-white/40' : 'ring-slate-200'">
+                                <img src="{{ $img }}" alt="{{ $category->name }}" class="w-full h-full object-cover">
                             </div>
-                            <div class="font-bold text-sm sm:text-base flex items-center justify-center gap-1">
-                                <span>{{ $icon }} {{ $category->name }}</span>
-                            </div>
-                            <div class="text-xs opacity-80 mt-1">{{ $category->menu_items_count }} Choice Items</div>
-                        </div>
+                            <span>{{ $icon }} {{ $category->name }}</span>
+                            <span
+                                :class="activeCategory === '{{ $category->slug }}' ? 'bg-white/25 text-white' : 'bg-slate-200 text-slate-500'"
+                                class="text-xs font-bold px-2 py-0.5 rounded-full">
+                                {{ $category->menu_items_count }}
+                            </span>
+                        </button>
                     @endforeach
 
                 </div>
@@ -276,8 +293,8 @@
         </section>
 
         <!-- ================= POPULAR MENU SECTION ================= -->
-        <section id="menu" class="py-16 bg-slate-50">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section id="menu" class="py-16 bg-white">
+            <div class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
                 
                 <div class="flex flex-col md:flex-row md:items-end justify-between mb-12">
                     <div>
@@ -290,7 +307,7 @@
                 </div>
 
                 <!-- Dynamic Menu Cards Grid -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
                     @forelse($menuItems as $item)
                         @php
@@ -304,13 +321,13 @@
                             elseif(str_contains(strtolower($catName), 'dessert')) { $icon = '🍰'; }
                         @endphp
 
-                        <div x-show="activeCategory === 'all' || activeCategory === '{{ $catSlug }}'"
+                        <div x-show="activeCategory === '{{ $catSlug }}'"
                              x-transition:enter="transition ease-out duration-300"
                              x-transition:enter-start="opacity-0 transform scale-95"
                              x-transition:enter-end="opacity-100 transform scale-100"
                              class="bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-md hover:shadow-xl transition-all duration-300 group flex flex-col justify-between">
                             <div>
-                                <div class="relative h-56 overflow-hidden bg-slate-100">
+                                <div class="relative h-46 overflow-hidden bg-slate-100">
                                     <img src="{{ $item->image_url }}" alt="{{ $item->name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                                     <span class="absolute top-4 left-4 bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
                                         {{ $icon }} {{ $catName }}
@@ -319,30 +336,32 @@
                                         ⭐ 4.9
                                     </span>
                                 </div>
-                                <div class="p-6">
+                                <div class="p-3">
                                     <div class="flex items-center justify-between text-xs text-slate-500 font-semibold mb-1">
                                         <span>Available Now</span>
                                         <span>⏱️ 20 min</span>
                                     </div>
-                                    <h3 class="text-xl font-bold text-slate-900 group-hover:text-orange-600 transition-colors">{{ $item->name }}</h3>
-                                    <p class="text-slate-500 text-xs mt-2 line-clamp-2 leading-relaxed">{{ $item->description }}</p>
+                                    <h3 class="text-base font-bold text-slate-900 group-hover:text-orange-600 transition-colors">{{ $item->name }}</h3>
+                                    <p class="text-slate-500 text-xs mt-1 line-clamp-1 leading-relaxed">{{ $item->description }}</p>
                                 </div>
                             </div>
-                            <div class="p-6 pt-0 flex items-center justify-between border-t border-slate-50 mt-4">
+                            <div class="p-3 pt-0 flex items-center justify-between border-t border-slate-50 mt-2">
                                 <div>
                                     <span class="text-xs text-slate-400 font-medium block">Price</span>
-                                    <span class="text-2xl font-black text-slate-900">{{ number_format($item->price) }} MMK</span>
+                                    <span class="text-base font-black text-slate-900">{{ number_format($item->price) }} MMK</span>
                                 </div>
-                                <button @click="cartCount++" class="px-4 py-2.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-orange-500/25 flex items-center gap-2 transition-all cursor-pointer">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <button
+                                    @click="addToCart({{ json_encode(['id' => $item->id, 'name' => $item->name, 'price' => $item->price, 'image' => $item->image_url, 'category' => $catName]) }}); window.location.href='{{ route('cart') }}';"
+                                    class="px-3 py-2 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-orange-500/25 flex items-center gap-1.5 transition-all cursor-pointer">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                                     </svg>
-                                    <span>Add to Cart</span>
+                                    <span>Cart</span>
                                 </button>
                             </div>
                         </div>
                     @empty
-                        <div class="col-span-3 text-center py-12 bg-white rounded-3xl border border-slate-100">
+                        <div class="col-span-4 text-center py-12 bg-white rounded-3xl border border-slate-100">
                             <p class="text-slate-500 font-medium">No menu items found in database.</p>
                         </div>
                     @endforelse
@@ -448,5 +467,26 @@
 
     </div>
 
+
+<!-- ===== ADD TO CART TOAST ===== -->
+<div
+    x-show="toastVisible"
+    x-transition:enter="transition ease-out duration-300"
+    x-transition:enter-start="opacity-0 translate-y-4 scale-95"
+    x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+    x-transition:leave="transition ease-in duration-200"
+    x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+    x-transition:leave-end="opacity-0 translate-y-4 scale-95"
+    class="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-slate-700 max-w-xs"
+    style="display:none;">
+    <div class="w-8 h-8 bg-orange-500 rounded-xl flex items-center justify-center shrink-0 text-sm">🛒</div>
+    <div class="flex-1 min-w-0">
+        <p class="text-xs text-slate-400 font-medium">Added to cart!</p>
+        <p class="text-sm font-bold truncate" x-text="toastName"></p>
+    </div>
+    <a href="{{ route('cart') }}" class="text-xs font-bold text-orange-400 hover:text-orange-300 shrink-0 transition-colors">View →</a>
+</div>
+
 </body>
+
 </html>
