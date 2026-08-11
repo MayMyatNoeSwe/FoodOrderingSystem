@@ -92,63 +92,76 @@
                     </div>
                 </template>
 
-                <!-- ===== LOCATION SELECTION ===== -->
+                <!-- ===== LOCATION SELECTION (YANGON ONLY) ===== -->
                 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4">
-                    <h3 class="text-base font-black text-slate-900 flex items-center gap-2">📍 Delivery ဒေသ နှင့် မြို့နယ် ရွေးချယ်ပါ</h3>
-
-                    <!-- Region Select -->
-                    <div>
-                        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2">တိုင်းဒေသကြီး / ပြည်နယ် <span class="text-red-400">*</span></label>
-                        <select x-model="selectedRegion" @change="onRegionChange()"
-                            class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none transition-all bg-white font-semibold">
-                            <option value="">-- တိုင်းဒေသကြီး / ပြည်နယ် ရွေးချယ်ပါ --</option>
-                            <option value="Yangon">🏙️ ရန်ကုန်တိုင်းဒေသကြီး (Yangon Region)</option>
-                            <option value="Sagaing">🌾 စစ်ကိုင်းတိုင်းဒေသကြီး (Sagaing Region)</option>
-                            <option value="Mandalay">🏰 မန္တလေးတိုင်းဒေသကြီး (Mandalay Region)</option>
-                            <option value="Naypyitaw">🏛️ နေပြည်တော် (Naypyitaw)</option>
-                            <option value="Bago">🌳 ပဲခူးတိုင်းဒေသကြီး (Bago Region)</option>
-                            <option value="Magway">☀️ မကွေးတိုင်းဒေသကြီး (Magway Region)</option>
-                            <option value="Ayeyarwady">🌾 ဧရာဝတီတိုင်းဒေသကြီး (Ayeyarwady Region)</option>
-                            <option value="Shan">⛰️ ရှမ်းပြည်နယ် (Shan State)</option>
-                            <option value="Mon">🌊 မွန်ပြည်နယ် (Mon State)</option>
-                            <option value="Kayin">⛰️ ကရင်ပြည်နယ် (Kayin State)</option>
-                            <option value="Rakhine">🏖️ ရခိုင်ပြည်နယ် (Rakhine State)</option>
-                            <option value="Kachin">🏔️ ကချင်ပြည်နယ် (Kachin State)</option>
-                            <option value="Tanintharyi">🏝️ တနင်္သာရီတိုင်းဒေသကြီး (Tanintharyi Region)</option>
-                            <option value="Kayah">⛰️ ကယားပြည်နယ် (Kayah State)</option>
-                            <option value="Chin">🏔️ ချင်းပြည်နယ် (Chin State)</option>
-                        </select>
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-base font-black text-slate-900 flex items-center gap-2">📍 Delivery မြို့နယ် ရွေးချယ်ပါ</h3>
+                        <span class="text-xs font-bold px-3 py-1 bg-green-100 text-green-700 rounded-full">Yangon Region Only</span>
                     </div>
 
-                    <!-- Township Select (Populated dynamically) -->
-                    <div x-show="selectedRegion" x-transition>
-                        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2">မြို့ / မြို့နယ် <span class="text-red-400">*</span></label>
+                    <!-- Fresh Food Notice -->
+                    <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-3">
+                        <span class="text-xl shrink-0">🥗</span>
+                        <p class="text-xs text-emerald-800 font-semibold leading-relaxed">
+                            မလတ်ဆတ် အမြန်ပုတ်သိုးလွယ်သော လတ်ဆတ်ဆတ် အစားအစာများ ဖြစ်ပါသောကြောင့် <strong class="font-black text-emerald-950">ရန်ကုန်တိုင်းဒေသကြီး မြို့နယ်များသို့သာ</strong> ပို့ဆောင်ပေးပါသည်။
+                        </p>
+                    </div>
+
+                    <!-- Yangon Township Select -->
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2">ရန်ကုန်မြို့နယ် <span class="text-red-400">*</span></label>
                         <select x-model="selectedTownship" @change="onTownshipChange()"
                             class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none transition-all bg-white font-medium">
                             <option value="">-- မြို့နယ် ရွေးချယ်ပါ --</option>
-                            <template x-for="ts in availableTownships" :key="ts.name">
-                                <option :value="ts.name" x-text="ts.name + ' (' + formatPrice(ts.fee) + ' MMK)'"></option>
-                            </template>
+                            <optgroup label="── Zone 1 ── 2,000 MMK (မြို့ပြလယ်)">
+                                <option value="Kyauktada">ကျောက်တံတား (Kyauktada)</option>
+                                <option value="Pabedan">ပန်းဘဲတန်း (Pabedan)</option>
+                                <option value="Lanmadaw">လမ်းမတော် (Lanmadaw)</option>
+                                <option value="Latha">လသာ (Latha)</option>
+                                <option value="Botahtaung">ဗိုလ်တထောင် (Botahtaung)</option>
+                                <option value="Pazundaung">ပုဇွန်တောင် (Pazundaung)</option>
+                                <option value="Mingalar Taung Nyunt">မင်္ဂလာတောင်ညွှန့် (Mingalar Taung Nyunt)</option>
+                                <option value="Ahlone">အလုံ (Ahlone)</option>
+                            </optgroup>
+                            <optgroup label="── Zone 2 ── 3,000 MMK (မြို့အလယ်)">
+                                <option value="Kamaryut">ကမာရွတ် (Kamaryut)</option>
+                                <option value="Bahan">ဗဟန်း (Bahan)</option>
+                                <option value="Tamwe">တာမွေ (Tamwe)</option>
+                                <option value="Dagon">ဒဂုံ (Dagon)</option>
+                                <option value="Yankin">ရန်ကင်း (Yankin)</option>
+                                <option value="Sanchaung">စမ်းချောင်း (Sanchaung)</option>
+                                <option value="Hlaing">လှိုင် (Hlaing)</option>
+                                <option value="Mayangone">မရမ်းကုန်း (Mayangone)</option>
+                                <option value="Insein">အင်းစိန် (Insein)</option>
+                                <option value="Thaketa">သာကေတ (Thaketa)</option>
+                                <option value="Thingangyun">သင်္ဃန်းကျွန်း (Thingangyun)</option>
+                            </optgroup>
+                            <optgroup label="── Zone 3 ── 5,000 MMK (မြို့ပြင်)">
+                                <option value="Shwepyithar">ရွှေပြည်သာ (Shwepyithar)</option>
+                                <option value="Hlaingtharyar">လှိုင်သာယာ (Hlaingtharyar)</option>
+                                <option value="North Okkalapa">မြောက်ဥက္ကလာပ (North Okkalapa)</option>
+                                <option value="South Okkalapa">တောင်ဥက္ကလာပ (South Okkalapa)</option>
+                                <option value="East Dagon">အရှေ့ဒဂုံ (East Dagon)</option>
+                                <option value="North Dagon">မြောက်ဒဂုံ (North Dagon)</option>
+                                <option value="South Dagon">တောင်ဒဂုံ (South Dagon)</option>
+                                <option value="Dagon Seikkan">ဒဂုံဆိပ်ကမ်း (Dagon Seikkan)</option>
+                            </optgroup>
+                            <optgroup label="── Zone 4 ── 7,000 MMK (ဝေးသောမြို့နယ်)">
+                                <option value="Dala">ဒလ (Dala)</option>
+                                <option value="Twante">တွံတေး (Twante)</option>
+                                <option value="Cocogyun">ကိုကိုးကျွန်း (Cocogyun) — 10,000 MMK</option>
+                            </optgroup>
                         </select>
                     </div>
 
-                    <!-- Delivery Fee & Zone Badge -->
+                    <!-- Delivery Fee Badge -->
                     <div x-show="selectedTownship && deliveryFee > 0" x-transition class="mt-3 flex items-center gap-4 p-4 bg-orange-50 rounded-xl border border-orange-100">
                         <span class="text-3xl">🛵</span>
                         <div>
                             <p class="text-xs text-orange-700 font-bold uppercase tracking-wide">Delivery Fee</p>
                             <p class="text-2xl font-black text-orange-500"><span x-text="formatPrice(deliveryFee)"></span> <span class="text-base">MMK</span></p>
                         </div>
-                        <span class="ml-auto text-xs font-black px-3 py-1.5 rounded-full bg-orange-100 text-orange-700"
-                            x-text="selectedRegion === 'Yangon' ? 'Yangon Delivery' : selectedRegion + ' Region/State'"></span>
-                    </div>
-
-                    <!-- Outside Yangon Notice -->
-                    <div x-show="selectedRegion && selectedRegion !== 'Yangon'" x-transition class="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-3">
-                        <span class="text-xl shrink-0">⚠️</span>
-                        <p class="text-xs font-bold text-amber-800">
-                            ရန်ကုန်ပြင်ပ Order များ — KBZPay သို့မဟုတ် WavePay (Prepaid) ဖြင့်သာ လက်ခံပါမည်။
-                        </p>
+                        <span class="ml-auto text-xs font-black px-3 py-1.5 rounded-full bg-orange-100 text-orange-700" x-text="getZoneLabel()"></span>
                     </div>
                 </div>
 
@@ -215,136 +228,20 @@
                             class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none transition-all placeholder-slate-400">
                     </div>
 
-                    {{-- Payment Method --}}
+                    {{-- Payment Method (COD ONLY) --}}
                     <div>
                         <label class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2">
                             ငွေပေးချေနည်း <span class="text-red-400">*</span>
                         </label>
+                        <input type="hidden" name="payment_method" value="cod">
 
-                        <div class="space-y-2">
-
-                            {{-- COD — Yangon only --}}
-                            <label class="cursor-pointer block" x-show="selectedRegion === 'Yangon'">
-                                <input type="radio" name="payment_method" value="cod" x-model="paymentMethod" class="peer sr-only">
-                                <div class="peer-checked:bg-green-600 peer-checked:text-white peer-checked:border-green-600 border-2 border-slate-200 rounded-xl p-3 flex items-center gap-3 hover:border-green-300 transition-all">
-                                    <span class="text-xl shrink-0">💵</span>
-                                    <div>
-                                        <p class="font-bold text-sm">Cash on Delivery (COD)</p>
-                                        <p class="text-xs opacity-70">ပစ္စည်းရောက်မှ ငွေချေမည် — QR မလို</p>
-                                    </div>
-                                </div>
-                            </label>
-
-                            {{-- KBZPay --}}
-                            <label class="cursor-pointer block">
-                                <input type="radio" name="payment_method" value="kbzpay" x-model="paymentMethod" class="peer sr-only">
-                                <div class="peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-600 border-2 border-slate-200 rounded-xl p-3 flex items-center gap-3 hover:border-blue-300 transition-all">
-                                    <span class="text-xl shrink-0">🏦</span>
-                                    <div>
-                                        <p class="font-bold text-sm">KBZPay</p>
-                                        <p class="text-xs opacity-70">ကြိုတင်ငွေချေ — QR ဖြင့် ပေးချေ + Screenshot တင်ရမည်</p>
-                                    </div>
-                                </div>
-                            </label>
-
-                            {{-- WavePay --}}
-                            <label class="cursor-pointer block">
-                                <input type="radio" name="payment_method" value="wavepay" x-model="paymentMethod" class="peer sr-only">
-                                <div class="peer-checked:bg-yellow-400 peer-checked:text-slate-900 peer-checked:border-yellow-400 border-2 border-slate-200 rounded-xl p-3 flex items-center gap-3 hover:border-yellow-300 transition-all">
-                                    <span class="text-xl shrink-0">🌊</span>
-                                    <div>
-                                        <p class="font-bold text-sm">WavePay</p>
-                                        <p class="text-xs opacity-70">ကြိုတင်ငွေချေ — QR ဖြင့် ပေးချေ + Screenshot တင်ရမည်</p>
-                                    </div>
-                                </div>
-                            </label>
-                        </div>
-
-                        {{-- ===== KBZPay QR Panel ===== --}}
-                        <div x-show="paymentMethod === 'kbzpay'" x-transition class="mt-4 rounded-2xl overflow-hidden border border-blue-200">
-                            <div class="bg-blue-600 px-4 py-3 text-center">
-                                <p class="text-white font-black text-sm">KBZ Pay ဖြင့် ငွေပေးချေပါ</p>
+                        <div class="bg-green-50 border-2 border-green-500 rounded-xl p-4 flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-green-500 text-white flex items-center justify-center text-2xl shadow-md shrink-0">
+                                💵
                             </div>
-                            <div class="p-4 bg-blue-50 flex flex-col items-center gap-3">
-                                {{-- QR Code Image --}}
-                                <div class="bg-white p-3 rounded-2xl shadow-lg border-4 border-blue-200">
-                                    <img src="/images/kbzpay_qr.jpg"
-                                         alt="KBZPay QR Code"
-                                         class="w-48 h-48 object-contain"
-                                         onerror="this.parentElement.innerHTML='<div class=\'w-48 h-48 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 text-xs font-bold text-center p-4\'>KBZPay QR<br><br>public/images/<br>kbzpay_qr.jpg<br>ထည့်ပါ</div>'">
-                                </div>
-                                <div class="text-center">
-                                    <p class="font-black text-blue-900 text-sm">DAW MAY MYAT NOE SWE</p>
-                                    <p class="text-blue-700 text-xs font-semibold">09457549229</p>
-                                    <div class="mt-2 bg-blue-600 text-white font-black text-base px-4 py-2 rounded-xl inline-block">
-                                        <span x-text="formatPrice(total())"></span> MMK
-                                    </div>
-                                </div>
-
-                                {{-- Instructions --}}
-                                <div class="w-full bg-white border border-blue-100 rounded-xl p-3">
-                                    <p class="text-xs font-bold text-blue-800 mb-2">📱 ငွေပေးချေနည်း</p>
-                                    <ol class="text-xs text-blue-700 space-y-1 list-decimal list-inside leading-relaxed">
-                                        <li>KBZPay App ဖွင့်ပါ</li>
-                                        <li>QR Scanner နှိပ်ပြီး QR ကို စကင်ဖတ်ပါ</li>
-                                        <li>Amount: <span class="font-black" x-text="formatPrice(total()) + ' MMK'"></span> ထည့်ပါ</li>
-                                        <li>ငွေပေးချေပြီးနောက် Screenshot ရိုက်ပါ</li>
-                                        <li>အောက်တွင် Screenshot တင်ပါ ✅</li>
-                                    </ol>
-                                </div>
-
-                                {{-- Screenshot Upload --}}
-                                <div class="w-full">
-                                    <label class="text-xs font-bold text-blue-800 block mb-1.5">
-                                        ငွေချေပြီးကြောင်း Screenshot တင်ပါ <span class="text-red-500">*</span>
-                                    </label>
-                                    <input type="file" name="payment_screenshot" id="kbz_screenshot" accept="image/*"
-                                        class="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white file:font-bold file:cursor-pointer hover:file:bg-blue-700 border-2 border-dashed border-blue-300 rounded-xl p-2 bg-white cursor-pointer">
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- ===== WavePay QR Panel ===== --}}
-                        <div x-show="paymentMethod === 'wavepay'" x-transition class="mt-4 rounded-2xl overflow-hidden border border-yellow-300">
-                            <div class="bg-yellow-400 px-4 py-3 text-center">
-                                <p class="text-slate-900 font-black text-sm">WavePay ဖြင့် ငွေပေးချေပါ</p>
-                            </div>
-                            <div class="p-4 bg-yellow-50 flex flex-col items-center gap-3">
-                                {{-- QR Code Image --}}
-                                <div class="bg-yellow-300 p-3 rounded-2xl shadow-lg border-4 border-yellow-300">
-                                    <img src="/images/wavepay_qr.jpg"
-                                         alt="WavePay QR Code"
-                                         class="w-48 h-48 object-contain bg-white rounded-xl"
-                                         onerror="this.parentElement.innerHTML='<div class=\'w-48 h-48 bg-yellow-100 rounded-xl flex items-center justify-center text-yellow-700 text-xs font-bold text-center p-4\'>WavePay QR<br><br>public/images/<br>wavepay_qr.jpg<br>ထည့်ပါ</div>'">
-                                </div>
-                                <div class="text-center">
-                                    <p class="font-black text-slate-900 text-sm">May Myat Noe Swe</p>
-                                    <p class="text-yellow-700 text-xs font-semibold">09457549229</p>
-                                    <div class="mt-2 bg-yellow-400 text-slate-900 font-black text-base px-4 py-2 rounded-xl inline-block">
-                                        <span x-text="formatPrice(total())"></span> MMK
-                                    </div>
-                                </div>
-
-                                {{-- Instructions --}}
-                                <div class="w-full bg-white border border-yellow-200 rounded-xl p-3">
-                                    <p class="text-xs font-bold text-yellow-800 mb-2">📱 ငွေပေးချေနည်း</p>
-                                    <ol class="text-xs text-yellow-700 space-y-1 list-decimal list-inside leading-relaxed">
-                                        <li>WavePay App ဖွင့်ပါ</li>
-                                        <li>QR Code ကို စကင်ဖတ်ပါ</li>
-                                        <li>Amount: <span class="font-black" x-text="formatPrice(total()) + ' MMK'"></span> ထည့်ပါ</li>
-                                        <li>ငွေပေးချေပြီးနောက် Screenshot ရိုက်ပါ</li>
-                                        <li>အောက်တွင် Screenshot တင်ပါ ✅</li>
-                                    </ol>
-                                </div>
-
-                                {{-- Screenshot Upload --}}
-                                <div class="w-full">
-                                    <label class="text-xs font-bold text-yellow-800 block mb-1.5">
-                                        ငွေချေပြီးကြောင်း Screenshot တင်ပါ <span class="text-red-500">*</span>
-                                    </label>
-                                    <input type="file" name="payment_screenshot" id="wave_screenshot" accept="image/*"
-                                        class="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-yellow-500 file:text-white file:font-bold file:cursor-pointer hover:file:bg-yellow-600 border-2 border-dashed border-yellow-300 rounded-xl p-2 bg-white cursor-pointer">
-                                </div>
+                            <div>
+                                <h4 class="font-black text-slate-900 text-sm">Cash on Delivery (COD)</h4>
+                                <p class="text-xs text-green-700 font-semibold mt-0.5">ပစ္စည်းရောက်မှ ရွှေငွေ/လက်ငင်း ပေးချေပါ — QR/ကြိုတင်ငွေပေးရန် မလိုပါ</p>
                             </div>
                         </div>
                     </div>
@@ -393,145 +290,21 @@
 
 <script>
 function cartApp() {
-    const townshipsData = {
-        'Yangon': [
-            { name: 'ကျောက်တံတား (Kyauktada)', fee: 2000 },
-            { name: 'ပန်းဘဲတန်း (Pabedan)', fee: 2000 },
-            { name: 'လမ်းမတော် (Lanmadaw)', fee: 2000 },
-            { name: 'လသာ (Latha)', fee: 2000 },
-            { name: 'ဗိုလ်တထောင် (Botahtaung)', fee: 2000 },
-            { name: 'ပုဇွန်တောင် (Pazundaung)', fee: 2000 },
-            { name: 'မင်္ဂလာတောင်ညွှန့် (Mingalar Taung Nyunt)', fee: 2000 },
-            { name: 'အလုံ (Ahlone)', fee: 2000 },
-            { name: 'ကမာရွတ် (Kamaryut)', fee: 3000 },
-            { name: 'ဗဟန်း (Bahan)', fee: 3000 },
-            { name: 'တာမွေ (Tamwe)', fee: 3000 },
-            { name: 'ဒဂုံ (Dagon)', fee: 3000 },
-            { name: 'ရန်ကင်း (Yankin)', fee: 3000 },
-            { name: 'စမ်းချောင်း (Sanchaung)', fee: 3000 },
-            { name: 'လှိုင် (Hlaing)', fee: 3000 },
-            { name: 'မရမ်းကုန်း (Mayangone)', fee: 3000 },
-            { name: 'အင်းစိန် (Insein)', fee: 3000 },
-            { name: 'သာကေတ (Thaketa)', fee: 3000 },
-            { name: 'သင်္ဃန်းကျွန်း (Thingangyun)', fee: 3000 },
-            { name: 'ရွှေပြည်သာ (Shwepyithar)', fee: 5000 },
-            { name: 'လှိုင်သာယာ (Hlaingtharyar)', fee: 5000 },
-            { name: 'မြောက်ဥက္ကလာပ (North Okkalapa)', fee: 5000 },
-            { name: 'တောင်ဥက္ကလာပ (South Okkalapa)', fee: 5000 },
-            { name: 'အရှေ့ဒဂုံ (East Dagon)', fee: 5000 },
-            { name: 'မြောက်ဒဂုံ (North Dagon)', fee: 5000 },
-            { name: 'တောင်ဒဂုံ (South Dagon)', fee: 5000 },
-            { name: 'ဒဂုံဆိပ်ကမ်း (Dagon Seikkan)', fee: 5000 },
-            { name: 'ဒလ (Dala)', fee: 7000 },
-            { name: 'တွံတေး (Twante)', fee: 7000 },
-            { name: 'ကိုကိုးကျွန်း (Cocogyun)', fee: 10000 }
-        ],
-        'Sagaing': [
-            { name: 'စစ်ကိုင်း (Sagaing)', fee: 5000 },
-            { name: 'မုံရွာ (Monywa)', fee: 5500 },
-            { name: 'ရွှေဘို (Shwebo)', fee: 6000 },
-            { name: 'ကသာ (Katha)', fee: 6500 },
-            { name: 'ကလေး (Kalay)', fee: 7000 },
-            { name: 'ရေဦး (Ye-U)', fee: 6000 },
-            { name: 'ဝန်းသို (Wuntho)', fee: 6500 },
-            { name: 'တမူး (Tamu)', fee: 7500 },
-            { name: 'အင်းတော် (Indaw)', fee: 6500 },
-            { name: 'ယင်းမာပင် (Yinmabin)', fee: 6000 }
-        ],
-        'Mandalay': [
-            { name: 'ချမ်းအေးသာစံ (Chanayethazan)', fee: 4000 },
-            { name: 'မဟာအောင်မြေ (Maha Aungmye)', fee: 4000 },
-            { name: 'ပြည်ကြီးတံခွန် (Pyigyidagun)', fee: 4500 },
-            { name: 'အမရပူရ (Amarapura)', fee: 4500 },
-            { name: 'ပုသိမ်ကြီး (Patheingyi)', fee: 4500 },
-            { name: 'ပြင်ဦးလွင် (Pyin Oo Lwin)', fee: 5500 },
-            { name: 'မိတ္ထီလာ (Meiktila)', fee: 5500 },
-            { name: 'မြင်းခြံ (Myingyan)', fee: 5500 },
-            { name: 'ညောင်ဦး / ပုဂံ (Nyaung-U / Bagan)', fee: 6000 },
-            { name: 'ရမည်းသင်း (Yamethin)', fee: 6000 }
-        ],
-        'Naypyitaw': [
-            { name: 'ဇမ္ဗူသီရိ (Zabuthiri)', fee: 4000 },
-            { name: 'ဥတ္တရသီရိ (Ottarathiri)', fee: 4000 },
-            { name: 'ပုဗ္ဗသီရိ (Pobbathiri)', fee: 4000 },
-            { name: 'ဒက္ခိဏသီရိ (Dekkhinathiri)', fee: 4000 },
-            { name: 'လယ်ဝေး (Lewe)', fee: 4500 },
-            { name: 'ပျဉ်းမနား (Pyinmana)', fee: 4500 },
-            { name: 'တပ်ကုန်း (Tatkon)', fee: 5000 }
-        ],
-        'Bago': [
-            { name: 'ပဲခူး (Bago)', fee: 4500 },
-            { name: 'တောင်ငူ (Taungoo)', fee: 5500 },
-            { name: 'ပြည် (Pyay)', fee: 5500 },
-            { name: 'သာယာဝတီ (Tharrawaddy)', fee: 5000 },
-            { name: 'ညောင်လေးပင် (Nyaunglebin)', fee: 5000 }
-        ],
-        'Magway': [
-            { name: 'မကွေး (Magway)', fee: 5000 },
-            { name: 'ပခုက္ကူ (Pakokku)', fee: 5500 },
-            { name: 'ရေနံချောင်း (Yenangyaung)', fee: 5500 },
-            { name: 'မင်းဘူး (Minbu)', fee: 5500 },
-            { name: 'သရက် (Thayet)', fee: 6000 }
-        ],
-        'Ayeyarwady': [
-            { name: 'ပုသိမ် (Pathein)', fee: 5000 },
-            { name: 'ဟင်းသတ္တ (Hinthada)', fee: 5000 },
-            { name: 'မအူပင် (Maubin)', fee: 4500 },
-            { name: 'မြောင်းမြ (Myaungmya)', fee: 5500 },
-            { name: 'ဖျာပုံ (Pyapon)', fee: 5500 }
-        ],
-        'Shan': [
-            { name: 'တောင်ကြီး (Taunggyi)', fee: 5500 },
-            { name: 'လားရှိုး (Lashio)', fee: 6500 },
-            { name: 'တာချီလိတ် (Tachileik)', fee: 7500 },
-            { name: 'ကျိုင်းတုံ (Kengtung)', fee: 7500 },
-            { name: 'မူဆယ် (Muse)', fee: 7500 },
-            { name: 'ကလော (Kalaw)', fee: 5500 },
-            { name: 'ညောင်ရွှေ / အင်းလေး (Nyaungshwe)', fee: 6000 }
-        ],
-        'Mon': [
-            { name: 'မော်လမြိုင် (Mawlamyine)', fee: 5000 },
-            { name: 'သထုံ (Thaton)', fee: 4500 },
-            { name: 'မုဒုံ (Mudon)', fee: 5000 },
-            { name: 'ရေး (Ye)', fee: 6000 }
-        ],
-        'Kayin': [
-            { name: 'ဘားအံ (Hpa-An)', fee: 5000 },
-            { name: 'မြဝတီ (Myawaddy)', fee: 7000 },
-            { name: 'ကော့ကရိုက် (Kawkareik)', fee: 6500 }
-        ],
-        'Rakhine': [
-            { name: 'စစ်တွေ (Sittwe)', fee: 6500 },
-            { name: 'သံတွဲ / ငပလီ (Thandwe)', fee: 7000 },
-            { name: 'ကျောက်ဖြူ (Kyaukphyu)', fee: 7000 }
-        ],
-        'Kachin': [
-            { name: 'မြစ်ကြီးနား (Myitkyina)', fee: 6500 },
-            { name: 'ဗန်းမော် (Bhamo)', fee: 7000 },
-            { name: 'မိုးညှင်း (Mohnyin)', fee: 6500 }
-        ],
-        'Tanintharyi': [
-            { name: 'ထားဝယ် (Dawei)', fee: 6500 },
-            { name: 'မြိတ် (Myeik)', fee: 7000 },
-            { name: 'ကော့သောင်း (Kawthaung)', fee: 8000 }
-        ],
-        'Kayah': [
-            { name: 'လွိုင်ကော် (Loikaw)', fee: 6500 },
-            { name: 'ဒီးမော့ဆို (Demoso)', fee: 7000 }
-        ],
-        'Chin': [
-            { name: 'ဟာခါး (Hakha)', fee: 7500 },
-            { name: 'ဖလန်း (Falam)', fee: 7500 },
-            { name: 'မင်းတပ် (Mindat)', fee: 7500 },
-            { name: 'တီးတိန် (Tedim)', fee: 7500 }
-        ]
+    const yangonFees = {
+        'Kyauktada': 2000, 'Pabedan': 2000, 'Lanmadaw': 2000, 'Latha': 2000,
+        'Botahtaung': 2000, 'Pazundaung': 2000, 'Mingalar Taung Nyunt': 2000, 'Ahlone': 2000,
+        'Kamaryut': 3000, 'Bahan': 3000, 'Tamwe': 3000, 'Dagon': 3000,
+        'Yankin': 3000, 'Sanchaung': 3000, 'Hlaing': 3000, 'Mayangone': 3000,
+        'Insein': 3000, 'Thaketa': 3000, 'Thingangyun': 3000,
+        'Shwepyithar': 5000, 'Hlaingtharyar': 5000, 'North Okkalapa': 5000,
+        'South Okkalapa': 5000, 'East Dagon': 5000, 'North Dagon': 5000,
+        'South Dagon': 5000, 'Dagon Seikkan': 5000,
+        'Dala': 7000, 'Twante': 7000, 'Cocogyun': 10000
     };
 
     return {
         items: [],
-        selectedRegion: '',
         selectedTownship: '',
-        availableTownships: [],
         deliveryFee: 0,
         paymentMethod: 'cod',
 
@@ -573,25 +346,20 @@ function cartApp() {
             return Number(num).toLocaleString();
         },
 
-        onRegionChange() {
-            this.selectedTownship = '';
-            this.deliveryFee = 0;
-            this.availableTownships = townshipsData[this.selectedRegion] || [];
-            if (this.selectedRegion && this.selectedRegion !== 'Yangon') {
-                this.paymentMethod = 'kbzpay';
-            } else {
-                this.paymentMethod = 'cod';
-            }
+        onTownshipChange() {
+            this.deliveryFee = yangonFees[this.selectedTownship] || 0;
         },
 
-        onTownshipChange() {
-            const ts = this.availableTownships.find(t => t.name === this.selectedTownship);
-            this.deliveryFee = ts ? ts.fee : 0;
+        getZoneLabel() {
+            const fee = this.deliveryFee;
+            if (fee <= 2000) return 'Zone 1 — မြို့ပြလယ်';
+            if (fee <= 3000) return 'Zone 2 — မြို့အလယ်';
+            if (fee <= 5000) return 'Zone 3 — မြို့ပြင်';
+            return 'Zone 4 — ဝေးသောမြို့နယ်';
         },
 
         canSubmit() {
             if (this.items.length === 0) return false;
-            if (!this.selectedRegion) return false;
             if (!this.selectedTownship) return false;
             return true;
         },
@@ -599,9 +367,7 @@ function cartApp() {
         submitOrder(event) {
             if (!this.canSubmit()) {
                 event.preventDefault();
-                if (!this.selectedRegion) {
-                    alert('တိုင်းဒေသကြီး / ပြည်နယ် ရွေးချယ်ပါ!');
-                } else if (!this.selectedTownship) {
+                if (!this.selectedTownship) {
                     alert('မြို့နယ် ရွေးချယ်ပါ!');
                 }
                 return;
@@ -611,8 +377,8 @@ function cartApp() {
             document.getElementById('cart_items_input').value        = JSON.stringify(this.items);
             document.getElementById('total_amount_input').value      = this.total();
             document.getElementById('delivery_fee_input').value      = this.deliveryFee;
-            document.getElementById('region_type_input').value       = this.selectedRegion;
-            document.getElementById('delivery_township_input').value  = `${this.selectedRegion} — ${this.selectedTownship}`;
+            document.getElementById('region_type_input').value       = 'Yangon';
+            document.getElementById('delivery_township_input').value  = `Yangon — ${this.selectedTownship}`;
         }
     };
 }

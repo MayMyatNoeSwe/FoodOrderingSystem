@@ -112,6 +112,10 @@
                                             <p class="text-xs font-bold text-slate-900 truncate">{{ Auth::user()->email }}</p>
                                         </div>
                                         
+                                        <a href="{{ route('user.orders.index') }}" class="block px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-orange-50 hover:text-orange-600 transition-colors">
+                                            📦 My Orders (Order များ)
+                                        </a>
+
                                         <a href="#menu" class="block px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-orange-50 hover:text-orange-600 transition-colors">
                                             🍕 Explore Menu
                                         </a>

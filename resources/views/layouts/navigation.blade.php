@@ -44,9 +44,12 @@
                         </button>
                     </x-slot>
 
-                    <x-slot name="content">
+                        <x-dropdown-link :href="route('user.orders.index')">
+                            📦 {{ __('My Orders') }}
+                        </x-dropdown-link>
+
                         <x-dropdown-link :href="route('profile.edit')">
-                            {{ __('Profile Settings') }}
+                            ⚙️ {{ __('Profile Settings') }}
                         </x-dropdown-link>
 
                         <!-- Authentication -->
