@@ -534,9 +534,15 @@
 
                                         <!-- Orders Placed -->
                                         <td class="px-4 py-4">
-                                            <span class="px-2.5 py-1 bg-slate-950 border border-slate-800 rounded-lg text-slate-300 text-[11px] font-bold">
-                                                {{ $user->orders_count }} Orders
-                                            </span>
+                                            @if($isAdmin)
+                                                <span class="px-2.5 py-1 bg-slate-950 border border-slate-800 text-slate-500 text-[11px] font-semibold">
+                                                    — N/A (Admin)
+                                                </span>
+                                            @else
+                                                <span class="px-2.5 py-1 bg-slate-950 border border-slate-800 rounded-lg text-slate-300 text-[11px] font-bold">
+                                                    {{ $user->orders_count }} Orders
+                                                </span>
+                                            @endif
                                         </td>
 
                                         <!-- Registered Date -->
@@ -721,11 +727,11 @@
             <div class="flex items-center justify-between border-b border-slate-800 pb-4">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl bg-orange-500/10 text-orange-400 flex items-center justify-center text-lg font-bold">
-                        ✏️
+                        👑
                     </div>
                     <div>
-                        <h3 class="text-lg font-black text-white">Edit User Profile</h3>
-                        <p class="text-slate-400 text-xs">Update account information & privileges</p>
+                        <h3 class="text-lg font-black text-white">Edit User Access Role</h3>
+                        <p class="text-slate-400 text-xs">Update administrative privileges & access</p>
                     </div>
                 </div>
                 <button @click="editModalOpen = false" class="text-slate-500 hover:text-white p-1 text-lg font-bold">✕</button>
@@ -738,52 +744,29 @@
 
                 <input type="hidden" name="edit_user_id" :value="editUserId">
                 <input type="hidden" name="edit_user_url" :value="editUserUrl">
+                <input type="hidden" name="name" :value="editUserName">
+                <input type="hidden" name="email" :value="editUserEmail">
 
-                <!-- Name -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">
-                        Full Name <span class="text-orange-500">*</span>
-                    </label>
-                    <input type="text" 
-                           name="name" 
-                           x-model="editUserName"
-                           required 
-                           class="w-full bg-slate-950 border border-slate-800 focus:border-orange-500 text-slate-100 text-sm rounded-xl px-4 py-2.5 focus:ring-0 transition-all">
+                <!-- Read-Only User Info Card -->
+                <div class="p-3.5 bg-slate-950 border border-slate-800 rounded-xl flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center justify-center font-black text-sm shrink-0"
+                         x-text="editUserName ? editUserName.charAt(0).toUpperCase() : 'U'">
+                    </div>
+                    <div class="overflow-hidden">
+                        <p class="font-extrabold text-white text-sm truncate" x-text="editUserName"></p>
+                        <p class="text-xs text-slate-400 font-mono truncate" x-text="editUserEmail"></p>
+                    </div>
                 </div>
 
-                <!-- Email -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">
-                        Email Address <span class="text-orange-500">*</span>
-                    </label>
-                    <input type="email" 
-                           name="email" 
-                           x-model="editUserEmail"
-                           required 
-                           class="w-full bg-slate-950 border border-slate-800 focus:border-orange-500 text-slate-100 text-sm rounded-xl px-4 py-2.5 focus:ring-0 transition-all">
-                </div>
-
-                <!-- Role -->
+                <!-- Access Role Dropdown -->
                 <div>
                     <label class="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">
                         Access Role <span class="text-orange-500">*</span>
                     </label>
-                    <select name="role" x-model="editUserRole" required class="w-full bg-slate-950 border border-slate-800 focus:border-orange-500 text-slate-100 text-sm rounded-xl px-4 py-2.5 focus:ring-0 transition-all cursor-pointer">
+                    <select name="role" x-model="editUserRole" required class="w-full bg-slate-950 border border-slate-700 focus:border-orange-500 text-slate-100 text-sm rounded-xl px-4 py-3 focus:ring-0 transition-all cursor-pointer font-bold">
                         <option value="user">👤 Customer (Standard Buyer Access)</option>
                         <option value="admin">👑 System Administrator (Full Access)</option>
                     </select>
-                </div>
-
-                <!-- Optional Password Reset -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-300 mb-1 flex items-center justify-between">
-                        <span>New Password</span>
-                        <span class="text-slate-500 font-normal lowercase">(leave blank to keep unchanged)</span>
-                    </label>
-                    <input type="password" 
-                           name="password" 
-                           placeholder="••••••••" 
-                           class="w-full bg-slate-950 border border-slate-800 focus:border-orange-500 text-slate-100 text-sm rounded-xl px-4 py-2.5 focus:ring-0 transition-all placeholder-slate-600">
                 </div>
 
                 <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-800">
@@ -791,7 +774,7 @@
                         Cancel
                     </button>
                     <button type="submit" class="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-orange-500/25 transition-all cursor-pointer">
-                        Update User
+                        Update Role
                     </button>
                 </div>
             </form>

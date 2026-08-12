@@ -7,6 +7,15 @@
 
     <title>{{ config('app.name', 'Food Ordering System') }} - Delicious Meals Delivered Fast</title>
 
+    <!-- Theme Initialization (Prevents FOUC) -->
+    <script>
+        if (localStorage.getItem('foodorder_theme') === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet" />
@@ -15,7 +24,18 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body x-data="{
-    activeCategory: '{{ $categories->first()?->slug ?? '' }}',
+    darkMode: localStorage.getItem('foodorder_theme') === 'dark',
+    toggleTheme() {
+        this.darkMode = !this.darkMode;
+        if (this.darkMode) {
+            document.documentElement.classList.add('dark');
+            localStorage.setItem('foodorder_theme', 'dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+            localStorage.setItem('foodorder_theme', 'light');
+        }
+    },
+    activeCategory: 'all',
     cartCount: JSON.parse(localStorage.getItem('foodorder_cart') || '[]').reduce((s,i) => s + i.qty, 0),
     toastVisible: false,
     toastName: '',
@@ -29,13 +49,13 @@
         this.toastVisible = true;
         setTimeout(() => { this.toastVisible = false; }, 2500);
     }
-}" class="font-sans antialiased text-slate-800 bg-white selection:bg-orange-500 selection:text-white">
+}" class="font-sans antialiased text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-950 selection:bg-orange-500 selection:text-white transition-colors duration-300">
 
     <!-- 60% Dominant Base Container -->
     <div class="min-h-screen flex flex-col justify-between">
 
         <!-- ================= NAVBAR ================= -->
-        <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-100 shadow-sm transition-all duration-300">
+        <header class="sticky top-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 shadow-sm transition-all duration-300">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center justify-between h-20">
                     
@@ -46,21 +66,29 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
                             </svg>
                         </div>
-                        <span class="text-2xl font-black tracking-tight text-slate-900">Food<span class="text-orange-500">Order</span></span>
+                        <span class="text-2xl font-black tracking-tight text-slate-900 dark:text-white">Food<span class="text-orange-500">Order</span></span>
                     </a>
 
                     <!-- Navigation Links -->
                     <nav class="hidden md:flex items-center space-x-8 text-sm font-semibold">
                         <a href="#hero" class="text-orange-500 font-bold">Home</a>
-                        <a href="#categories" class="text-slate-600 hover:text-orange-500 transition-colors">Categories</a>
-                        <a href="#menu" class="text-slate-600 hover:text-orange-500 transition-colors">Popular Menu</a>
-                        <a href="#features" class="text-slate-600 hover:text-orange-500 transition-colors">Why Us</a>
+                        <a href="#categories" class="text-slate-600 dark:text-slate-300 hover:text-orange-500 transition-colors">Categories</a>
+                        <a href="#menu" class="text-slate-600 dark:text-slate-300 hover:text-orange-500 transition-colors">Popular Menu</a>
+                        <a href="#features" class="text-slate-600 dark:text-slate-300 hover:text-orange-500 transition-colors">Why Us</a>
                     </nav>
 
                     <!-- Header Actions -->
-                    <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-3">
+                        <!-- Theme Toggle Button -->
+                        <button @click="toggleTheme()"
+                                title="Toggle Theme"
+                                class="p-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-orange-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl transition-all duration-200 cursor-pointer inline-flex items-center justify-center border border-slate-200/60 dark:border-slate-700/60">
+                            <span x-show="!darkMode" class="text-base">🌙</span>
+                            <span x-show="darkMode" class="text-base" style="display:none;">☀️</span>
+                        </button>
+
                         <!-- Shopping Cart Button -->
-                        <a href="{{ route('cart') }}" class="relative p-2.5 bg-slate-100 hover:bg-orange-50 text-slate-700 hover:text-orange-600 rounded-xl transition-all duration-200 cursor-pointer inline-flex items-center justify-center">
+                        <a href="{{ route('cart') }}" class="relative p-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-orange-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl transition-all duration-200 cursor-pointer inline-flex items-center justify-center border border-slate-200/60 dark:border-slate-700/60">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
                             </svg>
@@ -150,7 +178,7 @@
         </header>
 
         <!-- ================= HERO SECTION ================= -->
-        <section id="hero" class="relative py-12 lg:py-20 bg-white overflow-hidden">
+        <section id="hero" class="relative py-12 lg:py-20 bg-white dark:bg-slate-950 transition-colors duration-300 overflow-hidden">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
                     
@@ -158,29 +186,29 @@
                     <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
                         
                         <!-- Promo Tag -->
-                        <div class="inline-flex items-center gap-2 px-4 py-2 bg-orange-100/80 border border-orange-200 rounded-full text-orange-700 text-xs font-bold tracking-wide uppercase shadow-sm">
+                        <div class="inline-flex items-center gap-2 px-4 py-2 bg-orange-100/80 dark:bg-orange-950/60 border border-orange-200 dark:border-orange-800/60 rounded-full text-orange-700 dark:text-orange-300 text-xs font-bold tracking-wide uppercase shadow-sm">
                             <span class="w-2 h-2 rounded-full bg-orange-500 animate-ping"></span>
                             🔥 20% OFF On First Order • Code: FIRST20
                         </div>
 
                         <!-- Main Headline -->
-                        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-none">
+                        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white tracking-tight leading-none">
                             Delicious Food <br class="hidden sm:inline" />
                             <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600">Delivered Fast</span> To Your Door
                         </h1>
 
                         <!-- Subtitle -->
-                        <p class="text-slate-600 text-base sm:text-lg max-w-xl mx-auto lg:mx-0 font-normal leading-relaxed">
+                        <p class="text-slate-600 dark:text-slate-300 text-base sm:text-lg max-w-xl mx-auto lg:mx-0 font-normal leading-relaxed">
                             Satisfy your cravings with top-rated local dishes. Freshly prepared by expert chefs and delivered piping hot in 30 minutes.
                         </p>
 
                         <!-- Search Bar Component (30% Secondary Card) -->
-                        <div class="bg-white p-2 sm:p-3 rounded-2xl shadow-xl shadow-slate-200/70 border border-slate-100 flex flex-col sm:flex-row items-center gap-2 max-w-2xl mx-auto lg:mx-0">
+                        <div class="bg-white dark:bg-slate-900 p-2 sm:p-3 rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center gap-2 max-w-2xl mx-auto lg:mx-0">
                             <div class="flex items-center gap-2 w-full px-3 py-2">
                                 <svg class="w-5 h-5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                 </svg>
-                                <input type="text" placeholder="Search pizza, burger, noodles, drinks..." class="w-full text-sm text-slate-800 placeholder-slate-400 bg-transparent border-none focus:outline-none focus:ring-0">
+                                <input type="text" placeholder="Search pizza, burger, noodles, drinks..." class="w-full text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 bg-transparent border-none focus:outline-none focus:ring-0">
                             </div>
                             <button class="w-full sm:w-auto px-6 py-3.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-orange-500/30 transition-all cursor-pointer shrink-0 flex items-center justify-center gap-2">
                                 <span>Find Food</span>
@@ -191,20 +219,20 @@
                         </div>
 
                         <!-- Stats & Trust Badges -->
-                        <div class="pt-4 flex items-center justify-center lg:justify-start gap-8 border-t border-slate-200/60">
+                        <div class="pt-4 flex items-center justify-center lg:justify-start gap-8 border-t border-slate-200/60 dark:border-slate-800/80">
                             <div>
-                                <div class="text-2xl font-extrabold text-slate-900">10k+</div>
-                                <div class="text-xs text-slate-500 font-medium">Satisfied Customers</div>
+                                <div class="text-2xl font-extrabold text-slate-900 dark:text-white">10k+</div>
+                                <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">Satisfied Customers</div>
                             </div>
-                            <div class="h-8 w-px bg-slate-200"></div>
+                            <div class="h-8 w-px bg-slate-200 dark:bg-slate-800"></div>
                             <div>
-                                <div class="text-2xl font-extrabold text-slate-900">30 Min</div>
-                                <div class="text-xs text-slate-500 font-medium">Average Delivery Time</div>
+                                <div class="text-2xl font-extrabold text-slate-900 dark:text-white">30 Min</div>
+                                <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">Average Delivery Time</div>
                             </div>
-                            <div class="h-8 w-px bg-slate-200"></div>
+                            <div class="h-8 w-px bg-slate-200 dark:bg-slate-800"></div>
                             <div>
-                                <div class="text-2xl font-extrabold text-slate-900">4.9 ★</div>
-                                <div class="text-xs text-slate-500 font-medium">Over 2,500 Reviews</div>
+                                <div class="text-2xl font-extrabold text-slate-900 dark:text-white">4.9 ★</div>
+                                <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">Over 2,500 Reviews</div>
                             </div>
                         </div>
 
@@ -215,30 +243,30 @@
                         <div class="relative mx-auto w-full max-w-md lg:max-w-none">
                             
                             <!-- Main Hero Image Container -->
-                            <div class="relative z-10 rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-slate-900 group">
+                            <div class="relative z-10 rounded-3xl overflow-hidden shadow-2xl border-4 border-white dark:border-slate-800 bg-slate-900 group">
                                 <img src="/images/hero_food.png" alt="Delicious Food Showcase" class="w-full h-[420px] object-cover group-hover:scale-105 transition-transform duration-700">
                                 <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent"></div>
                             </div>
 
                             <!-- Floating Badge 1 (Rating) -->
-                            <div class="absolute -top-6 -left-6 z-20 bg-white p-3.5 rounded-2xl shadow-xl border border-slate-100 flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-lg">
+                            <div class="absolute -top-6 -left-6 z-20 bg-white dark:bg-slate-900 p-3.5 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg">
                                     ⭐
                                 </div>
                                 <div>
-                                    <div class="text-sm font-bold text-slate-900">4.9 Rating</div>
-                                    <div class="text-xs text-slate-500">Top Food Quality</div>
+                                    <div class="text-sm font-bold text-slate-900 dark:text-white">4.9 Rating</div>
+                                    <div class="text-xs text-slate-500 dark:text-slate-400">Top Food Quality</div>
                                 </div>
                             </div>
 
                             <!-- Floating Badge 2 (Delivery Speed) -->
-                            <div class="absolute -bottom-6 -right-6 z-20 bg-white p-3.5 rounded-2xl shadow-xl border border-slate-100 flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center text-lg">
+                            <div class="absolute -bottom-6 -right-6 z-20 bg-white dark:bg-slate-900 p-3.5 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400 flex items-center justify-center text-lg">
                                     🚀
                                 </div>
                                 <div>
-                                    <div class="text-sm font-bold text-slate-900">Super Fast</div>
-                                    <div class="text-xs text-slate-500">Express Delivery</div>
+                                    <div class="text-sm font-bold text-slate-900 dark:text-white">Super Fast</div>
+                                    <div class="text-xs text-slate-500 dark:text-slate-400">Express Delivery</div>
                                 </div>
                             </div>
 
@@ -247,17 +275,38 @@
 
                 </div>
             </div>
+
          <!-- ================= CATEGORIES SECTION ================= -->
-        <section id="categories" class="py-8 bg-white">
+        <section id="categories" class="py-8 bg-white dark:bg-slate-950 transition-colors duration-300">
             <div class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
 
                 <div class="flex items-center gap-3 mb-6">
                     <span class="text-orange-500 text-xs font-black tracking-widest uppercase">Browse By</span>
-                    <div class="flex-1 h-px bg-slate-100"></div>
+                    <div class="flex-1 h-px bg-slate-100 dark:bg-slate-800"></div>
                 </div>
 
                 <!-- Horizontal Pill Tabs -->
                 <div class="flex flex-wrap gap-3 justify-center">
+
+                    <!-- All Dishes Tab -->
+                    <button
+                        @click="activeCategory = 'all'"
+                        :class="activeCategory === 'all'
+                            ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30 scale-105'
+                            : 'bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-orange-50 dark:hover:bg-slate-800 hover:text-orange-600'"
+                        class="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl font-semibold text-sm cursor-pointer transition-all duration-200 border border-transparent"
+                    >
+                        <div class="w-8 h-8 rounded-full overflow-hidden shrink-0 ring-2 flex items-center justify-center font-bold text-sm"
+                             :class="activeCategory === 'all' ? 'bg-white/20 text-white ring-white/40' : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 ring-slate-200 dark:ring-slate-700'">
+                            🍽️
+                        </div>
+                        <span>All Dishes</span>
+                        <span
+                            :class="activeCategory === 'all' ? 'bg-white/25 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400'"
+                            class="text-xs font-bold px-2 py-0.5 rounded-full">
+                            {{ $menuItems->count() }}
+                        </span>
+                    </button>
 
                     @foreach($categories as $category)
                         @php
@@ -274,17 +323,17 @@
                             @click="activeCategory = '{{ $category->slug }}'"
                             :class="activeCategory === '{{ $category->slug }}'
                                 ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30 scale-105'
-                                : 'bg-slate-100 text-slate-700 hover:bg-orange-50 hover:text-orange-600'"
+                                : 'bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-orange-50 dark:hover:bg-slate-800 hover:text-orange-600'"
                             class="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl font-semibold text-sm cursor-pointer transition-all duration-200 border border-transparent"
                         >
                             <!-- Tiny circular image -->
                             <div class="w-8 h-8 rounded-full overflow-hidden shrink-0 ring-2"
-                                 :class="activeCategory === '{{ $category->slug }}' ? 'ring-white/40' : 'ring-slate-200'">
+                                 :class="activeCategory === '{{ $category->slug }}' ? 'ring-white/40' : 'ring-slate-200 dark:ring-slate-700'">
                                 <img src="{{ $img }}" alt="{{ $category->name }}" class="w-full h-full object-cover">
                             </div>
                             <span>{{ $icon }} {{ $category->name }}</span>
                             <span
-                                :class="activeCategory === '{{ $category->slug }}' ? 'bg-white/25 text-white' : 'bg-slate-200 text-slate-500'"
+                                :class="activeCategory === '{{ $category->slug }}' ? 'bg-white/25 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400'"
                                 class="text-xs font-bold px-2 py-0.5 rounded-full">
                                 {{ $category->menu_items_count }}
                             </span>
@@ -297,16 +346,16 @@
         </section>
 
         <!-- ================= POPULAR MENU SECTION ================= -->
-        <section id="menu" class="py-16 bg-white">
+        <section id="menu" class="py-16 bg-white dark:bg-slate-950 transition-colors duration-300">
             <div class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
                 
                 <div class="flex flex-col md:flex-row md:items-end justify-between mb-12">
                     <div>
                         <span class="text-orange-500 text-xs font-bold tracking-widest uppercase">Delicious Selections</span>
-                        <h2 class="text-3xl font-black text-slate-900 mt-1">Featured Menu Items</h2>
+                        <h2 class="text-3xl font-black text-slate-900 dark:text-white mt-1">Featured Menu Items</h2>
                     </div>
                     <div class="mt-4 md:mt-0 flex items-center gap-2">
-                        <span class="text-xs font-semibold text-slate-500">Showing dishes from MySQL Database</span>
+                        <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Showing dishes from MySQL Database</span>
                     </div>
                 </div>
 
@@ -325,34 +374,34 @@
                             elseif(str_contains(strtolower($catName), 'dessert')) { $icon = '🍰'; }
                         @endphp
 
-                        <div x-show="activeCategory === '{{ $catSlug }}'"
+                        <div x-show="activeCategory === 'all' || activeCategory === '{{ $catSlug }}'"
                              x-transition:enter="transition ease-out duration-300"
                              x-transition:enter-start="opacity-0 transform scale-95"
                              x-transition:enter-end="opacity-100 transform scale-100"
-                             class="bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-md hover:shadow-xl transition-all duration-300 group flex flex-col justify-between">
+                             class="bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-slate-100 dark:border-slate-800/80 shadow-md hover:shadow-xl transition-all duration-300 group flex flex-col justify-between">
                             <div>
-                                <div class="relative h-46 overflow-hidden bg-slate-100">
+                                <div class="relative h-46 overflow-hidden bg-slate-100 dark:bg-slate-800">
                                     <img src="{{ $item->image_url }}" alt="{{ $item->name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                                     <span class="absolute top-4 left-4 bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
                                         {{ $icon }} {{ $catName }}
                                     </span>
-                                    <span class="absolute top-4 right-4 bg-white/90 backdrop-blur-md text-slate-900 text-xs font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
+                                    <span class="absolute top-4 right-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md text-slate-900 dark:text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
                                         ⭐ 4.9
                                     </span>
                                 </div>
                                 <div class="p-3">
-                                    <div class="flex items-center justify-between text-xs text-slate-500 font-semibold mb-1">
+                                    <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-semibold mb-1">
                                         <span>Available Now</span>
                                         <span>⏱️ 20 min</span>
                                     </div>
-                                    <h3 class="text-base font-bold text-slate-900 group-hover:text-orange-600 transition-colors">{{ $item->name }}</h3>
-                                    <p class="text-slate-500 text-xs mt-1 line-clamp-1 leading-relaxed">{{ $item->description }}</p>
+                                    <h3 class="text-base font-bold text-slate-900 dark:text-white group-hover:text-orange-600 transition-colors">{{ $item->name }}</h3>
+                                    <p class="text-slate-500 dark:text-slate-400 text-xs mt-1 line-clamp-1 leading-relaxed">{{ $item->description }}</p>
                                 </div>
                             </div>
-                            <div class="p-3 pt-0 flex items-center justify-between border-t border-slate-50 mt-2">
+                            <div class="p-3 pt-0 flex items-center justify-between border-t border-slate-50 dark:border-slate-800/60 mt-2">
                                 <div>
                                     <span class="text-xs text-slate-400 font-medium block">Price</span>
-                                    <span class="text-base font-black text-slate-900">{{ number_format($item->price) }} MMK</span>
+                                    <span class="text-base font-black text-slate-900 dark:text-white">{{ number_format($item->price) }} MMK</span>
                                 </div>
                                 <button
                                     @click="addToCart({{ json_encode(['id' => $item->id, 'name' => $item->name, 'price' => $item->price, 'image' => $item->image_url, 'category' => $catName]) }}); window.location.href='{{ route('cart') }}';"
@@ -365,8 +414,8 @@
                             </div>
                         </div>
                     @empty
-                        <div class="col-span-4 text-center py-12 bg-white rounded-3xl border border-slate-100">
-                            <p class="text-slate-500 font-medium">No menu items found in database.</p>
+                        <div class="col-span-4 text-center py-12 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800">
+                            <p class="text-slate-500 dark:text-slate-400 font-medium">No menu items found in database.</p>
                         </div>
                     @endforelse
 
@@ -377,41 +426,41 @@
 
 
         <!-- ================= FEATURES SECTION ================= -->
-        <section id="features" class="py-16 bg-white border-t border-slate-100">
+        <section id="features" class="py-16 bg-white dark:bg-slate-950 border-t border-slate-100 dark:border-slate-800/80 transition-colors duration-300">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 
                 <div class="text-center max-w-xl mx-auto mb-12">
                     <span class="text-orange-500 text-xs font-bold tracking-widest uppercase">How We Serve You</span>
-                    <h2 class="text-3xl font-black text-slate-900 mt-1">Why Choose FoodOrder?</h2>
+                    <h2 class="text-3xl font-black text-slate-900 dark:text-white mt-1">Why Choose FoodOrder?</h2>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                     
                     <!-- Feature 1 -->
-                    <div class="bg-slate-50 p-8 rounded-3xl border border-slate-100 text-center hover:shadow-lg transition-all">
+                    <div class="bg-slate-50 dark:bg-slate-900/60 p-8 rounded-3xl border border-slate-100 dark:border-slate-800/80 text-center hover:shadow-lg transition-all">
                         <div class="w-16 h-16 rounded-2xl bg-orange-500 text-white flex items-center justify-center text-2xl mx-auto mb-6 shadow-lg shadow-orange-500/30">
                             📱
                         </div>
-                        <h3 class="text-xl font-bold text-slate-900">Easy Online Ordering</h3>
-                        <p class="text-slate-600 text-sm mt-2 leading-relaxed">Browse through hundreds of fresh dishes, customize your order, and place it seamlessly in seconds.</p>
+                        <h3 class="text-xl font-bold text-slate-900 dark:text-white">Easy Online Ordering</h3>
+                        <p class="text-slate-600 dark:text-slate-400 text-sm mt-2 leading-relaxed">Browse through hundreds of fresh dishes, customize your order, and place it seamlessly in seconds.</p>
                     </div>
 
                     <!-- Feature 2 -->
-                    <div class="bg-slate-50 p-8 rounded-3xl border border-slate-100 text-center hover:shadow-lg transition-all">
+                    <div class="bg-slate-50 dark:bg-slate-900/60 p-8 rounded-3xl border border-slate-100 dark:border-slate-800/80 text-center hover:shadow-lg transition-all">
                         <div class="w-16 h-16 rounded-2xl bg-orange-500 text-white flex items-center justify-center text-2xl mx-auto mb-6 shadow-lg shadow-orange-500/30">
                             🚚
                         </div>
-                        <h3 class="text-xl font-bold text-slate-900">Super Fast Delivery</h3>
-                        <p class="text-slate-600 text-sm mt-2 leading-relaxed">Our dedicated delivery fleet ensures your food arrives hot, fresh, and on time at your exact address.</p>
+                        <h3 class="text-xl font-bold text-slate-900 dark:text-white">Super Fast Delivery</h3>
+                        <p class="text-slate-600 dark:text-slate-400 text-sm mt-2 leading-relaxed">Our dedicated delivery fleet ensures your food arrives hot, fresh, and on time at your exact address.</p>
                     </div>
 
                     <!-- Feature 3 -->
-                    <div class="bg-slate-50 p-8 rounded-3xl border border-slate-100 text-center hover:shadow-lg transition-all">
+                    <div class="bg-slate-50 dark:bg-slate-900/60 p-8 rounded-3xl border border-slate-100 dark:border-slate-800/80 text-center hover:shadow-lg transition-all">
                         <div class="w-16 h-16 rounded-2xl bg-orange-500 text-white flex items-center justify-center text-2xl mx-auto mb-6 shadow-lg shadow-orange-500/30">
                             💳
                         </div>
-                        <h3 class="text-xl font-bold text-slate-900">Flexible Payment Options</h3>
-                        <p class="text-slate-600 text-sm mt-2 leading-relaxed">Pay conveniently via Cash on Delivery (COD), KBZPay, or WavePay with full transaction security.</p>
+                        <h3 class="text-xl font-bold text-slate-900 dark:text-white">Flexible Payment Options</h3>
+                        <p class="text-slate-600 dark:text-slate-400 text-sm mt-2 leading-relaxed">Pay conveniently via Cash on Delivery (COD), KBZPay, or WavePay with full transaction security.</p>
                     </div>
 
                 </div>
@@ -420,7 +469,7 @@
         </section>
 
         <!-- ================= FOOTER ================= -->
-        <footer class="bg-slate-900 text-slate-400 py-12 border-t border-slate-800">
+        <footer class="bg-slate-900 dark:bg-slate-950 text-slate-400 py-12 border-t border-slate-800">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
                     

@@ -70,30 +70,31 @@ class UserController extends Controller
     }
 
     /**
-     * Update the specified user details or role.
+     * Update the specified user role or details.
      */
     public function update(Request $request, User $user)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'role' => 'required|string|in:user,admin',
+            'role'     => 'required|string|in:user,admin',
+            'name'     => 'nullable|string|max:255',
+            'email'    => ['nullable', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'password' => 'nullable|string|min:8',
         ]);
 
-        $updateData = [
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'role' => $validated['role'],
-        ];
-
+        $updateData = ['role' => $validated['role']];
+        if (!empty($validated['name'])) {
+            $updateData['name'] = $validated['name'];
+        }
+        if (!empty($validated['email'])) {
+            $updateData['email'] = $validated['email'];
+        }
         if (!empty($validated['password'])) {
             $updateData['password'] = Hash::make($validated['password']);
         }
 
         $user->update($updateData);
 
-        return redirect()->route('admin.users.index')->with('success', "User '{$user->name}' updated successfully!");
+        return redirect()->route('admin.users.index')->with('success', "Role for '{$user->name}' updated to " . ($validated['role'] === 'admin' ? 'System Administrator' : 'Customer') . " successfully!");
     }
 
     /**
