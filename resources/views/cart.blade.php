@@ -214,7 +214,7 @@
                         </label>
                         <textarea name="delivery_address" rows="2" required
                             placeholder="အမှတ်၊ လမ်း၊ ရပ်ကွက်/ကျောင်းဆောင် ..."
-                            class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none transition-all resize-none placeholder-slate-400"></textarea>
+                            class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none transition-all resize-none placeholder-slate-400">{{ old('delivery_address', Auth::check() ? (Auth::user()->detail_address ?? '') : '') }}</textarea>
                     </div>
 
                     {{-- Phone --}}
@@ -223,6 +223,7 @@
                             ဖုန်းနံပါတ် <span class="text-red-400">*</span>
                         </label>
                         <input type="tel" name="delivery_phone" required
+                            value="{{ old('delivery_phone', Auth::check() ? (Auth::user()->phone_number ?? '') : '') }}"
                             placeholder="+95 9 ..."
                             class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none transition-all placeholder-slate-400">
                     </div>
@@ -304,13 +305,16 @@ function cartApp() {
 
     return {
         items: [],
-        selectedTownship: '',
+        selectedTownship: {{ json_encode(Auth::check() ? (Auth::user()->city ?? '') : '') }},
         deliveryFee: 0,
         paymentMethod: 'cod',
 
         init() {
             const stored = localStorage.getItem('foodorder_cart');
             this.items = stored ? JSON.parse(stored) : [];
+            if (this.selectedTownship) {
+                this.onTownshipChange();
+            }
         },
 
         save() {
