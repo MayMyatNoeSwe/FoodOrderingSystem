@@ -193,7 +193,6 @@
                 </div>
 
                 <!-- ===== CHECKOUT FORM ===== -->
-                @auth
                 <form id="checkout-form" method="POST" action="{{ route('user.orders.store') }}"
                     enctype="multipart/form-data"
                     class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4">
@@ -255,33 +254,34 @@
                     </div>
 
                     {{-- Submit Button --}}
-                    <button type="submit" @click="submitOrder($event)"
-                        class="w-full py-3.5 text-white font-black text-sm rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
-                        :class="canSubmit()
-                            ? 'bg-orange-500 hover:bg-orange-600 active:bg-orange-700 shadow-orange-500/25'
-                            : 'bg-slate-300 cursor-not-allowed'">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                        </svg>
-                        <span x-text="paymentMethod === 'cod' ? 'Order တင်မည်' : 'Order တင်မည် (ငွေချေပြီး)'"></span>
-                        &mdash; <span x-text="formatPrice(total())"></span> MMK
-                    </button>
+                    @auth
+                        <button type="submit" @click="submitOrder($event)"
+                            class="w-full py-3.5 text-white font-black text-sm rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
+                            :class="canSubmit()
+                                ? 'bg-orange-500 hover:bg-orange-600 active:bg-orange-700 shadow-orange-500/25'
+                                : 'bg-slate-300 cursor-not-allowed'">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            <span x-text="paymentMethod === 'cod' ? 'Order တင်မည်' : 'Order တင်မည် (ငွေချေပြီး)'"></span>
+                            &mdash; <span x-text="formatPrice(total())"></span> MMK
+                        </button>
+                    @else
+                        <button type="button" @click="window.location.href='{{ route('login') }}'"
+                            class="w-full py-3.5 text-white font-black text-sm rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer bg-orange-500 hover:bg-orange-600 active:bg-orange-700 shadow-orange-500/25">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            <span x-text="paymentMethod === 'cod' ? 'Order တင်မည်' : 'Order တင်မည် (ငွေချေပြီး)'"></span>
+                            &mdash; <span x-text="formatPrice(total())"></span> MMK
+                        </button>
+                    @endauth
 
                     <p class="text-xs text-center text-slate-400 leading-relaxed">
                         <span x-show="paymentMethod !== 'cod'">💡 Screenshot စစ်ဆေးပြီး Admin မှ Order Confirm ပေးပါမည်</span>
                         <span x-show="paymentMethod === 'cod'">ပစ္စည်းရောက်မှ ငွေချေရမည်</span>
                     </p>
                 </form>
-
-                @else
-                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 text-center">
-                    <div class="text-4xl mb-3">🔐</div>
-                    <h3 class="font-bold text-slate-900 mb-1">Login ဝင်ရောက်ပါ</h3>
-                    <p class="text-sm text-slate-500 mb-4">Order တင်ရန် Login လုပ်ရပါမည်</p>
-                    <a href="{{ route('login') }}" class="block w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm rounded-xl shadow-lg shadow-orange-500/25 transition-all text-center">Log In</a>
-                    <a href="{{ route('register') }}" class="block mt-2 text-xs text-slate-500 hover:text-orange-500 transition-colors">Account မရှိဘူးလား? Register</a>
-                </div>
-                @endauth
 
             </div>
         </div>

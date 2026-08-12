@@ -44,6 +44,7 @@
                         </button>
                     </x-slot>
 
+                    <x-slot name="content">
                         <x-dropdown-link :href="route('user.orders.index')">
                             📦 {{ __('My Orders') }}
                         </x-dropdown-link>
