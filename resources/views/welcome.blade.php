@@ -152,7 +152,7 @@
                                             ⚙️ Profile Settings
                                         </a>
 
-                                        <form method="POST" action="{{ route('logout') }}" class="border-t border-slate-100 mt-1 pt-1">
+                                        <form method="POST" action="{{ route('logout') }}" onsubmit="localStorage.removeItem('foodorder_cart')" class="border-t border-slate-100 mt-1 pt-1">
                                             @csrf
                                             <button type="submit" class="w-full text-left px-4 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 transition-colors cursor-pointer flex items-center justify-between">
                                                 <span>Log Out</span>
@@ -540,6 +540,11 @@
     <a href="{{ route('cart') }}" class="text-xs font-bold text-orange-400 hover:text-orange-300 shrink-0 transition-colors">View →</a>
 </div>
 
+@if(session('clear_cart'))
+<script>
+    localStorage.removeItem('foodorder_cart');
+</script>
+@endif
 </body>
 
 </html>

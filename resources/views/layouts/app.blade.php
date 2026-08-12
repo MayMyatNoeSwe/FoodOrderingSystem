@@ -32,5 +32,10 @@
                 {{ $slot }}
             </main>
         </div>
+        @if(session('clear_cart'))
+        <script>
+            localStorage.removeItem('foodorder_cart');
+        </script>
+        @endif
     </body>
 </html>
