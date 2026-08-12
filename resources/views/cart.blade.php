@@ -7,6 +7,121 @@
     <title>Cart — {{ config('app.name', 'FoodOrder') }}</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800,900&display=swap" rel="stylesheet"/>
+
+    {{--
+        IMPORTANT: window.cartApp must be defined as a plain global function in a regular
+        <script> block (NOT type="module") placed BEFORE the Vite module tag.
+        Regular scripts are synchronous and complete before any deferred/module scripts run,
+        so window.cartApp will exist on window by the time Alpine (loaded via Vite module) calls
+        Alpine.start() and processes x-data="cartApp()".
+    --}}
+    <script>
+        const yangonFees = {
+            'Kyauktada': 2000, 'Pabedan': 2000, 'Lanmadaw': 2000, 'Latha': 2000,
+            'Botahtaung': 2000, 'Pazundaung': 2000, 'Mingalar Taung Nyunt': 2000, 'Ahlone': 2000,
+            'Kamaryut': 3000, 'Bahan': 3000, 'Tamwe': 3000, 'Dagon': 3000,
+            'Yankin': 3000, 'Sanchaung': 3000, 'Hlaing': 3000, 'Mayangone': 3000,
+            'Insein': 3000, 'Thaketa': 3000, 'Thingangyun': 3000,
+            'Shwepyithar': 5000, 'Hlaingtharyar': 5000, 'North Okkalapa': 5000,
+            'South Okkalapa': 5000, 'East Dagon': 5000, 'North Dagon': 5000,
+            'South Dagon': 5000, 'Dagon Seikkan': 5000,
+            'Dala': 7000, 'Twante': 7000, 'Cocogyun': 10000
+        };
+
+        window.cartApp = function() {
+            return {
+                items: [],
+                selectedTownship: @json(Auth::check() ? (string)(Auth::user()->city ?? '') : ''),
+                deliveryFee: 0,
+                paymentMethod: 'cod',
+
+                init() {
+                    try {
+                        const stored = localStorage.getItem('foodorder_cart');
+                        if (stored && stored !== 'undefined') {
+                            const parsed = JSON.parse(stored);
+                            this.items = Array.isArray(parsed) ? parsed : [];
+                        } else {
+                            this.items = [];
+                        }
+                    } catch (e) {
+                        console.error('Cart parse error:', e);
+                        this.items = [];
+                    }
+                    if (this.selectedTownship) {
+                        this.onTownshipChange();
+                    }
+                },
+
+                save() {
+                    localStorage.setItem('foodorder_cart', JSON.stringify(this.items));
+                },
+
+                increaseQty(index) { this.items[index].qty++; this.save(); },
+
+                decreaseQty(index) {
+                    if (this.items[index].qty > 1) { this.items[index].qty--; this.save(); }
+                    else { this.removeItem(index); }
+                },
+
+                removeItem(index) { this.items.splice(index, 1); this.save(); },
+
+                clearCart() {
+                    if (confirm('Cart ထဲမှ ပစ္စည်းအားလုံး ဖျက်မည်လား?')) { this.items = []; this.save(); }
+                },
+
+                subtotal() {
+                    return this.items.reduce((sum, item) => sum + (item.price * item.qty), 0);
+                },
+
+                totalQty() {
+                    return this.items.reduce((sum, item) => sum + item.qty, 0);
+                },
+
+                total() {
+                    return this.subtotal() + (this.deliveryFee || 0);
+                },
+
+                formatPrice(num) {
+                    return Number(num).toLocaleString();
+                },
+
+                onTownshipChange() {
+                    this.deliveryFee = yangonFees[this.selectedTownship] || 0;
+                },
+
+                getZoneLabel() {
+                    const fee = this.deliveryFee;
+                    if (fee <= 2000) return 'Zone 1 — မြို့ပြလယ်';
+                    if (fee <= 3000) return 'Zone 2 — မြို့အလယ်';
+                    if (fee <= 5000) return 'Zone 3 — မြို့ပြင်';
+                    return 'Zone 4 — ဝေးသောမြို့နယ်';
+                },
+
+                canSubmit() {
+                    if (this.items.length === 0) return false;
+                    if (!this.selectedTownship) return false;
+                    return true;
+                },
+
+                submitOrder(event) {
+                    if (!this.canSubmit()) {
+                        event.preventDefault();
+                        if (!this.selectedTownship) {
+                            alert('မြို့နယ် ရွေးချယ်ပါ!');
+                        }
+                        return;
+                    }
+                    document.getElementById('cart_items_input').value        = JSON.stringify(this.items);
+                    document.getElementById('total_amount_input').value      = this.total();
+                    document.getElementById('delivery_fee_input').value      = this.deliveryFee;
+                    document.getElementById('region_type_input').value       = 'Yangon';
+                    document.getElementById('delivery_township_input').value = `Yangon — ${this.selectedTownship}`;
+                }
+            };
+        };
+    </script>
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="font-sans antialiased bg-slate-50 text-slate-800 selection:bg-orange-500 selection:text-white">
@@ -273,13 +388,11 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                             </svg>
-                            <span x-text="paymentMethod === 'cod' ? 'Order တင်မည်' : 'Order တင်မည် (ငွေချေပြီး)'"></span>
-                            &mdash; <span x-text="formatPrice(total())"></span> MMK
+                            Login ပြီး Order တင်မည်
                         </button>
                     @endauth
 
                     <p class="text-xs text-center text-slate-400 leading-relaxed">
-                        <span x-show="paymentMethod !== 'cod'">💡 Screenshot စစ်ဆေးပြီး Admin မှ Order Confirm ပေးပါမည်</span>
                         <span x-show="paymentMethod === 'cod'">ပစ္စည်းရောက်မှ ငွေချေရမည်</span>
                     </p>
                 </form>
@@ -288,105 +401,6 @@
         </div>
     </main>
 </div>
-
-<script>
-function cartApp() {
-    const yangonFees = {
-        'Kyauktada': 2000, 'Pabedan': 2000, 'Lanmadaw': 2000, 'Latha': 2000,
-        'Botahtaung': 2000, 'Pazundaung': 2000, 'Mingalar Taung Nyunt': 2000, 'Ahlone': 2000,
-        'Kamaryut': 3000, 'Bahan': 3000, 'Tamwe': 3000, 'Dagon': 3000,
-        'Yankin': 3000, 'Sanchaung': 3000, 'Hlaing': 3000, 'Mayangone': 3000,
-        'Insein': 3000, 'Thaketa': 3000, 'Thingangyun': 3000,
-        'Shwepyithar': 5000, 'Hlaingtharyar': 5000, 'North Okkalapa': 5000,
-        'South Okkalapa': 5000, 'East Dagon': 5000, 'North Dagon': 5000,
-        'South Dagon': 5000, 'Dagon Seikkan': 5000,
-        'Dala': 7000, 'Twante': 7000, 'Cocogyun': 10000
-    };
-
-    return {
-        items: [],
-        selectedTownship: {{ json_encode(Auth::check() ? (Auth::user()->city ?? '') : '') }},
-        deliveryFee: 0,
-        paymentMethod: 'cod',
-
-        init() {
-            const stored = localStorage.getItem('foodorder_cart');
-            this.items = stored ? JSON.parse(stored) : [];
-            if (this.selectedTownship) {
-                this.onTownshipChange();
-            }
-        },
-
-        save() {
-            localStorage.setItem('foodorder_cart', JSON.stringify(this.items));
-        },
-
-        increaseQty(index) { this.items[index].qty++; this.save(); },
-
-        decreaseQty(index) {
-            if (this.items[index].qty > 1) { this.items[index].qty--; this.save(); }
-            else { this.removeItem(index); }
-        },
-
-        removeItem(index) { this.items.splice(index, 1); this.save(); },
-
-        clearCart() {
-            if (confirm('Cart ထဲမှ ပစ္စည်းအားလုံး ဖျက်မည်လား?')) { this.items = []; this.save(); }
-        },
-
-        subtotal() {
-            return this.items.reduce((sum, item) => sum + (item.price * item.qty), 0);
-        },
-
-        totalQty() {
-            return this.items.reduce((sum, item) => sum + item.qty, 0);
-        },
-
-        total() {
-            return this.subtotal() + (this.deliveryFee || 0);
-        },
-
-        formatPrice(num) {
-            return Number(num).toLocaleString();
-        },
-
-        onTownshipChange() {
-            this.deliveryFee = yangonFees[this.selectedTownship] || 0;
-        },
-
-        getZoneLabel() {
-            const fee = this.deliveryFee;
-            if (fee <= 2000) return 'Zone 1 — မြို့ပြလယ်';
-            if (fee <= 3000) return 'Zone 2 — မြို့အလယ်';
-            if (fee <= 5000) return 'Zone 3 — မြို့ပြင်';
-            return 'Zone 4 — ဝေးသောမြို့နယ်';
-        },
-
-        canSubmit() {
-            if (this.items.length === 0) return false;
-            if (!this.selectedTownship) return false;
-            return true;
-        },
-
-        submitOrder(event) {
-            if (!this.canSubmit()) {
-                event.preventDefault();
-                if (!this.selectedTownship) {
-                    alert('မြို့နယ် ရွေးချယ်ပါ!');
-                }
-                return;
-            }
-
-            // Inject hidden fields before form submit
-            document.getElementById('cart_items_input').value        = JSON.stringify(this.items);
-            document.getElementById('total_amount_input').value      = this.total();
-            document.getElementById('delivery_fee_input').value      = this.deliveryFee;
-            document.getElementById('region_type_input').value       = 'Yangon';
-            document.getElementById('delivery_township_input').value  = `Yangon — ${this.selectedTownship}`;
-        }
-    };
-}
-</script>
 
 </body>
 </html>

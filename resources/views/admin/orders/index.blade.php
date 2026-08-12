@@ -130,6 +130,14 @@
                         <span class="ms-auto bg-white/20 text-white text-xs font-bold px-2 py-0.5 rounded-full">{{ $orders->total() }}</span>
                     </a>
 
+                    <a href="{{ route('admin.orderItems.index') }}" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all font-medium">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                        </svg>
+                        <span>Order Items</span>
+                        <span class="ms-auto bg-slate-800 text-slate-400 text-xs font-bold px-2 py-0.5 rounded-full">{{ $navOrderItemCount ?? 0 }}</span>
+                    </a>
+
                     <a href="{{ route('admin.users.index') }}" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all font-medium">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
@@ -233,6 +241,14 @@
                         </svg>
                         <span>Orders</span>
                         <span class="ms-auto bg-white/20 text-white text-xs font-bold px-2 py-0.5 rounded-full">{{ $orders->total() }}</span>
+                    </a>
+
+                    <a href="{{ route('admin.orderItems.index') }}" class="flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-all font-medium">
+                        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                        </svg>
+                        <span>Order Items</span>
+                        <span class="ms-auto bg-slate-800 text-slate-400 text-xs font-bold px-2 py-0.5 rounded-full">{{ $navOrderItemCount ?? 0 }}</span>
                     </a>
 
                     <a href="{{ route('admin.users.index') }}" class="flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-all font-medium">
@@ -525,12 +541,27 @@
 
                                         <!-- Items Ordered -->
                                         <td class="px-4 py-4">
-                                            <div class="space-y-1">
-                                                <span class="px-2 py-0.5 bg-slate-950 rounded border border-slate-800 text-[10px] font-bold text-slate-400 inline-block">
-                                                    {{ $order->orderItems->sum('quantity') }} items
-                                                </span>
-                                                <div class="text-[11px] text-slate-300 font-medium line-clamp-2 max-w-[220px]">
-                                                    {{ $order->orderItems->map(fn($item) => ($item->menuItem ? $item->menuItem->name : 'Dish') . ' (x' . $item->quantity . ')')->implode(', ') }}
+                                            <div class="space-y-1.5 min-w-[220px]">
+                                                <div class="flex items-center justify-between">
+                                                    <span class="px-2 py-0.5 bg-slate-950 rounded border border-slate-800 text-[10px] font-bold text-slate-400 inline-block">
+                                                        {{ $order->orderItems->sum('quantity') }} items
+                                                    </span>
+                                                    <a href="{{ route('admin.orderItems.index', ['search' => $order->order_number]) }}" class="text-[10px] font-bold text-orange-400 hover:underline">
+                                                        Table View &rarr;
+                                                    </a>
+                                                </div>
+                                                <div class="border border-slate-800 rounded-xl overflow-hidden bg-slate-950/60 divide-y divide-slate-800/60">
+                                                    @foreach($order->orderItems->take(2) as $item)
+                                                        <div class="p-1.5 flex items-center justify-between text-[11px]">
+                                                            <span class="font-semibold text-slate-200 truncate max-w-[130px]">{{ $item->menuItem->name ?? 'Dish' }}</span>
+                                                            <span class="text-slate-400 font-mono">x{{ $item->quantity }}</span>
+                                                        </div>
+                                                    @endforeach
+                                                    @if($order->orderItems->count() > 2)
+                                                        <div class="p-1 text-center text-[10px] text-slate-500 font-medium bg-slate-900/40">
+                                                            +{{ $order->orderItems->count() - 2 }} more dishes
+                                                        </div>
+                                                    @endif
                                                 </div>
                                             </div>
                                         </td>
@@ -747,32 +778,45 @@
                         </div>
                     </div>
 
-                    <!-- Ordered Items List -->
+                    <!-- Ordered Items Table UI -->
                     <div>
-                        <span class="text-slate-400 font-bold uppercase tracking-wider block mb-3">Order Items</span>
-                        <div class="divide-y divide-slate-800 border border-slate-800 rounded-2xl overflow-hidden bg-slate-950">
-                            <template x-for="item in activeOrder.items" :key="item.name">
-                                <div class="p-3.5 flex items-center justify-between gap-4">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 overflow-hidden shrink-0 flex items-center justify-center text-slate-500 font-bold text-xs">
-                                            <template x-if="item.image">
-                                                <img :src="item.image" :alt="item.name" class="w-full h-full object-cover">
-                                            </template>
-                                            <template x-if="!item.image">
-                                                <span>🍕</span>
-                                            </template>
-                                        </div>
-                                        <div>
-                                            <div class="font-bold text-white text-xs" x-text="item.name"></div>
-                                            <div class="text-slate-400 text-[11px]" x-text="item.price + ' MMK each'"></div>
-                                        </div>
-                                    </div>
-                                    <div class="text-right">
-                                        <div class="font-mono text-xs font-bold text-slate-300" x-text="'x' + item.quantity"></div>
-                                        <div class="font-bold text-orange-400 text-xs mt-0.5" x-text="item.subtotal + ' MMK'"></div>
-                                    </div>
-                                </div>
-                            </template>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-slate-400 font-bold uppercase tracking-wider">Order Items Table</span>
+                            <a href="{{ route('admin.orderItems.index') }}" class="text-orange-400 text-xs font-bold hover:underline">View All Order Items Table &rarr;</a>
+                        </div>
+                        <div class="border border-slate-800 rounded-2xl overflow-hidden bg-slate-950">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-slate-900 text-slate-400 font-bold uppercase tracking-wider border-b border-slate-800">
+                                    <tr>
+                                        <th class="px-3.5 py-2.5">Item</th>
+                                        <th class="px-3.5 py-2.5 text-center">Qty</th>
+                                        <th class="px-3.5 py-2.5 text-right">Price</th>
+                                        <th class="px-3.5 py-2.5 text-right">Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-800 text-slate-300 font-medium">
+                                    <template x-for="item in activeOrder.items" :key="item.name">
+                                        <tr class="hover:bg-slate-900/50 transition-colors">
+                                            <td class="px-3.5 py-2.5">
+                                                <div class="flex items-center gap-2.5">
+                                                    <div class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 overflow-hidden shrink-0 flex items-center justify-center text-slate-500 font-bold text-xs">
+                                                        <template x-if="item.image">
+                                                            <img :src="item.image" :alt="item.name" class="w-full h-full object-cover">
+                                                        </template>
+                                                        <template x-if="!item.image">
+                                                            <span>🍕</span>
+                                                        </template>
+                                                    </div>
+                                                    <span class="font-bold text-white text-xs" x-text="item.name"></span>
+                                                </div>
+                                            </td>
+                                            <td class="px-3.5 py-2.5 text-center font-mono font-bold text-slate-300" x-text="'x' + item.quantity"></td>
+                                            <td class="px-3.5 py-2.5 text-right font-mono text-slate-400" x-text="item.price + ' MMK'"></td>
+                                            <td class="px-3.5 py-2.5 text-right font-bold text-orange-400" x-text="item.subtotal + ' MMK'"></td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
 

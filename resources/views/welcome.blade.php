@@ -36,15 +36,28 @@
         }
     },
     activeCategory: 'all',
-    cartCount: JSON.parse(localStorage.getItem('foodorder_cart') || '[]').reduce((s,i) => s + i.qty, 0),
+    getCart() {
+        try {
+            const stored = localStorage.getItem('foodorder_cart');
+            if (stored && stored !== 'undefined') {
+                const parsed = JSON.parse(stored);
+                return Array.isArray(parsed) ? parsed : [];
+            }
+        } catch(e) {}
+        return [];
+    },
+    cartCount: 0,
     toastVisible: false,
     toastName: '',
+    init() {
+        this.cartCount = this.getCart().reduce((s,i) => s + (i.qty || 0), 0);
+    },
     addToCart(item) {
-        const cart = JSON.parse(localStorage.getItem('foodorder_cart') || '[]');
+        const cart = this.getCart();
         const existing = cart.find(i => i.id === item.id);
         if (existing) { existing.qty++; } else { cart.push({ ...item, qty: 1 }); }
         localStorage.setItem('foodorder_cart', JSON.stringify(cart));
-        this.cartCount = cart.reduce((s,i) => s + i.qty, 0);
+        this.cartCount = cart.reduce((s,i) => s + (i.qty || 0), 0);
         this.toastName = item.name;
         this.toastVisible = true;
         setTimeout(() => { this.toastVisible = false; }, 2500);

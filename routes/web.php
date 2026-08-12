@@ -3,6 +3,7 @@
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\MenuItemController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\OrderItemController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Models\Category;
@@ -86,7 +87,10 @@ Route::middleware('auth')->prefix('user')->name('user.')->group(function () {
 
     // User Orders History List (My Orders)
     Route::get('/orders', function () {
-        $orders = Order::where('user_id', Auth::id())->with('orderItems')->latest()->get();
+        $orders = Order::where('user_id', Auth::id())
+            ->with(['orderItems.menuItem'])
+            ->latest()
+            ->get();
         return view('user.orders.index', compact('orders'));
     })->name('orders.index');
 
@@ -188,6 +192,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::resource('categories', CategoryController::class)->except(['create', 'show', 'edit']);
     Route::resource('menuItems', MenuItemController::class)->except(['create', 'show', 'edit']);
     Route::resource('orders', OrderController::class)->except(['create', 'show', 'edit']);
+    Route::resource('orderItems', OrderItemController::class)->except(['create', 'show', 'edit']);
     Route::resource('users', UserController::class)->except(['create', 'show', 'edit']);
 });
 

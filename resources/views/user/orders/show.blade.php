@@ -188,29 +188,46 @@
 
         <!-- Items Table Card -->
         <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8 mb-8">
-            <h2 class="text-lg font-black text-slate-900 mb-6">မှာယူထားသော အစားအစာများ</h2>
+            <h2 class="text-lg font-black text-slate-900 mb-6">မှာယူထားသော အစားအစာများ (Order Items Table)</h2>
 
-            <div class="divide-y divide-slate-100">
-                @foreach ($order->orderItems as $item)
-                    <div class="py-4 flex items-center justify-between gap-4">
-                        <div class="flex items-center gap-4">
-                            <div class="w-14 h-14 bg-slate-100 rounded-xl overflow-hidden shrink-0">
-                                <img src="{{ $item->menuItem?->image_url ?? asset('images/hero_food.png') }}"
-                                     alt="{{ $item->menuItem?->name }}" class="w-full h-full object-cover">
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-slate-900 text-sm">{{ $item->menuItem?->name ?? 'Menu Item' }}</h3>
-                                <p class="text-xs text-slate-400 font-medium mt-0.5">
-                                    {{ number_format($item->unit_price) }} MMK &times; {{ $item->quantity }} ခု
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="text-right">
-                            <p class="font-black text-slate-900 text-sm">{{ number_format($item->subtotal) }} MMK</p>
-                        </div>
-                    </div>
-                @endforeach
+            <div class="overflow-x-auto rounded-2xl border border-slate-100 mb-6">
+                <table class="w-full text-left text-xs sm:text-sm">
+                    <thead class="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider border-b border-slate-100">
+                        <tr>
+                            <th class="px-4 py-3">အစားအစာ</th>
+                            <th class="px-4 py-3 text-center">အရေအတွက်</th>
+                            <th class="px-4 py-3 text-right">တစ်ခုဈေး</th>
+                            <th class="px-4 py-3 text-right">ကျသင့်ငွေ</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-slate-800 font-medium">
+                        @foreach ($order->orderItems as $item)
+                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                <td class="px-4 py-3.5">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-12 h-12 bg-slate-100 rounded-xl overflow-hidden shrink-0">
+                                            <img src="{{ $item->menuItem?->image_url ?? asset('images/hero_food.png') }}"
+                                                 alt="{{ $item->menuItem?->name }}" class="w-full h-full object-cover">
+                                        </div>
+                                        <div>
+                                            <h3 class="font-bold text-slate-900 text-sm">{{ $item->menuItem?->name ?? 'Menu Item' }}</h3>
+                                            <p class="text-xs text-slate-400 font-medium">{{ $item->menuItem?->category?->name ?? '' }}</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3.5 text-center font-bold font-mono text-slate-700">
+                                    <span class="px-2.5 py-1 bg-slate-100 rounded-lg">{{ $item->quantity }} ခု</span>
+                                </td>
+                                <td class="px-4 py-3.5 text-right font-semibold text-slate-600">
+                                    {{ number_format($item->unit_price) }} MMK
+                                </td>
+                                <td class="px-4 py-3.5 text-right font-black text-slate-900">
+                                    {{ number_format($item->subtotal) }} MMK
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
 
             <!-- Cost Summary Footer -->
