@@ -58,6 +58,7 @@
         if (existing) { existing.qty++; } else { cart.push({ ...item, qty: 1 }); }
         localStorage.setItem('foodorder_cart', JSON.stringify(cart));
         this.cartCount = cart.reduce((s,i) => s + (i.qty || 0), 0);
+        window.dispatchEvent(new CustomEvent('cart-updated'));
         this.toastName = item.name;
         this.toastVisible = true;
         setTimeout(() => { this.toastVisible = false; }, 2500);
@@ -68,127 +69,7 @@
     <div class="min-h-screen flex flex-col justify-between">
 
         <!-- ================= NAVBAR ================= -->
-        <header class="sticky top-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 shadow-sm transition-all duration-300">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex items-center justify-between h-20">
-                    
-                    <!-- Brand Logo -->
-                    <a href="/" class="flex items-center gap-3 group">
-                        <div class="w-11 h-11 rounded-2xl bg-orange-500 flex items-center justify-center text-white shadow-lg shadow-orange-500/30 group-hover:scale-105 transition-transform duration-300">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                            </svg>
-                        </div>
-                        <span class="text-2xl font-black tracking-tight text-slate-900 dark:text-white">Food<span class="text-orange-500">Order</span></span>
-                    </a>
-
-                    <!-- Navigation Links -->
-                    <nav class="hidden md:flex items-center space-x-8 text-sm font-semibold">
-                        <a href="#hero" class="text-orange-500 font-bold">Home</a>
-                        <a href="#categories" class="text-slate-600 dark:text-slate-300 hover:text-orange-500 transition-colors">Categories</a>
-                        <a href="#menu" class="text-slate-600 dark:text-slate-300 hover:text-orange-500 transition-colors">Popular Menu</a>
-                        <a href="#features" class="text-slate-600 dark:text-slate-300 hover:text-orange-500 transition-colors">Why Us</a>
-                    </nav>
-
-                    <!-- Header Actions -->
-                    <div class="flex items-center space-x-3">
-                        <!-- Theme Toggle Button -->
-                        <button @click="toggleTheme()"
-                                title="Toggle Theme"
-                                class="p-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-orange-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl transition-all duration-200 cursor-pointer inline-flex items-center justify-center border border-slate-200/60 dark:border-slate-700/60">
-                            <span x-show="!darkMode" class="text-base">🌙</span>
-                            <span x-show="darkMode" class="text-base" style="display:none;">☀️</span>
-                        </button>
-
-                        <!-- Shopping Cart Button -->
-                        <a href="{{ route('cart') }}" class="relative p-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-orange-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl transition-all duration-200 cursor-pointer inline-flex items-center justify-center border border-slate-200/60 dark:border-slate-700/60">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
-                            </svg>
-                            <!-- Cart Item Count Badge -->
-                            <span
-                                x-show="cartCount > 0"
-                                x-text="cartCount"
-                                x-transition:enter="transition ease-out duration-200"
-                                x-transition:enter-start="opacity-0 scale-50"
-                                x-transition:enter-end="opacity-100 scale-100"
-                                class="absolute -top-1.5 -right-1.5 bg-orange-500 text-white text-xs font-black min-w-[20px] h-5 px-1 rounded-full flex items-center justify-center shadow-md">
-                            </span>
-                        </a>
-
-                        @if (Route::has('login'))
-                            @auth
-                                @if (Auth::user()->isAdmin())
-                                    <a href="{{ route('admin.dashboard') }}" class="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-xs sm:text-sm font-bold rounded-xl shadow-lg shadow-amber-500/25 transition-all flex items-center gap-2">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                                        </svg>
-                                        <span>Admin Portal</span>
-                                    </a>
-                                @endif
-
-                                <!-- Logged-In User Profile Dropdown -->
-                                <div x-data="{ open: false }" class="relative">
-                                    <button @click="open = !open" @click.outside="open = false" class="px-3.5 py-2 bg-slate-100 hover:bg-orange-50 text-slate-800 font-bold text-xs sm:text-sm rounded-xl border border-slate-200 flex items-center gap-2 transition-all cursor-pointer">
-                                        <div class="w-7 h-7 rounded-full bg-orange-500 text-white flex items-center justify-center text-xs font-black shadow-sm">
-                                            {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
-                                        </div>
-                                        <span class="max-w-[120px] truncate">{{ Auth::user()->name }}</span>
-                                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                        </svg>
-                                    </button>
-
-                                    <!-- Dropdown Menu Box -->
-                                    <div x-show="open" 
-                                         x-transition:enter="transition ease-out duration-100"
-                                         x-transition:enter-start="transform opacity-0 scale-95"
-                                         x-transition:enter-end="transform opacity-100 scale-100"
-                                         x-transition:leave="transition ease-in duration-75"
-                                         x-transition:leave-start="transform opacity-100 scale-100"
-                                         x-transition:leave-end="transform opacity-0 scale-95"
-                                         class="absolute right-0 mt-2 w-52 bg-white rounded-2xl shadow-xl border border-slate-100 py-2 z-50">
-                                        <div class="px-4 py-2 border-b border-slate-100">
-                                            <p class="text-[11px] text-slate-400">Signed in as</p>
-                                            <p class="text-xs font-bold text-slate-900 truncate">{{ Auth::user()->email }}</p>
-                                        </div>
-                                        
-                                        <a href="{{ route('user.orders.index') }}" class="block px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-orange-50 hover:text-orange-600 transition-colors">
-                                            📦 My Orders (Order များ)
-                                        </a>
-
-                                        <a href="#menu" class="block px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-orange-50 hover:text-orange-600 transition-colors">
-                                            🍕 Explore Menu
-                                        </a>
-
-                                        <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-orange-50 hover:text-orange-600 transition-colors">
-                                            ⚙️ Profile Settings
-                                        </a>
-
-                                        <form method="POST" action="{{ route('logout') }}" onsubmit="localStorage.removeItem('foodorder_cart')" class="border-t border-slate-100 mt-1 pt-1">
-                                            @csrf
-                                            <button type="submit" class="w-full text-left px-4 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 transition-colors cursor-pointer flex items-center justify-between">
-                                                <span>Log Out</span>
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                                                </svg>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </div>
-                            @else
-                                <!-- Guest View: Single Clean Log in Button -->
-                                <a href="{{ route('login') }}" class="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-xl shadow-lg shadow-orange-500/25 transition-all">
-                                    Log in
-                                </a>
-                            @endauth
-                        @endif
-
-
-                    </div>
-                </div>
-            </div>
-        </header>
+        <x-storefront-navbar />
 
         <!-- ================= HERO SECTION ================= -->
         <section id="hero" class="relative py-12 lg:py-20 bg-white dark:bg-slate-950 transition-colors duration-300 overflow-hidden">
