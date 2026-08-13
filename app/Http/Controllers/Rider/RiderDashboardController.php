@@ -1,0 +1,81 @@
+<?php
+
+namespace App\Http\Controllers\Rider;
+
+use App\Http\Controllers\Controller;
+use App\Models\Order;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class RiderDashboardController extends Controller
+{
+    /**
+     * Display the rider dashboard with active and past deliveries.
+     */
+    public function index()
+    {
+        $rider = Auth::user();
+
+        // Active Deliveries assigned to this rider or available unassigned delivering orders
+        $activeDeliveries = Order::with(['user', 'orderItems.menuItem'])
+            ->where(function ($query) use ($rider) {
+                $query->where('rider_id', $rider->id)
+                      ->orWhereNull('rider_id');
+            })
+            ->whereIn('status', ['confirmed', 'preparing', 'delivering'])
+            ->latest()
+            ->get();
+
+        // Completed Deliveries by this rider
+        $completedDeliveries = Order::with(['user', 'orderItems.menuItem'])
+            ->where('rider_id', $rider->id)
+            ->where('status', 'completed')
+            ->latest()
+            ->take(20)
+            ->get();
+
+        // Quick Stats
+        $stats = [
+            'active_count' => $activeDeliveries->count(),
+            'completed_today' => $completedDeliveries->filter(function ($o) {
+                return $o->updated_at && $o->updated_at->isToday();
+            })->count(),
+            'total_earnings_today' => $completedDeliveries->filter(function ($o) {
+                return $o->updated_at && $o->updated_at->isToday();
+            })->sum('delivery_fee'),
+        ];
+
+        return view('rider.dashboard', compact('activeDeliveries', 'completedDeliveries', 'stats', 'rider'));
+    }
+
+    /**
+     * Start delivery for an assigned order.
+     */
+    public function startDelivery(Order $order)
+    {
+        $rider = Auth::user();
+
+        $order->update([
+            'rider_id' => $rider->id,
+            'status' => 'delivering',
+        ]);
+
+        return back()->with('success', "Order #{$order->order_number} is now Out for Delivery! 🛵");
+    }
+
+    /**
+     * Mark an order as completed & paid upon successful delivery.
+     */
+    public function completeDelivery(Order $order)
+    {
+        $rider = Auth::user();
+
+        $order->update([
+            'rider_id' => $rider->id,
+            'status' => 'completed',
+            'payment_status' => 'paid',
+        ]);
+
+        return back()->with('success', "Order #{$order->order_number} successfully Delivered & Payment Collected! 🎉💰");
+    }
+}

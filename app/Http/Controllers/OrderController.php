@@ -27,7 +27,7 @@ class OrderController extends Controller
             $totalRevenue = Order::sum('total_amount');
         }
 
-        $orders = Order::with(['user', 'orderItems.menuItem'])
+        $orders = Order::with(['user', 'rider', 'orderItems.menuItem'])
             ->when($search, function ($query, $search) {
                 return $query->where('order_number', 'like', "%{$search}%")
                              ->orWhere('delivery_phone', 'like', "%{$search}%")
@@ -47,8 +47,11 @@ class OrderController extends Controller
             ->paginate(10)
             ->withQueryString();
 
+        $riders = \App\Models\User::where('role', 'rider')->get();
+
         return view('admin.orders.index', compact(
             'orders',
+            'riders',
             'search',
             'status',
             'paymentMethod',

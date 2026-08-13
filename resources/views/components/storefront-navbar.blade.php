@@ -122,6 +122,12 @@ class="sticky top-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md borde
                                     ⚙️ Profile Settings
                                 </a>
 
+                                @if(Auth::user()->isRider())
+                                    <a href="{{ route('rider.dashboard') }}" class="block px-4 py-2 text-xs font-semibold text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-slate-800 transition-colors">
+                                        🛵 Rider Delivery Portal
+                                    </a>
+                                @endif
+
                                 @if(Auth::user()->isAdmin())
                                     <a href="{{ route('admin.dashboard') }}" class="block px-4 py-2 text-xs font-semibold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-slate-800 transition-colors sm:hidden">
                                         🛡️ Admin Portal

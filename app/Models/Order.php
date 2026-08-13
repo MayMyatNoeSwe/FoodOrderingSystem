@@ -14,6 +14,7 @@ class Order extends Model
     protected $fillable=[
         'order_number',
         'user_id',
+        'rider_id',
         'total_amount',
         'delivery_fee',
         'delivery_address',
@@ -28,6 +29,10 @@ class Order extends Model
     ];
     public function user() :BelongsTo{
         return $this->belongsTo(User::class);
+    }
+
+    public function rider() :BelongsTo{
+        return $this->belongsTo(User::class, 'rider_id');
     }
   
     public function orderItems(): HasMany

@@ -61,10 +61,26 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the orders associated with the user.
+     * Check if user has rider role
+     */
+    public function isRider(): bool
+    {
+        return isset($this->role) && $this->role === 'rider';
+    }
+
+    /**
+     * Get the orders placed by the user.
      */
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
+    }
+
+    /**
+     * Get the deliveries assigned to the rider.
+     */
+    public function assignedDeliveries(): HasMany
+    {
+        return $this->hasMany(Order::class, 'rider_id');
     }
 }

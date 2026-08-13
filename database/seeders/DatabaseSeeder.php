@@ -27,6 +27,17 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
+        $rider1 = User::firstOrCreate(
+            ['email' => 'rider@foodorder.com'],
+            [
+                'name' => 'Speedy Rider',
+                'password' => bcrypt('password'),
+                'role' => 'rider',
+                'phone_number' => '09988776655',
+                'city' => 'Yangon',
+            ]
+        );
+
         $customer1 = User::firstOrCreate(
             ['email' => 'user@example.com'],
             [

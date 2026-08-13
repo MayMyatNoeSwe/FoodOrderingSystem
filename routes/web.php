@@ -189,12 +189,28 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         return back()->with('success', "Dish '{$menuItem->name}' is now marked as {$statusText}");
     })->name('menuItems.toggle-stock');
 
+    // Admin Rider Management Routes
+    Route::get('/riders', [\App\Http\Controllers\Admin\RiderController::class, 'index'])->name('riders.index');
+    Route::post('/riders', [\App\Http\Controllers\Admin\RiderController::class, 'store'])->name('riders.store');
+    Route::post('/orders/{order}/assign-rider', [\App\Http\Controllers\Admin\RiderController::class, 'assignRider'])->name('orders.assignRider');
+
     // Admin Resource Routes
     Route::resource('categories', CategoryController::class)->except(['create', 'show', 'edit']);
     Route::resource('menuItems', MenuItemController::class)->except(['create', 'show', 'edit']);
     Route::resource('orders', OrderController::class)->except(['create', 'show', 'edit']);
     Route::resource('orderItems', OrderItemController::class)->except(['create', 'show', 'edit']);
     Route::resource('users', UserController::class)->except(['create', 'show', 'edit']);
+});
+
+/*
+|--------------------------------------------------------------------------
+| Rider Portal Routes
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth'])->prefix('rider')->as('rider.')->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\Rider\RiderDashboardController::class, 'index'])->name('dashboard');
+    Route::post('/orders/{order}/start-delivery', [\App\Http\Controllers\Rider\RiderDashboardController::class, 'startDelivery'])->name('orders.start');
+    Route::post('/orders/{order}/complete-delivery', [\App\Http\Controllers\Rider\RiderDashboardController::class, 'completeDelivery'])->name('orders.complete');
 });
 
 // Dashboard Redirect Handler (Breeze Default Route)

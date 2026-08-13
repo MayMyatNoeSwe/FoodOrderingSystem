@@ -138,6 +138,14 @@
                         <span class="ms-auto bg-slate-800 text-slate-400 text-xs font-bold px-2 py-0.5 rounded-full">{{ $navOrderItemCount ?? 0 }}</span>
                     </a>
 
+                    <a href="{{ route('admin.riders.index') }}" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all font-medium">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                        <span>Riders</span>
+                        <span class="ms-auto bg-slate-800 text-slate-400 text-xs font-bold px-2 py-0.5 rounded-full">{{ $riders->count() }}</span>
+                    </a>
+
                     <a href="{{ route('admin.users.index') }}" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all font-medium">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
@@ -588,16 +596,16 @@
                                             </div>
                                         </td>
 
-                                        <!-- Order Status Dropdown Form -->
-                                        <td class="px-4 py-4">
-                                            <form method="POST" action="{{ route('admin.orders.update', $order) }}" class="inline-block">
+                                        <!-- Order Status & Rider Dropdown Form -->
+                                        <td class="px-4 py-4 space-y-2">
+                                            <form method="POST" action="{{ route('admin.orders.update', $order) }}" class="block">
                                                 @csrf
                                                 @method('PUT')
                                                 
                                                 <div class="relative">
                                                     <select name="status" 
                                                             onchange="this.form.submit()" 
-                                                            class="text-xs font-bold px-3 py-1.5 rounded-xl border {{ $statusClass }} focus:ring-0 cursor-pointer appearance-none pr-7">
+                                                            class="w-full text-xs font-bold px-3 py-1.5 rounded-xl border {{ $statusClass }} focus:ring-0 cursor-pointer appearance-none pr-7">
                                                         <option value="pending" {{ $order->status === 'pending' ? 'selected' : '' }}>⏳ Pending</option>
                                                         <option value="preparing" {{ $order->status === 'preparing' ? 'selected' : '' }}>👨‍🍳 Preparing</option>
                                                         <option value="delivering" {{ $order->status === 'delivering' ? 'selected' : '' }}>🛵 Delivering</option>
@@ -609,6 +617,31 @@
                                                     </div>
                                                 </div>
                                             </form>
+
+                                            <!-- Rider Assignment -->
+                                            @if(!in_array($order->status, ['cancelled', 'completed']))
+                                                <form method="POST" action="{{ route('admin.orders.assignRider', $order) }}" class="block">
+                                                    @csrf
+                                                    <div class="relative">
+                                                        <select name="rider_id" onchange="this.form.submit()" 
+                                                                class="w-full text-[11px] font-bold px-2.5 py-1 rounded-xl bg-slate-950 border border-slate-800 text-slate-300 focus:outline-none focus:border-orange-500 cursor-pointer appearance-none pr-6">
+                                                            <option value="">🛵 Select Rider...</option>
+                                                            @foreach($riders as $riderItem)
+                                                                <option value="{{ $riderItem->id }}" {{ $order->rider_id == $riderItem->id ? 'selected' : '' }}>
+                                                                    🛵 {{ $riderItem->name }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                        <div class="pointer-events-none absolute right-2 top-1.5 text-slate-400 text-[9px]">
+                                                            ▼
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            @elseif($order->rider)
+                                                <div class="text-[11px] font-bold text-orange-400 flex items-center gap-1">
+                                                    <span>🛵</span> <span>{{ $order->rider->name }}</span>
+                                                </div>
+                                            @endif
                                         </td>
 
                                         <!-- 1-Click Accept / Reject Action Column -->
