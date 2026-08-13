@@ -644,6 +644,7 @@
                                                         @csrf
                                                         @method('PUT')
                                                         <input type="hidden" name="status" value="completed">
+                                                        <input type="hidden" name="payment_status" value="paid">
                                                         <button type="submit" class="w-full px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[11px] rounded-lg shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-1 cursor-pointer">
                                                             <span>✅ Complete</span>
                                                         </button>

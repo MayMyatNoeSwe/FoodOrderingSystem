@@ -102,6 +102,7 @@ Route::middleware('auth')->prefix('user')->name('user.')->group(function () {
         return response()->json([
             'status'         => $order->status,
             'payment_status' => $order->payment_status,
+            'notes'          => $order->notes,
         ]);
     })->name('orders.json_status');
 

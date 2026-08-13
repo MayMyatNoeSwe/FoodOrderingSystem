@@ -47,8 +47,8 @@ class Order extends Model
      */
     protected static function booted(): void
     {
-        static::saving(function (Order $order) {
-            if (isset($order->payment_method)) {
+        static::creating(function (Order $order) {
+            if (empty($order->payment_status)) {
                 if ($order->payment_method === 'cod') {
                     $order->payment_status = 'unpaid'; // Pay on delivery
                 } elseif (in_array($order->payment_method, ['kbzpay', 'wavepay'])) {

@@ -17,49 +17,54 @@
     </script>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <!-- Order Tracker JS -->
+    <script>
+        window.initOrderTracker = function(initialStatus, initialPaymentStatus, initialNotes, jsonUrl) {
+            return {
+                imgModal: false,
+                imgSrc: '',
+                currentStatus: initialStatus,
+                currentPaymentStatus: initialPaymentStatus,
+                currentNotes: initialNotes,
+                justApproved: false,
+                darkMode: localStorage.getItem('foodorder_theme') === 'dark',
+                toggleTheme: function() {
+                    this.darkMode = !this.darkMode;
+                    if (this.darkMode) {
+                        document.documentElement.classList.add('dark');
+                        localStorage.setItem('foodorder_theme', 'dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                        localStorage.setItem('foodorder_theme', 'light');
+                    }
+                },
+                init: function() {
+                    var self = this;
+                    localStorage.removeItem('foodorder_cart');
+                    setInterval(function() {
+                        fetch(jsonUrl)
+                            .then(function(res) { return res.json(); })
+                            .then(function(data) {
+                                if (data.status) {
+                                    if ((data.status === 'confirmed' || data.status === 'preparing') && self.currentStatus === 'pending') {
+                                        self.justApproved = true;
+                                    }
+                                    self.currentStatus = data.status;
+                                    self.currentPaymentStatus = data.payment_status;
+                                    if (data.notes !== undefined) {
+                                        self.currentNotes = data.notes;
+                                    }
+                                }
+                            })
+                            .catch(function() {});
+                    }, 3000);
+                }
+            };
+        };
+    </script>
 </head>
 <body class="font-sans antialiased bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 selection:bg-orange-500 selection:text-white"
-    x-data="{
-        imgModal: false,
-        imgSrc: '',
-        currentStatus: '{{ $order->status }}',
-        currentPaymentStatus: '{{ $order->payment_status }}',
-        justApproved: false,
-        darkMode: localStorage.getItem('foodorder_theme') === 'dark',
-        toggleTheme() {
-            this.darkMode = !this.darkMode;
-            if (this.darkMode) {
-                document.documentElement.classList.add('dark');
-                localStorage.setItem('foodorder_theme', 'dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-                localStorage.setItem('foodorder_theme', 'light');
-            }
-        },
-        cartCount: (function() {
-            try {
-                const stored = localStorage.getItem('foodorder_cart');
-                const items = stored ? JSON.parse(stored) : [];
-                return Array.isArray(items) ? items.reduce((s,i) => s + (i.qty||0), 0) : 0;
-            } catch(e) { return 0; }
-        })()
-    }"
-    x-init="
-        localStorage.removeItem('foodorder_cart');
-        setInterval(() => {
-            fetch('{{ route('user.orders.json_status', $order) }}')
-                .then(res => res.json())
-                .then(data => {
-                    if (data.status && data.status !== currentStatus) {
-                        if ((data.status === 'confirmed' || data.status === 'preparing') && currentStatus === 'pending') {
-                            justApproved = true;
-                        }
-                        currentStatus = data.status;
-                        currentPaymentStatus = data.payment_status;
-                    }
-                }).catch(() => {});
-        }, 3000);
-    ">
+    x-data="initOrderTracker({{ json_encode($order->status) }}, {{ json_encode($order->payment_status) }}, {{ json_encode($order->notes ?? '') }}, '{{ route('user.orders.json_status', $order) }}')">
 
     <!-- ===== NAVBAR ===== -->
     <x-storefront-navbar />
@@ -114,6 +119,17 @@
             <div>
                 <h3 class="font-black text-lg">Order ပို့ဆောင်မှု ပြီးစီးပါပြီ! (Completed)</h3>
                 <p class="text-xs text-blue-100 mt-0.5">ကျေးဇူးတင်ပါသည်။ အစားအစာများကို သုံးဆောင်ခံစားကြည့်ပါ!</p>
+            </div>
+        </div>
+
+        <!-- 5. CANCELLED / REJECTED BANNER -->
+        <div x-show="currentStatus === 'cancelled'" x-transition class="mb-8 p-5 bg-red-600 text-white rounded-3xl shadow-xl shadow-red-600/20 flex items-center gap-4 border border-red-500">
+            <div class="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-3xl shrink-0">
+                ❌
+            </div>
+            <div>
+                <h3 class="font-black text-lg">Order ကို ပယ်ဖျက်လိုက်ပါပြီ (Order Cancelled)</h3>
+                <p class="text-xs text-red-100 mt-0.5" x-text="currentNotes && currentNotes.trim() !== '' ? currentNotes : 'Admin မှ အော်ဒါကို ပယ်ဖျက်လိုက်ပါသည်။'"></p>
             </div>
         </div>
 
@@ -188,7 +204,7 @@
                 <!-- Notes -->
                 <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                     <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">📝 မှတ်ချက်</p>
-                    <p class="text-xs text-slate-700 leading-relaxed italic">
+                    <p class="text-xs text-slate-700 leading-relaxed italic" x-text="currentNotes && currentNotes.trim() !== '' ? '&quot;' + currentNotes + '&quot;' : 'မရှိပါ'">
                         {{ $order->notes ? '"'.$order->notes.'"' : 'မရှိပါ' }}
                     </p>
                 </div>

@@ -68,19 +68,26 @@ class OrderController extends Controller
     {
         $validated = $request->validate([
             'status' => 'required|string|in:pending,confirmed,preparing,delivering,completed,cancelled',
-            'payment_status' => 'nullable|string|in:paid,unpaid',
+            'payment_status' => 'nullable|string|in:paid,unpaid,pending_verification',
         ]);
 
         $updateData = ['status' => $validated['status']];
-        if (isset($validated['payment_status'])) {
-            $updateData['payment_status'] = $validated['payment_status'];
-        } elseif (in_array($validated['status'], ['confirmed', 'preparing', 'delivering', 'completed'])) {
+
+        if ($validated['status'] === 'completed') {
             $updateData['payment_status'] = 'paid';
+        } elseif (isset($validated['payment_status'])) {
+            $updateData['payment_status'] = $validated['payment_status'];
         }
 
         $order->update($updateData);
 
-        return redirect()->route('admin.orders.index')->with('success', "Order #{$order->order_number} updated successfully!");
+        if ($validated['status'] === 'completed') {
+            $message = "Order #{$order->order_number} Completed & Payment marked as Paid! 💰✅";
+        } else {
+            $message = "Order #{$order->order_number} status updated to " . ucfirst($validated['status']) . " successfully!";
+        }
+
+        return redirect()->route('admin.orders.index')->with('success', $message);
     }
 
     /**

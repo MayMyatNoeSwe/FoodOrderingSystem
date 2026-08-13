@@ -15,7 +15,7 @@
         try {
             const stored = localStorage.getItem('foodorder_cart');
             const items = stored ? JSON.parse(stored) : [];
-            return Array.isArray(items) ? items.reduce((s,i) => s + (i.qty||0), 0) : 0;
+            return Array.isArray(items) ? items.reduce(function(s, i) { return s + (i.qty || 0); }, 0) : 0;
         } catch(e) { return 0; }
     },
     cartCount: 0,
