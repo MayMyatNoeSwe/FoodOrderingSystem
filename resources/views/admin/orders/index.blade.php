@@ -613,12 +613,12 @@
 
                                         <!-- 1-Click Accept / Reject Action Column -->
                                         <td class="px-4 py-4 text-center">
-                                            <div class="flex items-center justify-center gap-2">
+                                            <div class="flex flex-col items-center justify-center gap-1.5">
                                                 @if($order->status === 'pending')
                                                     <!-- Accept Form -->
-                                                    <form method="POST" action="{{ route('admin.orders.accept', $order) }}">
+                                                    <form method="POST" action="{{ route('admin.orders.accept', $order) }}" class="w-full max-w-[90px]">
                                                         @csrf
-                                                        <button type="submit" class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white font-bold text-[11px] rounded-lg shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-1 cursor-pointer">
+                                                        <button type="submit" class="w-full px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white font-bold text-[11px] rounded-lg shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-1 cursor-pointer">
                                                             <span>✓</span>
                                                             <span>Accept</span>
                                                         </button>
@@ -626,25 +626,25 @@
 
                                                     <!-- Reject Button -->
                                                     <button @click="openRejectModal({{ $order->id }}, '{{ $order->order_number }}')" 
-                                                            class="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold text-[11px] rounded-lg transition-all flex items-center gap-1 cursor-pointer">
+                                                            class="w-full max-w-[90px] px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold text-[11px] rounded-lg transition-all flex items-center justify-center gap-1 cursor-pointer">
                                                         <span>✕</span>
                                                         <span>Reject</span>
                                                     </button>
                                                 @elseif($order->status === 'preparing')
-                                                    <form method="POST" action="{{ route('admin.orders.update', $order) }}">
+                                                    <form method="POST" action="{{ route('admin.orders.update', $order) }}" class="w-full max-w-[90px]">
                                                         @csrf
                                                         @method('PUT')
                                                         <input type="hidden" name="status" value="delivering">
-                                                        <button type="submit" class="px-3 py-1.5 bg-purple-500 hover:bg-purple-600 text-white font-bold text-[11px] rounded-lg shadow-lg shadow-purple-500/20 transition-all flex items-center gap-1 cursor-pointer">
+                                                        <button type="submit" class="w-full px-3 py-1.5 bg-purple-500 hover:bg-purple-600 text-white font-bold text-[11px] rounded-lg shadow-lg shadow-purple-500/20 transition-all flex items-center justify-center gap-1 cursor-pointer">
                                                             <span>🛵 Dispatch</span>
                                                         </button>
                                                     </form>
                                                 @elseif($order->status === 'delivering')
-                                                    <form method="POST" action="{{ route('admin.orders.update', $order) }}">
+                                                    <form method="POST" action="{{ route('admin.orders.update', $order) }}" class="w-full max-w-[90px]">
                                                         @csrf
                                                         @method('PUT')
                                                         <input type="hidden" name="status" value="completed">
-                                                        <button type="submit" class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[11px] rounded-lg shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-1 cursor-pointer">
+                                                        <button type="submit" class="w-full px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[11px] rounded-lg shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-1 cursor-pointer">
                                                             <span>✅ Complete</span>
                                                         </button>
                                                     </form>
