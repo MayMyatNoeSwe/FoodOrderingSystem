@@ -165,10 +165,11 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
     // Quick Action Endpoint: Accept Order
     Route::post('/orders/{order}/accept', function (Order $order) {
-        $order->update([
-            'status' => 'confirmed',
-            'payment_status' => 'paid'
-        ]);
+        $updateData = ['status' => 'confirmed'];
+        if (in_array($order->payment_method, ['kbzpay', 'wavepay'])) {
+            $updateData['payment_status'] = 'paid';
+        }
+        $order->update($updateData);
         return back()->with('success', "Order #{$order->order_number} Confirmed & Accepted! 🎉");
     })->name('orders.accept');
 
@@ -193,6 +194,15 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/riders', [\App\Http\Controllers\Admin\RiderController::class, 'index'])->name('riders.index');
     Route::post('/riders', [\App\Http\Controllers\Admin\RiderController::class, 'store'])->name('riders.store');
     Route::post('/orders/{order}/assign-rider', [\App\Http\Controllers\Admin\RiderController::class, 'assignRider'])->name('orders.assignRider');
+    
+    // JSON Endpoint for Admin Real-Time Status Polling
+    Route::get('/orders/json-list', function () {
+        $orders = Order::select('id', 'order_number', 'status', 'payment_status', 'rider_id', 'updated_at')
+            ->latest()
+            ->take(30)
+            ->get();
+        return response()->json(['orders' => $orders]);
+    })->name('orders.json_list');
 
     // Admin Resource Routes
     Route::resource('categories', CategoryController::class)->except(['create', 'show', 'edit']);

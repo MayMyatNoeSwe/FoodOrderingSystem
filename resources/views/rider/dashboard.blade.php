@@ -185,14 +185,19 @@
                                     <span>🛵 Start Delivery (Pick Up)</span>
                                 </button>
                             </form>
-                        @endif
 
-                        <form method="POST" action="{{ route('rider.orders.complete', $order) }}" class="flex-1">
-                            @csrf
-                            <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold text-xs rounded-2xl shadow-lg shadow-emerald-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer">
-                                <span>✅ Mark Delivered & Paid</span>
+                            <!-- Disabled Mark Delivered Button (Requires Pick Up first) -->
+                            <button type="button" disabled title="Please pick up order first" class="flex-1 py-3 bg-slate-800/80 text-slate-500 border border-slate-700/50 font-bold text-xs rounded-2xl cursor-not-allowed flex items-center justify-center gap-2 opacity-60">
+                                <span>🔒 Mark Delivered & Paid</span>
                             </button>
-                        </form>
+                        @else
+                            <form method="POST" action="{{ route('rider.orders.complete', $order) }}" class="w-full">
+                                @csrf
+                                <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold text-xs rounded-2xl shadow-lg shadow-emerald-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer">
+                                    <span>✅ Mark Delivered & Paid</span>
+                                </button>
+                            </form>
+                        @endif
                     </div>
 
                 </div>

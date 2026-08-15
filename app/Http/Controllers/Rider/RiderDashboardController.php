@@ -68,6 +68,10 @@ class RiderDashboardController extends Controller
      */
     public function completeDelivery(Order $order)
     {
+        if ($order->status !== 'delivering') {
+            return back()->with('error', 'Order must be picked up first before marking as delivered!');
+        }
+
         $rider = Auth::user();
 
         $order->update([

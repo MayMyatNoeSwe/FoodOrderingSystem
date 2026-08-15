@@ -40,46 +40,76 @@
             });
             return false;
         }
+
+        window.adminOrderPoller = function() {
+            return {
+                mobileMenuOpen: false,
+                detailsModalOpen: false,
+                rejectModalOpen: false,
+                activeOrder: null,
+                activeRejectOrder: null,
+                activeRejectReason: 'Kitchen Busy',
+                audioEnabled: true,
+                statusStateMap: {},
+
+                init: function() {
+                    var self = this;
+                    setInterval(function() {
+                        fetch('{{ route('admin.orders.json_list') }}')
+                            .then(function(res) { return res.json(); })
+                            .then(function(data) {
+                                if (data && data.orders && data.orders.length > 0) {
+                                    var hasChange = false;
+                                    data.orders.forEach(function(o) {
+                                        var k = 'ord_' + o.id;
+                                        var v = o.status + '_' + (o.rider_id || 0) + '_' + o.payment_status;
+                                        if (self.statusStateMap[k] && self.statusStateMap[k] !== v) {
+                                            hasChange = true;
+                                        }
+                                        self.statusStateMap[k] = v;
+                                    });
+                                    if (hasChange && !self.detailsModalOpen && !self.rejectModalOpen) {
+                                        window.location.reload();
+                                    }
+                                }
+                            })
+                            .catch(function() {});
+                    }, 3000);
+                },
+
+                playNotificationSound: function() {
+                    if (!this.audioEnabled) return;
+                    try {
+                        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+                        osc.frequency.setValueAtTime(880, ctx.currentTime + 0.15);
+                        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start();
+                        osc.stop(ctx.currentTime + 0.5);
+                    } catch(e) { console.log('Audio error:', e); }
+                },
+
+                openDetailsModal: function(order) {
+                    this.activeOrder = order;
+                    this.detailsModalOpen = true;
+                },
+
+                openRejectModal: function(orderId, orderNum) {
+                    this.activeRejectOrder = { id: orderId, number: orderNum };
+                    this.rejectModalOpen = true;
+                }
+            };
+        };
     </script>
 </head>
 <body class="font-sans antialiased text-slate-800 bg-slate-950 selection:bg-orange-500 selection:text-white min-h-screen"
-      x-data="{ 
-          mobileMenuOpen: false,
-          detailsModalOpen: false,
-          rejectModalOpen: false,
-          activeOrder: null,
-          activeRejectOrder: null,
-          activeRejectReason: 'Kitchen Busy',
-          audioEnabled: true,
-
-          playNotificationSound() {
-              if (!this.audioEnabled) return;
-              try {
-                  const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                  const osc = ctx.createOscillator();
-                  const gain = ctx.createGain();
-                  osc.type = 'sine';
-                  osc.frequency.setValueAtTime(587.33, ctx.currentTime);
-                  osc.frequency.setValueAtTime(880, ctx.currentTime + 0.15);
-                  gain.gain.setValueAtTime(0.3, ctx.currentTime);
-                  gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
-                  osc.connect(gain);
-                  gain.connect(ctx.destination);
-                  osc.start();
-                  osc.stop(ctx.currentTime + 0.5);
-              } catch(e) { console.log('Audio error:', e); }
-          },
-
-          openDetailsModal(order) {
-              this.activeOrder = order;
-              this.detailsModalOpen = true;
-          },
-
-          openRejectModal(orderId, orderNum) {
-              this.activeRejectOrder = { id: orderId, number: orderNum };
-              this.rejectModalOpen = true;
-          }
-      }">
+      x-data="adminOrderPoller()">
 
     <div class="min-h-screen flex flex-col md:flex-row">
 
