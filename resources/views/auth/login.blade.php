@@ -11,8 +11,12 @@
         <x-auth-session-status class="mb-4" :status="session('status')" />
 
         <!-- Single Unified Login Form -->
-        <form method="POST" action="{{ route('login') }}" class="space-y-5">
+        <form method="POST" action="{{ route('login') }}" class="space-y-5" autocomplete="off">
             @csrf
+
+            <!-- Dummy fields to prevent aggressive browser autofill -->
+            <input type="text" class="hidden" name="prevent_autofill" autocomplete="off" />
+            <input type="password" class="hidden" name="prevent_autofill_pwd" autocomplete="off" />
 
             <!-- Email Address -->
             <div>
@@ -24,7 +28,7 @@
                               :value="old('email')" 
                               required 
                               autofocus 
-                              autocomplete="username" 
+                              autocomplete="off" 
                               placeholder="name@example.com" />
                 <x-input-error :messages="$errors->get('email')" class="mt-1.5" />
             </div>
@@ -45,7 +49,7 @@
                               type="password"
                               name="password"
                               required 
-                              autocomplete="current-password"
+                              autocomplete="new-password"
                               placeholder="••••••••" />
 
 

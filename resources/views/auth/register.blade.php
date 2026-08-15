@@ -5,20 +5,20 @@
         <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Join us and start ordering delicious food in minutes</p>
     </div>
 
-    <form method="POST" action="{{ route('register') }}" class="space-y-4">
+    <form method="POST" action="{{ route('register') }}" class="space-y-4" autocomplete="off">
         @csrf
 
         <!-- Name -->
         <div>
             <x-input-label for="name" :value="__('Full Name')" class="text-slate-700 dark:text-slate-300 font-medium mb-1.5" />
-            <x-text-input id="name" class="block w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" placeholder="John Doe" />
+            <x-text-input id="name" class="block w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="off" placeholder="John Doe" />
             <x-input-error :messages="$errors->get('name')" class="mt-1.5" />
         </div>
 
         <!-- Email Address -->
         <div>
             <x-input-label for="email" :value="__('Email Address')" class="text-slate-700 dark:text-slate-300 font-medium mb-1.5" />
-            <x-text-input id="email" class="block w-full" type="email" name="email" :value="old('email')" required autocomplete="username" placeholder="name@example.com" />
+            <x-text-input id="email" class="block w-full" type="email" name="email" :value="old('email')" required autocomplete="off" placeholder="name@example.com" />
             <x-input-error :messages="$errors->get('email')" class="mt-1.5" />
         </div>
 
