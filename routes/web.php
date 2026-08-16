@@ -46,6 +46,17 @@ Route::middleware('auth')->prefix('user')->name('user.')->group(function () {
             return redirect()->route('cart')->with('error', 'Your cart is empty.');
         }
 
+        // Validate backend stock for every cart item
+        foreach ($cartItems as $cartItem) {
+            $menuItem = MenuItem::find($cartItem['id']);
+            if (!$menuItem || !$menuItem->is_available) {
+                return redirect()->route('cart')->with('error', "Item '" . ($cartItem['name'] ?? 'Item') . "' is currently unavailable.");
+            }
+            if ($menuItem->stock < $cartItem['qty']) {
+                return redirect()->route('cart')->with('error', "Sorry! Cannot place order because '{$menuItem->name}' has only {$menuItem->stock} unit(s) available in stock (you requested {$cartItem['qty']}). Please adjust your quantity.");
+            }
+        }
+
         $screenshotPath = null;
         if ($request->hasFile('payment_screenshot')) {
             $file = $request->file('payment_screenshot');
@@ -55,10 +66,10 @@ Route::middleware('auth')->prefix('user')->name('user.')->group(function () {
         }
 
         // Prevent duplicate order creation if identical order was submitted in the last 15 seconds
-        $existingRecentOrder = Order::where('user_id', '=', Auth::id(), 'and')
-            ->where('total_amount', '=', $request->total_amount, 'and')
-            ->where('delivery_address', '=', $request->delivery_address, 'and')
-            ->where('created_at', '>=', now()->subSeconds(15), 'and')
+        $existingRecentOrder = Order::where('user_id', Auth::id())
+            ->where('total_amount', $request->total_amount)
+            ->where('delivery_address', $request->delivery_address)
+            ->where('created_at', '>=', now()->subSeconds(15))
             ->latest()
             ->first();
 
@@ -91,6 +102,12 @@ Route::middleware('auth')->prefix('user')->name('user.')->group(function () {
                     'unit_price'   => $menuItem->price,
                     'subtotal'     => $menuItem->price * $cartItem['qty'],
                 ]);
+
+                // Decrement stock in database
+                $menuItem->decrement('stock', $cartItem['qty']);
+                if ($menuItem->stock <= 0) {
+                    $menuItem->update(['stock' => 0, 'is_available' => false]);
+                }
             }
         }
 

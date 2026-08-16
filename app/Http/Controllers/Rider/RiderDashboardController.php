@@ -14,14 +14,16 @@ class RiderDashboardController extends Controller
      */
     public function index()
     {
+        /** @var \App\Models\User $rider */
         $rider = Auth::user();
 
-        // Active Deliveries assigned to this rider or available unassigned delivering orders
+        if (!$rider || !$rider->isRider()) {
+            return redirect()->route('home')->with('error', 'Access denied. Rider accounts only.');
+        }
+
+        // Active Deliveries assigned to this rider only
         $activeDeliveries = Order::with(['user', 'orderItems.menuItem'])
-            ->where(function ($query) use ($rider) {
-                $query->where('rider_id', $rider->id)
-                      ->orWhereNull('rider_id');
-            })
+            ->where('rider_id', $rider->id)
             ->whereIn('status', ['confirmed', 'preparing', 'delivering'])
             ->latest()
             ->get();
@@ -53,7 +55,11 @@ class RiderDashboardController extends Controller
      */
     public function startDelivery(Order $order)
     {
+        /** @var \App\Models\User $rider */
         $rider = Auth::user();
+        if (!$rider || !$rider->isRider()) {
+            return redirect()->route('home')->with('error', 'Access denied.');
+        }
 
         $order->update([
             'rider_id' => $rider->id,
@@ -72,7 +78,11 @@ class RiderDashboardController extends Controller
             return back()->with('error', 'Order must be picked up first before marking as delivered!');
         }
 
+        /** @var \App\Models\User $rider */
         $rider = Auth::user();
+        if (!$rider || !$rider->isRider()) {
+            return redirect()->route('home')->with('error', 'Access denied.');
+        }
 
         $order->update([
             'rider_id' => $rider->id,

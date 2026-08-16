@@ -22,48 +22,69 @@
 
     <!-- Scripts & Styles -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <script>
+        window.welcomeApp = function() {
+            return {
+                darkMode: localStorage.getItem('foodorder_theme') === 'dark',
+                toggleTheme() {
+                    this.darkMode = !this.darkMode;
+                    if (this.darkMode) {
+                        document.documentElement.classList.add('dark');
+                        localStorage.setItem('foodorder_theme', 'dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                        localStorage.setItem('foodorder_theme', 'light');
+                    }
+                },
+                activeCategory: 'all',
+                getCart() {
+                    try {
+                        const stored = localStorage.getItem('foodorder_cart');
+                        if (stored && stored !== 'undefined') {
+                            const parsed = JSON.parse(stored);
+                            return Array.isArray(parsed) ? parsed : [];
+                        }
+                    } catch(e) {}
+                    return [];
+                },
+                cartCount: 0,
+                toastVisible: false,
+                toastName: '',
+                init() {
+                    this.cartCount = this.getCart().reduce((s,i) => s + (i.qty || 0), 0);
+                },
+                addToCart(item) {
+                    const cart = this.getCart();
+                    const existing = cart.find(i => i.id === item.id);
+                    const maxStock = (item.stock !== undefined && item.stock !== null) ? Number(item.stock) : 999;
+                    if (maxStock <= 0) {
+                        alert('Sorry, "' + item.name + '" is currently out of stock!');
+                        return;
+                    }
+                    if (existing) {
+                        if (existing.qty < maxStock) {
+                            existing.qty++;
+                            existing.stock = maxStock;
+                        } else {
+                            alert('Cannot add more. Available stock limit for "' + item.name + '" is ' + maxStock + '!');
+                            return;
+                        }
+                    } else {
+                        cart.push({ ...item, qty: 1, stock: maxStock });
+                    }
+                    localStorage.setItem('foodorder_cart', JSON.stringify(cart));
+                    this.cartCount = cart.reduce((s,i) => s + (i.qty || 0), 0);
+                    window.dispatchEvent(new CustomEvent('cart-updated'));
+                    this.toastName = item.name;
+                    this.toastVisible = true;
+                    setTimeout(() => { this.toastVisible = false; }, 2500);
+                }
+            };
+        };
+    </script>
 </head>
-<body x-data="{
-    darkMode: localStorage.getItem('foodorder_theme') === 'dark',
-    toggleTheme() {
-        this.darkMode = !this.darkMode;
-        if (this.darkMode) {
-            document.documentElement.classList.add('dark');
-            localStorage.setItem('foodorder_theme', 'dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-            localStorage.setItem('foodorder_theme', 'light');
-        }
-    },
-    activeCategory: 'all',
-    getCart() {
-        try {
-            const stored = localStorage.getItem('foodorder_cart');
-            if (stored && stored !== 'undefined') {
-                const parsed = JSON.parse(stored);
-                return Array.isArray(parsed) ? parsed : [];
-            }
-        } catch(e) {}
-        return [];
-    },
-    cartCount: 0,
-    toastVisible: false,
-    toastName: '',
-    init() {
-        this.cartCount = this.getCart().reduce((s,i) => s + (i.qty || 0), 0);
-    },
-    addToCart(item) {
-        const cart = this.getCart();
-        const existing = cart.find(i => i.id === item.id);
-        if (existing) { existing.qty++; } else { cart.push({ ...item, qty: 1 }); }
-        localStorage.setItem('foodorder_cart', JSON.stringify(cart));
-        this.cartCount = cart.reduce((s,i) => s + (i.qty || 0), 0);
-        window.dispatchEvent(new CustomEvent('cart-updated'));
-        this.toastName = item.name;
-        this.toastVisible = true;
-        setTimeout(() => { this.toastVisible = false; }, 2500);
-    }
-}" class="font-sans antialiased text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-950 selection:bg-orange-500 selection:text-white transition-colors duration-300">
+<body x-data="welcomeApp()" class="font-sans antialiased text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-950 selection:bg-orange-500 selection:text-white transition-colors duration-300">
 
     <!-- 60% Dominant Base Container -->
     <div class="min-h-screen flex flex-col justify-between">
@@ -285,7 +306,13 @@
                                 </div>
                                 <div class="p-3">
                                     <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-semibold mb-1">
-                                        <span>Available Now</span>
+                                        @if($item->stock <= 0 || !$item->is_available)
+                                            <span class="text-red-500 font-bold flex items-center gap-1">🚫 Out of Stock</span>
+                                        @elseif($item->stock <= 10)
+                                            <span class="text-amber-500 font-bold flex items-center gap-1">⚠️ Only {{ $item->stock }} left</span>
+                                        @else
+                                            <span>Available Now</span>
+                                        @endif
                                         <span>⏱️ 20 min</span>
                                     </div>
                                     <h3 class="text-base font-bold text-slate-900 dark:text-white group-hover:text-orange-600 transition-colors">{{ $item->name }}</h3>
@@ -297,14 +324,20 @@
                                     <span class="text-xs text-slate-400 font-medium block">Price</span>
                                     <span class="text-base font-black text-slate-900 dark:text-white">{{ number_format($item->price) }} MMK</span>
                                 </div>
-                                <button
-                                    @click="addToCart({{ json_encode(['id' => $item->id, 'name' => $item->name, 'price' => $item->price, 'image' => $item->image_url, 'category' => $catName]) }}); window.location.href='{{ route('cart') }}';"
-                                    class="px-3 py-2 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-orange-500/25 flex items-center gap-1.5 transition-all cursor-pointer">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                                    </svg>
-                                    <span>Cart</span>
-                                </button>
+                                @if($item->stock <= 0 || !$item->is_available)
+                                    <button disabled class="px-3 py-2 bg-slate-200 dark:bg-slate-800 text-slate-400 font-bold text-xs rounded-xl cursor-not-allowed">
+                                        Sold Out
+                                    </button>
+                                @else
+                                    <button
+                                        @click="addToCart({{ json_encode(['id' => $item->id, 'name' => $item->name, 'price' => $item->price, 'image' => $item->image_url, 'category' => $catName, 'stock' => $item->stock]) }}); window.location.href='{{ route('cart') }}';"
+                                        class="px-3 py-2 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-orange-500/25 flex items-center gap-1.5 transition-all cursor-pointer">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                        </svg>
+                                        <span>Cart</span>
+                                    </button>
+                                @endif
                             </div>
                         </div>
                     @empty

@@ -48,10 +48,10 @@
         <div class="mb-8">
             <h1 class="text-2xl sm:text-3xl font-black text-slate-900 flex items-center gap-3">
                 <span class="text-3xl">📦</span>
-                ကျွန်ုပ်၏ Order များ
-                <span class="text-base font-bold text-slate-400 ml-1">({{ $orders->count() }} ခု)</span>
+                My Orders
+                <span class="text-base font-bold text-slate-400 ml-1">({{ $orders->count() }})</span>
             </h1>
-            <p class="text-sm text-slate-500 mt-1.5">သင်မှာယူခဲ့သော Order များ၏ အခြေအနေများကို ကြည့်ရှုနိုင်ပါသည်။</p>
+            <p class="text-sm text-slate-500 mt-1.5">View and track the status of all your food orders.</p>
         </div>
 
         @if(session('success'))
@@ -65,10 +65,10 @@
             <!-- Empty State -->
             <div class="bg-white rounded-3xl border border-slate-100 p-16 text-center shadow-sm">
                 <div class="w-24 h-24 bg-orange-50 rounded-full flex items-center justify-center text-5xl mb-6 mx-auto shadow-inner">📦</div>
-                <h3 class="text-2xl font-black text-slate-900 mb-2">Order မရှိသေးပါ</h3>
-                <p class="text-slate-500 text-sm mb-8 max-w-sm mx-auto">သင်မှာယူထားသော အစားအစာ Order များ မရှိသေးပါ။ မနူးကြည့်ပြီး မှာယူလိုက်ပါ!</p>
+                <h3 class="text-2xl font-black text-slate-900 mb-2">No Orders Yet</h3>
+                <p class="text-slate-500 text-sm mb-8 max-w-sm mx-auto">You haven't placed any food orders yet. Browse our menu and place your first order!</p>
                 <a href="/" class="px-8 py-3.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm rounded-xl shadow-lg shadow-orange-500/25 transition-all inline-block">
-                    မနူးကြည့်မည်
+                    Browse Menu
                 </a>
             </div>
         @else
@@ -123,7 +123,7 @@
                                 <span class="text-xs text-slate-400 font-medium">{{ $order->created_at->format('M d, Y • h:i A') }}</span>
                                 <a href="{{ route('user.orders.show', $order) }}"
                                    class="px-3.5 py-1.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-bold text-xs rounded-xl shadow-sm shadow-orange-500/20 transition-all whitespace-nowrap">
-                                    အသေးစိတ် &rarr;
+                                    Details &rarr;
                                 </a>
                             </div>
                         </div>
@@ -134,7 +134,7 @@
 
                                 <!-- Left: Items Ordered -->
                                 <div class="flex-1 min-w-0">
-                                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">မှာယူသောပစ္စည်းများ</p>
+                                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Items Ordered</p>
                                     <div class="space-y-2">
                                         @forelse($order->orderItems as $item)
                                             <div class="flex items-center justify-between gap-3">
@@ -160,7 +160,7 @@
                                                 </span>
                                             </div>
                                         @empty
-                                            <p class="text-xs text-slate-400 italic">ပစ္စည်းအချက်အလက် မရှိပါ</p>
+                                            <p class="text-xs text-slate-400 italic">No item details available</p>
                                         @endforelse
                                     </div>
                                 </div>
@@ -173,7 +173,7 @@
                                 <div class="lg:w-56 shrink-0 space-y-4">
                                     <!-- Delivery Info -->
                                     <div>
-                                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Delivery အချက်အလက်</p>
+                                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Delivery Info</p>
                                         <p class="text-xs font-semibold text-slate-700 flex items-start gap-1.5">
                                             <span>📍</span>
                                             <span class="leading-relaxed">{{ $order->delivery_township ?? 'Yangon' }}@if($order->delivery_address) — {{ Str::limit($order->delivery_address, 45) }}@endif</span>
@@ -187,15 +187,15 @@
                                     <!-- Price Breakdown -->
                                     <div class="bg-slate-50 rounded-xl p-3 space-y-1.5">
                                         <div class="flex justify-between text-xs text-slate-500">
-                                            <span>ပစ္စည်းစုစုပေါင်း</span>
+                                            <span>Items Subtotal</span>
                                             <span>{{ number_format($order->total_amount - ($order->delivery_fee ?? 0)) }} MMK</span>
                                         </div>
                                         <div class="flex justify-between text-xs text-slate-500">
-                                            <span>Delivery ဖိ</span>
+                                            <span>Delivery Fee</span>
                                             <span>{{ number_format($order->delivery_fee ?? 0) }} MMK</span>
                                         </div>
                                         <div class="border-t border-slate-200 pt-1.5 flex justify-between">
-                                            <span class="text-xs font-black text-slate-900">ပေးရမည့်ငွေ</span>
+                                            <span class="text-xs font-black text-slate-900">Total</span>
                                             <span class="text-sm font-black text-orange-500">{{ number_format($order->total_amount) }} MMK</span>
                                         </div>
                                     </div>
@@ -220,7 +220,7 @@
                             <span class="text-[11px] text-slate-400 font-medium">{{ $order->created_at->diffForHumans() }}</span>
                             <a href="{{ route('user.orders.show', $order) }}"
                                class="text-xs font-bold text-orange-500 hover:text-orange-600 transition-colors">
-                                Order Tracking ကြည့်မည် &rarr;
+                                Track Order &rarr;
                             </a>
                         </div>
 

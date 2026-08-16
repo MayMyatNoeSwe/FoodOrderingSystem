@@ -79,8 +79,8 @@
                     ⏳
                 </div>
                 <div>
-                    <h3 class="font-black text-base">Admin ထံသို့ Notification ပေးပို့ထားပြီး ဖြစ်ပါသည်။</h3>
-                    <p class="text-xs text-amber-100 mt-0.5 leading-relaxed">Admin မှ စစ်ဆေးပြီး အတည်ပြု (Approve) လုပ်ပေးသည်နှင့် ချက်ချင်း ဤနေရာတွင် အလိုအလျောက် ပြောင်းလဲပေးပါမည်။</p>
+                    <h3 class="font-black text-base">Notification sent to Admin.</h3>
+                    <p class="text-xs text-amber-100 mt-0.5 leading-relaxed">Your order status will update automatically here as soon as the Admin approves it.</p>
                 </div>
             </div>
             <div class="shrink-0 flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl text-xs font-bold">
@@ -95,8 +95,8 @@
                 🎉
             </div>
             <div>
-                <h3 class="font-black text-lg">Admin မှ သင်၏ Order ကို အတည်ပြုပေးလိုက်ပါပြီ! (Order Confirmed)</h3>
-                <p class="text-xs text-emerald-100 mt-0.5">မီးဖိုချောင်မှ သင်၏ အစားအစာများကို စတင် ပြင်ဆင်နေပါပြီ။</p>
+                <h3 class="font-black text-lg">Order Confirmed by Admin!</h3>
+                <p class="text-xs text-emerald-100 mt-0.5">Our kitchen has started preparing your food.</p>
             </div>
         </div>
 
@@ -106,8 +106,8 @@
                 🛵
             </div>
             <div>
-                <h3 class="font-black text-lg">Order ပို့ဆောင်နေပါပြီ! (On the Way)</h3>
-                <p class="text-xs text-purple-100 mt-0.5">Delivery Rider မှ သင့်ထံသို့ ပို့ဆောင်ရန် ထွက်ခွာနေပါပြီ။</p>
+                <h3 class="font-black text-lg">Order is on the way!</h3>
+                <p class="text-xs text-purple-100 mt-0.5">Our delivery rider is heading to your location.</p>
             </div>
         </div>
 
@@ -117,8 +117,8 @@
                 ✅
             </div>
             <div>
-                <h3 class="font-black text-lg">Order ပို့ဆောင်မှု ပြီးစီးပါပြီ! (Completed)</h3>
-                <p class="text-xs text-blue-100 mt-0.5">ကျေးဇူးတင်ပါသည်။ အစားအစာများကို သုံးဆောင်ခံစားကြည့်ပါ!</p>
+                <h3 class="font-black text-lg">Order Completed!</h3>
+                <p class="text-xs text-blue-100 mt-0.5">Thank you for ordering with us. Enjoy your meal!</p>
             </div>
         </div>
 
@@ -128,8 +128,8 @@
                 ❌
             </div>
             <div>
-                <h3 class="font-black text-lg">Order ကို ပယ်ဖျက်လိုက်ပါပြီ (Order Cancelled)</h3>
-                <p class="text-xs text-red-100 mt-0.5" x-text="currentNotes && currentNotes.trim() !== '' ? currentNotes : 'Admin မှ အော်ဒါကို ပယ်ဖျက်လိုက်ပါသည်။'"></p>
+                <h3 class="font-black text-lg">Order Cancelled</h3>
+                <p class="text-xs text-red-100 mt-0.5" x-text="currentNotes && currentNotes.trim() !== '' ? currentNotes : 'The order was cancelled by the administrator.'"></p>
             </div>
         </div>
 
@@ -141,7 +141,7 @@
                         <span class="text-xs font-bold px-3 py-1 bg-slate-100 text-slate-600 rounded-full">Order #{{ $order->order_number }}</span>
                         <span class="text-xs text-slate-400 font-medium">{{ $order->created_at->format('M d, Y • h:i A') }}</span>
                     </div>
-                    <h1 class="text-2xl sm:text-3xl font-black text-slate-900 mt-2">Order အသေးစိတ်</h1>
+                    <h1 class="text-2xl sm:text-3xl font-black text-slate-900 mt-2">Order Details</h1>
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2">
@@ -173,7 +173,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
                 <!-- Delivery Info -->
                 <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">📍 Delivery အချက်အလက်</p>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">📍 Delivery Info</p>
                     <p class="font-bold text-slate-800">{{ $order->delivery_township ?? 'Yangon' }}</p>
                     <p class="text-xs text-slate-600 mt-1 leading-relaxed">{{ $order->delivery_address }}</p>
                     <p class="text-xs font-bold text-slate-800 mt-2">📞 {{ $order->delivery_phone }}</p>
@@ -181,7 +181,7 @@
 
                 <!-- Payment Method Info -->
                 <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">💳 ငွေပေးချေမှု</p>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">💳 Payment Method</p>
                     <p class="font-black text-slate-900 uppercase text-base mb-1">
                         @if($order->payment_method === 'cod') 💵 Cash on Delivery
                         @elseif($order->payment_method === 'kbzpay') 📱 KBZPay
@@ -193,19 +193,19 @@
                             <span class="text-xs text-slate-500 font-medium">Screenshot:</span>
                             <button @click="imgModal = true; imgSrc = '{{ asset($order->payment_screenshot) }}'"
                                     class="text-xs font-bold text-orange-500 underline hover:text-orange-600 cursor-pointer">
-                                ကြည့်မည် 🔍
+                                View 🔍
                             </button>
                         </div>
                     @else
-                        <p class="text-xs text-slate-500">ပစ္စည်းရောက်မှ ငွေချေပါမည်</p>
+                        <p class="text-xs text-slate-500">Pay on delivery (COD)</p>
                     @endif
                 </div>
 
                 <!-- Notes -->
                 <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">📝 မှတ်ချက်</p>
-                    <p class="text-xs text-slate-700 leading-relaxed italic" x-text="currentNotes && currentNotes.trim() !== '' ? '&quot;' + currentNotes + '&quot;' : 'မရှိပါ'">
-                        {{ $order->notes ? '"'.$order->notes.'"' : 'မရှိပါ' }}
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">📝 Notes</p>
+                    <p class="text-xs text-slate-700 leading-relaxed italic" x-text="currentNotes && currentNotes.trim() !== '' ? '&quot;' + currentNotes + '&quot;' : 'None'">
+                        {{ $order->notes ? '"'.$order->notes.'"' : 'None' }}
                     </p>
                 </div>
             </div>
@@ -213,16 +213,16 @@
 
         <!-- Items Table Card -->
         <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8 mb-8">
-            <h2 class="text-lg font-black text-slate-900 mb-6">မှာယူထားသော အစားအစာများ (Order Items Table)</h2>
+            <h2 class="text-lg font-black text-slate-900 mb-6">Ordered Items</h2>
 
             <div class="overflow-x-auto rounded-2xl border border-slate-100 mb-6">
                 <table class="w-full text-left text-xs sm:text-sm">
                     <thead class="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider border-b border-slate-100">
                         <tr>
-                            <th class="px-4 py-3">အစားအစာ</th>
-                            <th class="px-4 py-3 text-center">အရေအတွက်</th>
-                            <th class="px-4 py-3 text-right">တစ်ခုဈေး</th>
-                            <th class="px-4 py-3 text-right">ကျသင့်ငွေ</th>
+                            <th class="px-4 py-3">Item</th>
+                            <th class="px-4 py-3 text-center">Quantity</th>
+                            <th class="px-4 py-3 text-right">Unit Price</th>
+                            <th class="px-4 py-3 text-right">Subtotal</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-slate-800 font-medium">
@@ -241,7 +241,7 @@
                                     </div>
                                 </td>
                                 <td class="px-4 py-3.5 text-center font-bold font-mono text-slate-700">
-                                    <span class="px-2.5 py-1 bg-slate-100 rounded-lg">{{ $item->quantity }} ခု</span>
+                                    <span class="px-2.5 py-1 bg-slate-100 rounded-lg">{{ $item->quantity }}</span>
                                 </td>
                                 <td class="px-4 py-3.5 text-right font-semibold text-slate-600">
                                     {{ number_format($item->unit_price) }} MMK
@@ -266,7 +266,7 @@
                     <span class="font-bold text-slate-900">{{ number_format($order->delivery_fee) }} MMK</span>
                 </div>
                 <div class="border-t border-slate-100 pt-3 flex justify-between items-center">
-                    <span class="font-black text-slate-900 text-base">စုစုပေါင်း ကျသင့်ငွေ</span>
+                    <span class="font-black text-slate-900 text-base">Total Amount Payable</span>
                     <span class="font-black text-orange-500 text-xl">{{ number_format($order->total_amount) }} MMK</span>
                 </div>
             </div>
@@ -275,10 +275,10 @@
         <!-- Action Buttons -->
         <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
             <a href="/" class="w-full sm:w-auto px-8 py-3.5 bg-orange-500 hover:bg-orange-600 text-white font-black text-sm rounded-2xl shadow-lg shadow-orange-500/25 transition-all text-center">
-                ← မနူးစာမျက်နှာသို့ ပြန်သွားမည်
+                ← Back to Menu
             </a>
             <a href="{{ route('user.orders.index') }}" class="w-full sm:w-auto px-8 py-3.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-black text-sm rounded-2xl transition-all text-center">
-                📦 ကျွန်ုပ်၏ Order များ ကြည့်မည်
+                📦 View My Orders
             </a>
         </div>
 
@@ -288,7 +288,7 @@
     <div x-show="imgModal" x-transition class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4" style="display:none;">
         <div class="bg-white rounded-3xl p-4 max-w-lg w-full relative shadow-2xl" @click.outside="imgModal = false">
             <button @click="imgModal = false" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-slate-100 text-slate-600 font-bold hover:bg-slate-200 flex items-center justify-center">✕</button>
-            <p class="font-bold text-slate-900 text-sm mb-3">ငွေချေထားသော Screenshot</p>
+            <p class="font-bold text-slate-900 text-sm mb-3">Payment Screenshot</p>
             <img :src="imgSrc" alt="Payment Screenshot" class="w-full h-auto rounded-2xl border border-slate-100 max-h-[70vh] object-contain">
         </div>
     </div>

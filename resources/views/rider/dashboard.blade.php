@@ -26,7 +26,7 @@
                 </div>
                 <div>
                     <h1 class="text-lg font-black text-white leading-tight">Rider Delivery Portal</h1>
-                    <p class="text-xs text-orange-400 font-bold">Welcome, {{ Auth::user()->name }} 👋</p>
+                    <p class="text-xs text-orange-400 font-bold">Welcome, {{ $rider->name }} 👋</p>
                 </div>
             </div>
 
@@ -160,7 +160,7 @@
                         <div class="text-right">
                             <span class="text-slate-400 font-medium">Total Cash to Collect: </span>
                             <span class="text-sm font-black text-emerald-400 font-mono">
-                                {{ number_format($order->total_amount + $order->delivery_fee) }} MMK
+                                {{ number_format($order->total_amount) }} MMK
                             </span>
                         </div>
                     </div>
