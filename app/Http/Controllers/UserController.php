@@ -21,6 +21,7 @@ class UserController extends Controller
         // User Statistics
         $totalUsersCount = User::count();
         $adminCount = User::where('role', 'admin')->count();
+        $riderCount = User::where('role', 'rider')->count();
         $customerCount = User::where('role', 'user')->count();
         $newThisMonthCount = User::where('created_at', '>=', now()->startOfMonth())->count();
 
@@ -42,6 +43,7 @@ class UserController extends Controller
             'role',
             'totalUsersCount',
             'adminCount',
+            'riderCount',
             'customerCount',
             'newThisMonthCount'
         ));

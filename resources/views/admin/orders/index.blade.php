@@ -18,18 +18,18 @@
         function confirmDeleteOrder(form, orderNumber) {
             Swal.fire({
                 title: 'Delete Order #' + orderNumber + '?',
-                html: `Are you sure you want to permanently delete order <strong class="text-orange-400">#${orderNumber}</strong>?<br><span class="text-xs text-slate-400 mt-1 block">This operation cannot be undone.</span>`,
+                html: `Are you sure you want to permanently delete order <strong class="text-orange-500">#${orderNumber}</strong>?<br><span class="text-xs text-slate-500 mt-1 block">This operation cannot be undone.</span>`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#334155',
+                cancelButtonColor: '#64748b',
                 confirmButtonText: 'Yes, Delete Order',
                 cancelButtonText: 'Cancel',
-                background: '#0f172a',
-                color: '#f8fafc',
+                background: '#ffffff',
+                color: '#0f172a',
                 customClass: {
-                    popup: 'border border-slate-800 rounded-3xl shadow-2xl',
-                    title: 'text-white font-bold text-lg',
+                    popup: 'border border-slate-200 rounded-3xl shadow-2xl',
+                    title: 'text-slate-900 font-bold text-lg',
                     confirmButton: 'px-5 py-2.5 rounded-xl font-bold text-xs shadow-lg shadow-red-500/20 cursor-pointer',
                     cancelButton: 'px-5 py-2.5 rounded-xl font-bold text-xs cursor-pointer'
                 }
@@ -108,7 +108,7 @@
         };
     </script>
 </head>
-<body class="font-sans antialiased text-slate-800 bg-slate-950 selection:bg-orange-500 selection:text-white min-h-screen"
+<body class="font-sans antialiased text-slate-800 bg-slate-50 selection:bg-orange-500 selection:text-white min-h-screen"
       x-data="adminOrderPoller()">
 
     <div class="min-h-screen flex flex-col md:flex-row">
@@ -120,38 +120,38 @@
         <div class="flex-1 flex flex-col min-w-0">
             
             <!-- Topbar Header -->
-            <header class="bg-slate-900/90 backdrop-blur-md sticky top-0 z-30 border-b border-slate-800 px-6 py-4 flex items-center justify-between gap-4">
+            <header class="bg-white/90 backdrop-blur-md sticky top-0 z-30 border-b border-slate-200/80 px-6 py-4 flex items-center justify-between gap-4 shadow-sm">
                 <div class="flex items-center gap-3">
                     <!-- Mobile Hamburger Toggle -->
-                    <button @click="mobileMenuOpen = true" class="md:hidden p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800">
+                    <button @click="mobileMenuOpen = true" class="md:hidden p-2 text-slate-500 hover:text-slate-900 rounded-lg hover:bg-slate-100">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                         </svg>
                     </button>
 
                     <div>
-                        <h1 class="text-xl font-black text-white tracking-tight flex items-center gap-2.5">
+                        <h1 class="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
                             <span>Real-Time Order Dispatch & Operations Hub</span>
-                            <span class="bg-orange-500/20 text-orange-400 border border-orange-500/30 text-xs font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1.5">
-                                <span class="w-2 h-2 rounded-full bg-orange-400 animate-pulse"></span>
+                            <span class="bg-orange-50 text-orange-600 border border-orange-200 text-xs font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1.5 shadow-sm">
+                                <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
                                 <span>Live Dispatch Queue</span>
                             </span>
                         </h1>
-                        <p class="text-xs text-slate-400 hidden sm:block">Monitor incoming customer orders with sound alert notifications and 1-click accept/reject actions</p>
+                        <p class="text-xs text-slate-500 hidden sm:block">Monitor incoming customer orders with sound alert notifications and 1-click accept/reject actions</p>
                     </div>
                 </div>
 
                 <div class="flex items-center gap-3">
                     <!-- Notification Alarm Sound Toggle Button -->
                     <button @click="audioEnabled = !audioEnabled; if(audioEnabled) playNotificationSound();" 
-                            :class="audioEnabled ? 'bg-orange-500/10 text-orange-400 border-orange-500/30' : 'bg-slate-800 text-slate-500 border-slate-700'"
-                            class="px-3.5 py-2 text-xs font-bold rounded-xl border transition-all flex items-center gap-2 cursor-pointer">
+                            :class="audioEnabled ? 'bg-orange-50 text-orange-600 border-orange-200 hover:bg-orange-100' : 'bg-slate-100 text-slate-500 border-slate-200'"
+                            class="px-3.5 py-2 text-xs font-bold rounded-xl border transition-all flex items-center gap-2 cursor-pointer shadow-sm">
                         <span x-text="audioEnabled ? '🔔 Sound Alarm ON' : '🔕 Sound Muted'"></span>
                     </button>
 
-                    <a href="{{ route('home') }}" target="_blank" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl border border-slate-700 transition-all flex items-center gap-2">
+                    <a href="{{ route('home') }}" target="_blank" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl border border-slate-200 transition-all flex items-center gap-2">
                         <span>Storefront</span>
-                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                         </svg>
                     </a>
@@ -173,10 +173,10 @@
                                 showConfirmButton: false,
                                 timer: 3500,
                                 timerProgressBar: true,
-                                background: '#0f172a',
-                                color: '#f8fafc',
+                                background: '#ffffff',
+                                color: '#0f172a',
                                 customClass: {
-                                    popup: 'border border-emerald-500/30 rounded-2xl shadow-xl'
+                                    popup: 'border border-emerald-200 rounded-2xl shadow-xl'
                                 }
                             });
                         });
@@ -187,66 +187,66 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                     
                     <!-- Metric 1: Total Orders -->
-                    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 relative overflow-hidden group hover:border-slate-700 transition-all">
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 relative overflow-hidden group hover:border-slate-300 hover:shadow-md transition-all shadow-sm">
                         <div class="flex items-center justify-between">
-                            <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Total Orders</span>
-                            <div class="w-9 h-9 rounded-xl bg-orange-500/10 text-orange-400 flex items-center justify-center font-bold text-base">
+                            <span class="text-slate-500 text-xs font-bold uppercase tracking-wider">Total Orders</span>
+                            <div class="w-9 h-9 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center font-bold text-base border border-orange-100">
                                 📦
                             </div>
                         </div>
-                        <div class="text-3xl font-black text-white mt-2">{{ number_format($totalOrdersCount) }}</div>
-                        <div class="text-xs text-slate-400 font-medium mt-2 flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full bg-orange-400 inline-block"></span>
+                        <div class="text-3xl font-black text-slate-900 mt-2">{{ number_format($totalOrdersCount) }}</div>
+                        <div class="text-xs text-slate-500 font-medium mt-2 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-orange-500 inline-block"></span>
                             <span>All-time customer transactions</span>
                         </div>
                     </div>
 
                     <!-- Metric 2: Active & Pending Orders -->
-                    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 relative overflow-hidden group hover:border-slate-700 transition-all">
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 relative overflow-hidden group hover:border-slate-300 hover:shadow-md transition-all shadow-sm">
                         <div class="flex items-center justify-between">
-                            <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Active In-Progress</span>
-                            <div class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold text-base">
+                            <span class="text-slate-500 text-xs font-bold uppercase tracking-wider">Active In-Progress</span>
+                            <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-base border border-amber-100">
                                 ⏳
                             </div>
                         </div>
-                        <div class="text-3xl font-black text-amber-400 mt-2">{{ number_format($activeCount) }}</div>
-                        <div class="text-xs text-slate-400 font-medium mt-2">Pending, Preparing & Delivery</div>
+                        <div class="text-3xl font-black text-amber-600 mt-2">{{ number_format($activeCount) }}</div>
+                        <div class="text-xs text-slate-500 font-medium mt-2">Pending, Preparing & Delivery</div>
                     </div>
 
                     <!-- Metric 3: Completed Orders -->
-                    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 relative overflow-hidden group hover:border-slate-700 transition-all">
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 relative overflow-hidden group hover:border-slate-300 hover:shadow-md transition-all shadow-sm">
                         <div class="flex items-center justify-between">
-                            <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Completed Orders</span>
-                            <div class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold text-base">
+                            <span class="text-slate-500 text-xs font-bold uppercase tracking-wider">Completed Orders</span>
+                            <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-base border border-emerald-100">
                                 ✅
                             </div>
                         </div>
-                        <div class="text-3xl font-black text-emerald-400 mt-2">{{ number_format($completedCount) }}</div>
-                        <div class="text-xs text-slate-400 font-medium mt-2">Delivered & fulfilled</div>
+                        <div class="text-3xl font-black text-emerald-600 mt-2">{{ number_format($completedCount) }}</div>
+                        <div class="text-xs text-slate-500 font-medium mt-2">Delivered & fulfilled</div>
                     </div>
 
                     <!-- Metric 4: Total Sales Revenue -->
-                    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 relative overflow-hidden group hover:border-slate-700 transition-all">
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 relative overflow-hidden group hover:border-slate-300 hover:shadow-md transition-all shadow-sm">
                         <div class="flex items-center justify-between">
-                            <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Total Sales Revenue</span>
-                            <div class="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold text-base">
+                            <span class="text-slate-500 text-xs font-bold uppercase tracking-wider">Total Sales Revenue</span>
+                            <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-base border border-blue-100">
                                 💰
                             </div>
                         </div>
-                        <div class="text-2xl font-black text-white mt-2 truncate">{{ number_format($totalRevenue) }} <span class="text-xs text-orange-400 font-bold">MMK</span></div>
-                        <div class="text-xs text-slate-400 font-medium mt-2">Revenue generated</div>
+                        <div class="text-2xl font-black text-slate-900 mt-2 truncate">{{ number_format($totalRevenue) }} <span class="text-xs text-orange-600 font-bold">MMK</span></div>
+                        <div class="text-xs text-slate-500 font-medium mt-2">Revenue generated</div>
                     </div>
 
                 </div>
 
                 <!-- Orders Management Table Container -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl space-y-6">
+                <div class="bg-white border border-slate-200/80 rounded-2xl p-5 sm:p-6 shadow-sm space-y-6">
                     
                     <!-- Search & Filter Controls -->
                     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                         <div>
-                            <h3 class="text-lg font-black text-white tracking-tight">Real-Time Dispatch Queue</h3>
-                            <p class="text-slate-400 text-xs mt-0.5">One-click Accept, Reject with reasons, or update order dispatch status</p>
+                            <h3 class="text-lg font-black text-slate-900 tracking-tight">Real-Time Dispatch Queue</h3>
+                            <p class="text-slate-500 text-xs mt-0.5">One-click Accept, Reject with reasons, or update order dispatch status</p>
                         </div>
 
                         <form method="GET" action="{{ route('admin.orders.index') }}" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
@@ -257,15 +257,15 @@
                                        name="search" 
                                        value="{{ $search }}" 
                                        placeholder="Search order #, customer, phone..." 
-                                       class="w-full bg-slate-950 border border-slate-800 focus:border-orange-500 text-slate-200 text-xs rounded-xl px-3.5 py-2.5 pl-9 focus:ring-0 transition-all placeholder-slate-500">
+                                       class="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:bg-white text-slate-800 text-xs rounded-xl px-3.5 py-2.5 pl-9 focus:ring-0 transition-all placeholder-slate-400">
                                 
-                                <svg class="w-4 h-4 text-slate-500 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                 </svg>
                             </div>
 
                             <!-- Status Filter Dropdown -->
-                            <select name="status" onchange="this.form.submit()" class="bg-slate-950 border border-slate-800 focus:border-orange-500 text-slate-200 text-xs rounded-xl px-3.5 py-2.5 focus:ring-0 transition-all cursor-pointer">
+                            <select name="status" onchange="this.form.submit()" class="bg-slate-50 border border-slate-200 focus:border-orange-500 focus:bg-white text-slate-800 text-xs rounded-xl px-3.5 py-2.5 focus:ring-0 transition-all cursor-pointer">
                                 <option value="">All Statuses</option>
                                 <option value="pending" {{ $status === 'pending' ? 'selected' : '' }}>⏳ Pending</option>
                                 <option value="preparing" {{ $status === 'preparing' ? 'selected' : '' }}>👨‍🍳 Preparing</option>
@@ -275,7 +275,7 @@
                             </select>
 
                             <!-- Payment Method Filter -->
-                            <select name="payment_method" onchange="this.form.submit()" class="bg-slate-950 border border-slate-800 focus:border-orange-500 text-slate-200 text-xs rounded-xl px-3.5 py-2.5 focus:ring-0 transition-all cursor-pointer">
+                            <select name="payment_method" onchange="this.form.submit()" class="bg-slate-50 border border-slate-200 focus:border-orange-500 focus:bg-white text-slate-800 text-xs rounded-xl px-3.5 py-2.5 focus:ring-0 transition-all cursor-pointer">
                                 <option value="">All Payment Methods</option>
                                 <option value="cod" {{ $paymentMethod === 'cod' ? 'selected' : '' }}>💵 Cash on Delivery</option>
                                 <option value="kbzpay" {{ $paymentMethod === 'kbzpay' ? 'selected' : '' }}>📱 KBZPay</option>
@@ -283,7 +283,7 @@
                             </select>
 
                             @if($search || $status || $paymentMethod)
-                                <a href="{{ route('admin.orders.index') }}" class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl border border-slate-700 flex items-center justify-center gap-1">
+                                <a href="{{ route('admin.orders.index') }}" class="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl border border-slate-200 flex items-center justify-center gap-1">
                                     <span>✕</span>
                                     <span>Reset</span>
                                 </a>
@@ -292,9 +292,9 @@
                     </div>
 
                     <!-- Orders Table -->
-                    <div class="overflow-x-auto rounded-xl border border-slate-800">
+                    <div class="overflow-x-auto rounded-xl border border-slate-200">
                         <table class="w-full text-left text-xs">
-                            <thead class="bg-slate-950 text-slate-400 font-bold uppercase tracking-wider border-b border-slate-800">
+                            <thead class="bg-slate-50 text-slate-600 font-bold uppercase tracking-wider border-b border-slate-200">
                                 <tr>
                                     <th class="px-4 py-3.5">Order # / Date</th>
                                     <th class="px-4 py-3.5">Customer Info</th>
@@ -305,28 +305,28 @@
                                     <th class="px-4 py-3.5 text-right">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-800 text-slate-300 font-medium">
+                            <tbody class="divide-y divide-slate-100 text-slate-700 font-medium">
                                 @forelse($orders as $order)
                                     @php
                                         // Status badge colors
-                                        $statusClass = 'bg-slate-800 text-slate-300 border-slate-700';
+                                        $statusClass = 'bg-slate-100 text-slate-700 border-slate-200';
                                         $statusLabel = ucfirst($order->status);
                                         $statusIcon = '📦';
 
                                         if ($order->status === 'pending') {
-                                            $statusClass = 'bg-amber-500/10 text-amber-400 border-amber-500/30';
+                                            $statusClass = 'bg-amber-50 text-amber-700 border-amber-200';
                                             $statusIcon = '⏳';
                                         } elseif ($order->status === 'preparing') {
-                                            $statusClass = 'bg-blue-500/10 text-blue-400 border-blue-500/30';
+                                            $statusClass = 'bg-blue-50 text-blue-700 border-blue-200';
                                             $statusIcon = '👨‍🍳';
                                         } elseif ($order->status === 'delivering') {
-                                            $statusClass = 'bg-purple-500/10 text-purple-400 border-purple-500/30';
+                                            $statusClass = 'bg-purple-50 text-purple-700 border-purple-200';
                                             $statusIcon = '🛵';
                                         } elseif ($order->status === 'completed') {
-                                            $statusClass = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
+                                            $statusClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
                                             $statusIcon = '✅';
                                         } elseif ($order->status === 'cancelled') {
-                                            $statusClass = 'bg-red-500/10 text-red-400 border-red-500/30';
+                                            $statusClass = 'bg-red-50 text-red-700 border-red-200';
                                             $statusIcon = '❌';
                                         }
 
@@ -340,30 +340,30 @@
                                         $isNewPending = ($order->status === 'pending');
                                     @endphp
 
-                                    <tr class="hover:bg-slate-800/40 transition-colors {{ $isNewPending ? 'bg-amber-500/5' : '' }}">
+                                    <tr class="hover:bg-slate-50 transition-colors {{ $isNewPending ? 'bg-amber-50/50' : '' }}">
                                         
                                         <!-- Order # & Date -->
                                         <td class="px-4 py-4">
-                                            <div class="font-mono text-sm font-black text-orange-400 flex items-center gap-2">
+                                            <div class="font-mono text-sm font-black text-orange-600 flex items-center gap-2">
                                                 <span>#{{ $order->order_number }}</span>
                                                 @if($isNewPending)
-                                                    <span class="px-1.5 py-0.5 bg-amber-500 text-slate-950 font-black text-[9px] uppercase rounded animate-bounce">NEW</span>
+                                                    <span class="px-1.5 py-0.5 bg-amber-500 text-white font-black text-[9px] uppercase rounded shadow-sm">NEW</span>
                                                 @endif
                                             </div>
-                                            <div class="text-[11px] text-slate-400 mt-1">
+                                            <div class="text-[11px] text-slate-500 mt-1">
                                                 {{ $order->created_at ? $order->created_at->format('M d, Y • h:i A') : 'N/A' }}
                                             </div>
-                                            <div class="text-[10px] text-slate-500 font-mono mt-0.5">
+                                            <div class="text-[10px] text-slate-400 font-mono mt-0.5">
                                                 {{ $order->created_at ? $order->created_at->diffForHumans() : '' }}
                                             </div>
                                         </td>
 
                                         <!-- Customer Info -->
                                         <td class="px-4 py-4">
-                                            <div class="font-bold text-white text-sm">
+                                            <div class="font-bold text-slate-900 text-sm">
                                                 {{ $order->user ? $order->user->name : 'Guest Customer' }}
                                             </div>
-                                            <div class="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5">
+                                            <div class="text-[11px] text-slate-600 flex items-center gap-1 mt-0.5">
                                                 <span>📞</span>
                                                 <span>{{ $order->delivery_phone }}</span>
                                             </div>
@@ -376,22 +376,22 @@
                                         <td class="px-4 py-4">
                                             <div class="space-y-1.5 min-w-[220px]">
                                                 <div class="flex items-center justify-between">
-                                                    <span class="px-2 py-0.5 bg-slate-950 rounded border border-slate-800 text-[10px] font-bold text-slate-400 inline-block">
+                                                    <span class="px-2 py-0.5 bg-slate-100 rounded border border-slate-200 text-[10px] font-bold text-slate-700 inline-block">
                                                         {{ $order->orderItems->sum('quantity') }} items
                                                     </span>
-                                                    <a href="{{ route('admin.orderItems.index', ['search' => $order->order_number]) }}" class="text-[10px] font-bold text-orange-400 hover:underline">
+                                                    <a href="{{ route('admin.orderItems.index', ['search' => $order->order_number]) }}" class="text-[10px] font-bold text-orange-600 hover:underline">
                                                         Table View &rarr;
                                                     </a>
                                                 </div>
-                                                <div class="border border-slate-800 rounded-xl overflow-hidden bg-slate-950/60 divide-y divide-slate-800/60">
+                                                <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50/80 divide-y divide-slate-200">
                                                     @foreach($order->orderItems->take(2) as $item)
                                                         <div class="p-1.5 flex items-center justify-between text-[11px]">
-                                                            <span class="font-semibold text-slate-200 truncate max-w-[130px]">{{ $item->menuItem->name ?? 'Dish' }}</span>
-                                                            <span class="text-slate-400 font-mono">x{{ $item->quantity }}</span>
+                                                            <span class="font-semibold text-slate-800 truncate max-w-[130px]">{{ $item->menuItem->name ?? 'Dish' }}</span>
+                                                            <span class="text-slate-500 font-mono">x{{ $item->quantity }}</span>
                                                         </div>
                                                     @endforeach
                                                     @if($order->orderItems->count() > 2)
-                                                        <div class="p-1 text-center text-[10px] text-slate-500 font-medium bg-slate-900/40">
+                                                        <div class="p-1 text-center text-[10px] text-slate-500 font-medium bg-slate-100">
                                                             +{{ $order->orderItems->count() - 2 }} more dishes
                                                         </div>
                                                     @endif
@@ -401,20 +401,20 @@
 
                                         <!-- Total & Payment -->
                                         <td class="px-4 py-4">
-                                            <div class="text-sm font-black text-white">
-                                                {{ number_format($order->total_amount) }} <span class="text-[10px] text-orange-400 font-bold">MMK</span>
+                                            <div class="text-sm font-black text-slate-900">
+                                                {{ number_format($order->total_amount) }} <span class="text-[10px] text-orange-600 font-bold">MMK</span>
                                             </div>
                                             <div class="flex items-center gap-1.5 mt-1">
                                                 <span class="text-xs">{{ $pmIcon }}</span>
-                                                <span class="text-[11px] text-slate-400 font-semibold">{{ $pmLabel }}</span>
+                                                <span class="text-[11px] text-slate-600 font-semibold">{{ $pmLabel }}</span>
                                             </div>
                                             <div class="mt-1">
                                                 @if($order->payment_status === 'paid')
-                                                    <span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold rounded-full">
+                                                    <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold rounded-full">
                                                         ✓ Paid
                                                     </span>
                                                 @else
-                                                    <span class="px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px] font-bold rounded-full">
+                                                    <span class="px-2 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold rounded-full">
                                                         ⏳ Unpaid
                                                     </span>
                                                 @endif
@@ -437,7 +437,7 @@
                                                         <option value="completed" {{ $order->status === 'completed' ? 'selected' : '' }}>✅ Completed</option>
                                                         <option value="cancelled" {{ $order->status === 'cancelled' ? 'selected' : '' }}>❌ Cancelled</option>
                                                     </select>
-                                                    <div class="pointer-events-none absolute right-2 top-2.5 text-slate-400 text-[10px]">
+                                                    <div class="pointer-events-none absolute right-2 top-2.5 text-slate-500 text-[10px]">
                                                         ▼
                                                     </div>
                                                 </div>
@@ -449,7 +449,7 @@
                                                     @csrf
                                                     <div class="relative">
                                                         <select name="rider_id" onchange="this.form.submit()" 
-                                                                class="w-full text-[11px] font-bold px-2.5 py-1 rounded-xl bg-slate-950 border border-slate-800 text-slate-300 focus:outline-none focus:border-orange-500 cursor-pointer appearance-none pr-6">
+                                                                class="w-full text-[11px] font-bold px-2.5 py-1 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 focus:outline-none focus:border-orange-500 cursor-pointer appearance-none pr-6">
                                                             <option value="">🛵 Select Rider...</option>
                                                             @foreach($riders as $riderItem)
                                                                 <option value="{{ $riderItem->id }}" {{ $order->rider_id == $riderItem->id ? 'selected' : '' }}>
@@ -457,13 +457,13 @@
                                                                 </option>
                                                             @endforeach
                                                         </select>
-                                                        <div class="pointer-events-none absolute right-2 top-1.5 text-slate-400 text-[9px]">
+                                                        <div class="pointer-events-none absolute right-2 top-1.5 text-slate-500 text-[9px]">
                                                             ▼
                                                         </div>
                                                     </div>
                                                 </form>
                                             @elseif($order->rider)
-                                                <div class="text-[11px] font-bold text-orange-400 flex items-center gap-1">
+                                                <div class="text-[11px] font-bold text-orange-600 flex items-center gap-1">
                                                     <span>🛵</span> <span>{{ $order->rider->name }}</span>
                                                 </div>
                                             @endif
@@ -484,7 +484,7 @@
 
                                                     <!-- Reject Button -->
                                                     <button @click="openRejectModal({{ $order->id }}, '{{ $order->order_number }}')" 
-                                                            class="w-full max-w-[90px] px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold text-[11px] rounded-lg transition-all flex items-center justify-center gap-1 cursor-pointer">
+                                                            class="w-full max-w-[90px] px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-bold text-[11px] rounded-lg transition-all flex items-center justify-center gap-1 cursor-pointer">
                                                         <span>✕</span>
                                                         <span>Reject</span>
                                                     </button>
@@ -508,7 +508,7 @@
                                                         </button>
                                                     </form>
                                                 @else
-                                                    <span class="text-slate-500 text-[11px] font-medium">-</span>
+                                                    <span class="text-slate-400 text-[11px] font-medium">-</span>
                                                 @endif
                                             </div>
                                         </td>
@@ -542,8 +542,8 @@
                                                                 ];
                                                             })
                                                         ]) }})"
-                                                        class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl border border-slate-700 transition-all flex items-center gap-1 cursor-pointer">
-                                                    <svg class="w-3.5 h-3.5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl border border-slate-200 transition-all flex items-center gap-1 cursor-pointer">
+                                                    <svg class="w-3.5 h-3.5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                                                     </svg>
@@ -554,7 +554,7 @@
                                                 <form method="POST" action="{{ route('admin.orders.destroy', $order) }}" onsubmit="return confirmDeleteOrder(this, '{{ $order->order_number }}')">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" title="Delete Record" class="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-red-500/20">
+                                                    <button type="submit" title="Delete Record" class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-red-100">
                                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                                         </svg>
@@ -566,10 +566,10 @@
                                 @empty
                                     <tr>
                                         <td colspan="7" class="px-6 py-12 text-center text-slate-500">
-                                            <div class="w-12 h-12 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center mx-auto mb-3 text-xl">
+                                            <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3 text-xl">
                                                 📦
                                             </div>
-                                            <div class="font-bold text-slate-300">No orders found</div>
+                                            <div class="font-bold text-slate-800">No orders found</div>
                                             <div class="text-xs text-slate-500 mt-1">Try resetting search keywords or status filters</div>
                                         </td>
                                     </tr>
@@ -579,7 +579,7 @@
                     </div>
 
                     <!-- Pagination Links -->
-                    <div class="pt-4 border-t border-slate-800">
+                    <div class="pt-4 border-t border-slate-100">
                         {{ $orders->links() }}
                     </div>
 
@@ -599,23 +599,23 @@
          x-transition:leave="transition ease-in duration-150"
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
-         class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+         class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         
         <div @click.outside="detailsModalOpen = false" 
-             class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+             class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
             
             <!-- Modal Header -->
-            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-orange-500/10 text-orange-400 flex items-center justify-center font-bold text-lg">
+                    <div class="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center font-bold text-lg border border-orange-100">
                         🧾
                     </div>
                     <div>
-                        <h3 class="text-lg font-black text-white">Order Receipt Details</h3>
-                        <p class="text-slate-400 text-xs" x-text="activeOrder ? 'Order #' + activeOrder.order_number + ' • ' + activeOrder.created_at : ''"></p>
+                        <h3 class="text-lg font-black text-slate-900">Order Receipt Details</h3>
+                        <p class="text-slate-500 text-xs" x-text="activeOrder ? 'Order #' + activeOrder.order_number + ' • ' + activeOrder.created_at : ''"></p>
                     </div>
                 </div>
-                <button @click="detailsModalOpen = false" class="text-slate-500 hover:text-white p-1 text-lg font-bold">✕</button>
+                <button @click="detailsModalOpen = false" class="text-slate-400 hover:text-slate-700 p-1 text-lg font-bold">✕</button>
             </div>
 
             <!-- Modal Content -->
@@ -623,29 +623,29 @@
                 <div class="space-y-6 text-xs">
                     
                     <!-- Customer & Delivery Info Box -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-950 p-4 rounded-2xl border border-slate-800">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200">
                         <div>
                             <span class="text-slate-500 font-bold uppercase tracking-wider block mb-1">Customer Info</span>
-                            <div class="font-bold text-white text-sm" x-text="activeOrder.customer_name"></div>
-                            <div class="text-slate-400 mt-0.5" x-text="'✉️ ' + activeOrder.customer_email"></div>
-                            <div class="text-slate-400 mt-0.5 font-mono" x-text="'📞 ' + activeOrder.delivery_phone"></div>
+                            <div class="font-bold text-slate-900 text-sm" x-text="activeOrder.customer_name"></div>
+                            <div class="text-slate-600 mt-0.5" x-text="'✉️ ' + activeOrder.customer_email"></div>
+                            <div class="text-slate-600 mt-0.5 font-mono" x-text="'📞 ' + activeOrder.delivery_phone"></div>
                         </div>
                         <div>
                             <span class="text-slate-500 font-bold uppercase tracking-wider block mb-1">Delivery Address</span>
-                            <div class="text-slate-300 font-medium leading-relaxed" x-text="'📍 ' + activeOrder.delivery_address"></div>
-                            <div class="text-amber-400/80 font-medium mt-2" x-text="'📝 Notes: ' + activeOrder.notes"></div>
+                            <div class="text-slate-700 font-medium leading-relaxed" x-text="'📍 ' + activeOrder.delivery_address"></div>
+                            <div class="text-amber-700 font-medium mt-2" x-text="'📝 Notes: ' + activeOrder.notes"></div>
                         </div>
                     </div>
 
                     <!-- Ordered Items Table UI -->
                     <div>
                         <div class="flex items-center justify-between mb-3">
-                            <span class="text-slate-400 font-bold uppercase tracking-wider">Order Items Table</span>
-                            <a href="{{ route('admin.orderItems.index') }}" class="text-orange-400 text-xs font-bold hover:underline">View All Order Items Table &rarr;</a>
+                            <span class="text-slate-700 font-bold uppercase tracking-wider">Order Items Table</span>
+                            <a href="{{ route('admin.orderItems.index') }}" class="text-orange-600 text-xs font-bold hover:underline">View All Order Items Table &rarr;</a>
                         </div>
-                        <div class="border border-slate-800 rounded-2xl overflow-hidden bg-slate-950">
+                        <div class="border border-slate-200 rounded-2xl overflow-hidden bg-white">
                             <table class="w-full text-left text-xs">
-                                <thead class="bg-slate-900 text-slate-400 font-bold uppercase tracking-wider border-b border-slate-800">
+                                <thead class="bg-slate-50 text-slate-600 font-bold uppercase tracking-wider border-b border-slate-200">
                                     <tr>
                                         <th class="px-3.5 py-2.5">Item</th>
                                         <th class="px-3.5 py-2.5 text-center">Qty</th>
@@ -653,12 +653,12 @@
                                         <th class="px-3.5 py-2.5 text-right">Subtotal</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-slate-800 text-slate-300 font-medium">
+                                <tbody class="divide-y divide-slate-100 text-slate-700 font-medium">
                                     <template x-for="item in activeOrder.items" :key="item.name">
-                                        <tr class="hover:bg-slate-900/50 transition-colors">
+                                        <tr class="hover:bg-slate-50 transition-colors">
                                             <td class="px-3.5 py-2.5">
                                                 <div class="flex items-center gap-2.5">
-                                                    <div class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 overflow-hidden shrink-0 flex items-center justify-center text-slate-500 font-bold text-xs">
+                                                    <div class="w-8 h-8 rounded-lg bg-white border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center text-slate-400 font-bold text-xs">
                                                         <template x-if="item.image">
                                                             <img :src="item.image" :alt="item.name" class="w-full h-full object-cover">
                                                         </template>
@@ -666,12 +666,12 @@
                                                             <span>🍕</span>
                                                         </template>
                                                     </div>
-                                                    <span class="font-bold text-white text-xs" x-text="item.name"></span>
+                                                    <span class="font-bold text-slate-900 text-xs" x-text="item.name"></span>
                                                 </div>
                                             </td>
-                                            <td class="px-3.5 py-2.5 text-center font-mono font-bold text-slate-300" x-text="'x' + item.quantity"></td>
-                                            <td class="px-3.5 py-2.5 text-right font-mono text-slate-400" x-text="item.price + ' MMK'"></td>
-                                            <td class="px-3.5 py-2.5 text-right font-bold text-orange-400" x-text="item.subtotal + ' MMK'"></td>
+                                            <td class="px-3.5 py-2.5 text-center font-mono font-bold text-slate-800" x-text="'x' + item.quantity"></td>
+                                            <td class="px-3.5 py-2.5 text-right font-mono text-slate-600" x-text="item.price + ' MMK'"></td>
+                                            <td class="px-3.5 py-2.5 text-right font-bold text-orange-600" x-text="item.subtotal + ' MMK'"></td>
                                         </tr>
                                     </template>
                                 </tbody>
@@ -680,14 +680,14 @@
                     </div>
 
                     <!-- Total Amount & Payment Summary -->
-                    <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 flex items-center justify-between">
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex items-center justify-between">
                         <div>
                             <span class="text-slate-500 font-bold uppercase tracking-wider block">Payment Channel</span>
-                            <div class="font-bold text-white text-xs mt-1 uppercase" x-text="activeOrder.payment_method + ' (' + activeOrder.payment_status + ')'"></div>
+                            <div class="font-bold text-slate-900 text-xs mt-1 uppercase" x-text="activeOrder.payment_method + ' (' + activeOrder.payment_status + ')'"></div>
                         </div>
                         <div class="text-right">
                             <span class="text-slate-500 font-bold uppercase tracking-wider block">Total Amount</span>
-                            <div class="text-xl font-black text-orange-400 mt-0.5" x-text="activeOrder.total_amount + ' MMK'"></div>
+                            <div class="text-xl font-black text-orange-600 mt-0.5" x-text="activeOrder.total_amount + ' MMK'"></div>
                         </div>
                     </div>
 
@@ -705,23 +705,23 @@
          x-transition:leave="transition ease-in duration-150"
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
-         class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+         class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         
         <div @click.outside="rejectModalOpen = false" 
-             class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6">
+             class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6">
             
             <!-- Modal Header -->
-            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-red-500/10 text-red-400 flex items-center justify-center text-lg font-bold">
+                    <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center text-lg font-bold border border-red-100">
                         ❌
                     </div>
                     <div>
-                        <h3 class="text-lg font-black text-white">Reject Order</h3>
-                        <p class="text-slate-400 text-xs" x-text="activeRejectOrder ? 'Order #' + activeRejectOrder.number : ''"></p>
+                        <h3 class="text-lg font-black text-slate-900">Reject Order</h3>
+                        <p class="text-slate-500 text-xs" x-text="activeRejectOrder ? 'Order #' + activeRejectOrder.number : ''"></p>
                     </div>
                 </div>
-                <button @click="rejectModalOpen = false" class="text-slate-500 hover:text-white p-1 text-lg font-bold">✕</button>
+                <button @click="rejectModalOpen = false" class="text-slate-400 hover:text-slate-700 p-1 text-lg font-bold">✕</button>
             </div>
 
             <!-- Modal Form -->
@@ -730,35 +730,35 @@
                     @csrf
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">
+                        <label class="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wider">
                             Select Rejection Reason <span class="text-orange-500">*</span>
                         </label>
 
                         <div class="space-y-2">
-                            <label class="flex items-center gap-3 p-3 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer hover:border-slate-700">
+                            <label class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer hover:border-slate-300">
                                 <input type="radio" name="reason" value="Out of Stock" x-model="activeRejectReason" class="text-orange-500 focus:ring-0">
-                                <span class="text-xs font-bold text-white">🚫 Out of Stock (Dishes unavailable)</span>
+                                <span class="text-xs font-bold text-slate-800">🚫 Out of Stock (Dishes unavailable)</span>
                             </label>
 
-                            <label class="flex items-center gap-3 p-3 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer hover:border-slate-700">
+                            <label class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer hover:border-slate-300">
                                 <input type="radio" name="reason" value="Kitchen Busy" x-model="activeRejectReason" class="text-orange-500 focus:ring-0">
-                                <span class="text-xs font-bold text-white">👨‍🍳 Kitchen Extremely Busy</span>
+                                <span class="text-xs font-bold text-slate-800">👨‍🍳 Kitchen Extremely Busy</span>
                             </label>
 
-                            <label class="flex items-center gap-3 p-3 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer hover:border-slate-700">
+                            <label class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer hover:border-slate-300">
                                 <input type="radio" name="reason" value="Delivery Area Unavailable" x-model="activeRejectReason" class="text-orange-500 focus:ring-0">
-                                <span class="text-xs font-bold text-white">🛵 Delivery Area Unavailable</span>
+                                <span class="text-xs font-bold text-slate-800">🛵 Delivery Area Unavailable</span>
                             </label>
 
-                            <label class="flex items-center gap-3 p-3 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer hover:border-slate-700">
+                            <label class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer hover:border-slate-300">
                                 <input type="radio" name="reason" value="Store Closing Soon" x-model="activeRejectReason" class="text-orange-500 focus:ring-0">
-                                <span class="text-xs font-bold text-white">🕒 Store Closing Soon</span>
+                                <span class="text-xs font-bold text-slate-800">🕒 Store Closing Soon</span>
                             </label>
                         </div>
                     </div>
 
-                    <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-800">
-                        <button type="button" @click="rejectModalOpen = false" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition-all cursor-pointer">
+                    <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
+                        <button type="button" @click="rejectModalOpen = false" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer">
                             Cancel
                         </button>
                         <button type="submit" class="px-5 py-2.5 bg-red-500 hover:bg-red-600 active:bg-red-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-red-500/25 transition-all cursor-pointer">
