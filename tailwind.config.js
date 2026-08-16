@@ -13,7 +13,8 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+                sans: ['"DM Sans"', 'sans-serif'],
+                display: ['"Cabinet Grotesk"', '"DM Sans"', 'sans-serif'],
             },
         },
     },

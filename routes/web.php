@@ -54,6 +54,19 @@ Route::middleware('auth')->prefix('user')->name('user.')->group(function () {
             $screenshotPath = 'uploads/payments/' . $fileName;
         }
 
+        // Prevent duplicate order creation if identical order was submitted in the last 15 seconds
+        $existingRecentOrder = Order::where('user_id', '=', Auth::id(), 'and')
+            ->where('total_amount', '=', $request->total_amount, 'and')
+            ->where('delivery_address', '=', $request->delivery_address, 'and')
+            ->where('created_at', '>=', now()->subSeconds(15), 'and')
+            ->latest()
+            ->first();
+
+        if ($existingRecentOrder) {
+            return redirect()->route('user.orders.show', $existingRecentOrder)
+                ->with('success', "Order #{$existingRecentOrder->order_number} placed successfully! 🎉");
+        }
+
         $order = Order::create([
             'order_number'       => 'ORD-' . strtoupper(uniqid()),
             'user_id'            => Auth::id(),

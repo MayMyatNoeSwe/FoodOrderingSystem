@@ -16,9 +16,9 @@
         }
     </script>
 
-    <!-- Fonts -->
+    <!-- Fonts: DM Sans & Cabinet Grotesk -->
     <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.bunny.net/css?family=dm-sans:300,400,500,600,700,800|cabinet-grotesk:500,700,800,900&display=swap" rel="stylesheet" />
 
     <!-- Scripts & Styles -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -86,7 +86,7 @@
                         </div>
 
                         <!-- Main Headline -->
-                        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white tracking-tight leading-none">
+                        <h1 class="font-display text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white tracking-tight leading-none">
                             Delicious Food <br class="hidden sm:inline" />
                             <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600">Delivered Fast</span> To Your Door
                         </h1>

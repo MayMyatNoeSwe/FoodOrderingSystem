@@ -7,9 +7,9 @@
 
         <title>{{ config('app.name', 'Food Ordering System') }}</title>
 
-        <!-- Fonts -->
+        <!-- Fonts: DM Sans & Cabinet Grotesk -->
         <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
+        <link href="https://fonts.bunny.net/css?family=dm-sans:300,400,500,600,700,800|cabinet-grotesk:500,700,800,900&display=swap" rel="stylesheet" />
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
