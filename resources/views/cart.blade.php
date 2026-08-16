@@ -77,6 +77,7 @@
 
                 save() {
                     localStorage.setItem('foodorder_cart', JSON.stringify(this.items));
+                    window.dispatchEvent(new CustomEvent('cart-updated'));
                 },
 
                 increaseQty(index) { this.items[index].qty++; this.save(); },

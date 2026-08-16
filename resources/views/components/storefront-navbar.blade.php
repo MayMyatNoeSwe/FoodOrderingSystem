@@ -65,6 +65,7 @@ class="sticky top-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md borde
                     <span
                         x-show="cartCount > 0"
                         x-text="cartCount"
+                        style="display: none;"
                         x-transition:enter="transition ease-out duration-200"
                         x-transition:enter-start="opacity-0 scale-50"
                         x-transition:enter-end="opacity-100 scale-100"
@@ -172,3 +173,9 @@ class="sticky top-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md borde
         <a href="{{ route('home') }}#features" class="block px-3 py-2 rounded-xl text-base font-semibold text-slate-700 dark:text-slate-200 hover:bg-orange-50 dark:hover:bg-slate-800 hover:text-orange-500">Why Us</a>
     </div>
 </nav>
+
+@if(session('clear_cart'))
+<script>
+    localStorage.removeItem('foodorder_cart');
+</script>
+@endif

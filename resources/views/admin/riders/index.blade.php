@@ -19,57 +19,8 @@
 
     <div class="min-h-screen flex flex-col md:flex-row">
 
-        <!-- ================= DESKTOP SIDEBAR NAVIGATION ================= -->
-        <aside class="w-64 bg-slate-900 border-r border-slate-800 p-6 hidden md:flex flex-col justify-between shrink-0">
-            <div class="space-y-8">
-                <!-- Brand Logo -->
-                <a href="{{ route('home') }}" class="flex items-center gap-3 group">
-                    <div class="w-10 h-10 rounded-xl bg-orange-500 flex items-center justify-center text-white font-black shadow-lg shadow-orange-500/30 group-hover:scale-105 transition-transform">
-                        🍕
-                    </div>
-                    <div>
-                        <span class="text-lg font-black text-white tracking-tight">Food<span class="text-orange-500">Order</span></span>
-                        <span class="block text-[10px] text-amber-400 font-bold uppercase tracking-widest">Admin Portal</span>
-                    </div>
-                </a>
-
-                <!-- Navigation Links -->
-                <nav class="space-y-1.5 text-sm font-semibold">
-                    <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all">
-                        <span>📊</span> <span>Dashboard</span>
-                    </a>
-                    <a href="{{ route('admin.categories.index') }}" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all">
-                        <span>📁</span> <span>Categories</span>
-                    </a>
-                    <a href="{{ route('admin.menuItems.index') }}" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all">
-                        <span>🍔</span> <span>Menu Items</span>
-                    </a>
-                    <a href="{{ route('admin.orders.index') }}" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all">
-                        <span>📦</span> <span>Orders</span>
-                    </a>
-                    <a href="{{ route('admin.riders.index') }}" class="flex items-center gap-3 px-4 py-3 bg-orange-500 text-white font-bold rounded-xl shadow-lg shadow-orange-500/25 transition-all">
-                        <span>🛵</span> <span>Riders</span>
-                        <span class="ms-auto bg-white/20 text-white text-xs font-bold px-2 py-0.5 rounded-full">{{ $riders->total() }}</span>
-                    </a>
-                    <a href="{{ route('admin.users.index') }}" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all">
-                        <span>👤</span> <span>Users</span>
-                    </a>
-                </nav>
-            </div>
-
-            <!-- Admin Profile Quick Footer -->
-            <div class="border-t border-slate-800 pt-4 flex items-center justify-between">
-                <div class="flex items-center gap-3 overflow-hidden">
-                    <div class="w-9 h-9 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 font-bold text-sm shrink-0">
-                        {{ strtoupper(substr(Auth::user()->name ?? 'A', 0, 1)) }}
-                    </div>
-                    <div class="text-xs truncate">
-                        <div class="font-bold text-white truncate">{{ Auth::user()->name ?? 'Admin' }}</div>
-                        <div class="text-amber-400 font-medium">System Admin</div>
-                    </div>
-                </div>
-            </div>
-        </aside>
+        <!-- ================= ADMIN SIDEBAR ================= -->
+        <x-admin-sidebar active="riders" />
 
         <!-- ================= MAIN CONTENT AREA ================= -->
         <main class="flex-1 flex flex-col min-w-0">

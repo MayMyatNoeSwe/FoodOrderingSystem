@@ -25,12 +25,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        View::composer('admin.*', function ($view) {
+        View::composer(['admin.*', 'components.admin-sidebar'], function ($view) {
             $view->with([
                 'navCategoryCount'  => Category::count(),
                 'navMenuItemCount'  => MenuItem::count(),
                 'navOrderCount'     => Order::count(),
                 'navOrderItemCount' => OrderItem::count(),
+                'navRiderCount'     => User::where('role', 'rider')->count(),
                 'navUserCount'      => User::count(),
             ]);
         });

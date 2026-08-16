@@ -27,16 +27,31 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        $rider1 = User::firstOrCreate(
-            ['email' => 'rider@foodorder.com'],
-            [
-                'name' => 'Speedy Rider',
-                'password' => bcrypt('password'),
-                'role' => 'rider',
-                'phone_number' => '09988776655',
-                'city' => 'Yangon',
-            ]
-        );
+        $ridersData = [
+            ['name' => 'Speedy Rider', 'email' => 'rider@foodorder.com', 'phone' => '09988776655', 'city' => 'Yangon'],
+            ['name' => 'Aung Aung (Rider)', 'email' => 'aungaung.rider@foodorder.com', 'phone' => '09951234567', 'city' => 'Yangon'],
+            ['name' => 'Kyaw Kyaw (Rider)', 'email' => 'kyawkyaw.rider@foodorder.com', 'phone' => '09952345678', 'city' => 'Yangon'],
+            ['name' => 'Min Min (Rider)', 'email' => 'minmin.rider@foodorder.com', 'phone' => '09953456789', 'city' => 'Mandalay'],
+            ['name' => 'Zaw Zaw (Rider)', 'email' => 'zawzaw.rider@foodorder.com', 'phone' => '09954567890', 'city' => 'Yangon'],
+            ['name' => 'Tun Tun (Rider)', 'email' => 'tuntun.rider@foodorder.com', 'phone' => '09955678901', 'city' => 'Yangon'],
+            ['name' => 'Win Win (Rider)', 'email' => 'winwin.rider@foodorder.com', 'phone' => '09956789012', 'city' => 'Nay Pyi Taw'],
+            ['name' => 'Thura (Rider)', 'email' => 'thura.rider@foodorder.com', 'phone' => '09957890123', 'city' => 'Yangon'],
+            ['name' => 'Ko Ko (Rider)', 'email' => 'koko.rider@foodorder.com', 'phone' => '09958901234', 'city' => 'Mandalay'],
+            ['name' => 'Htet Htet (Rider)', 'email' => 'htethtet.rider@foodorder.com', 'phone' => '09959012345', 'city' => 'Yangon'],
+        ];
+
+        foreach ($ridersData as $rData) {
+            User::firstOrCreate(
+                ['email' => $rData['email']],
+                [
+                    'name' => $rData['name'],
+                    'password' => bcrypt('password'),
+                    'role' => 'rider',
+                    'phone_number' => $rData['phone'],
+                    'city' => $rData['city'],
+                ]
+            );
+        }
 
         $customer1 = User::firstOrCreate(
             ['email' => 'user@example.com'],
