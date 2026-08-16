@@ -13,72 +13,9 @@
 
     <!-- Scripts & Styles -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        function confirmDeleteUser(form, userName, isSelf = false) {
-            if (isSelf) {
-                Swal.fire({
-                    title: 'Action Prohibited',
-                    text: 'You cannot delete your own active logged-in admin account!',
-                    icon: 'error',
-                    confirmButtonColor: '#f59e0b',
-                    background: '#0f172a',
-                    color: '#f8fafc',
-                    customClass: {
-                        popup: 'border border-slate-800 rounded-3xl shadow-2xl',
-                        title: 'text-white font-bold text-lg',
-                        confirmButton: 'px-5 py-2.5 rounded-xl font-bold text-xs cursor-pointer'
-                    }
-                });
-                return false;
-            }
-
-            Swal.fire({
-                title: 'Delete User \'' + userName + '\'?',
-                html: `Are you sure you want to permanently delete user <strong class="text-orange-400">'${userName}'</strong>?<br><span class="text-xs text-slate-400 mt-1 block">This will remove their account and order history access.</span>`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#334155',
-                confirmButtonText: 'Yes, Delete User',
-                cancelButtonText: 'Cancel',
-                background: '#0f172a',
-                color: '#f8fafc',
-                customClass: {
-                    popup: 'border border-slate-800 rounded-3xl shadow-2xl',
-                    title: 'text-white font-bold text-lg',
-                    confirmButton: 'px-5 py-2.5 rounded-xl font-bold text-xs shadow-lg shadow-red-500/20 cursor-pointer',
-                    cancelButton: 'px-5 py-2.5 rounded-xl font-bold text-xs cursor-pointer'
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    form.submit();
-                }
-            });
-            return false;
-        }
-    </script>
 </head>
 <body class="font-sans antialiased text-slate-800 bg-slate-950 selection:bg-orange-500 selection:text-white min-h-screen"
-      x-data="{ 
-          mobileMenuOpen: false,
-          createModalOpen: {{ $errors->any() && !old('_method') ? 'true' : 'false' }}, 
-          editModalOpen: {{ $errors->any() && old('_method') === 'PUT' ? 'true' : 'false' }}, 
-          editUserId: {{ old('edit_user_id') ? old('edit_user_id') : 'null' }}, 
-          editUserName: '{{ old('name') && old('_method') === 'PUT' ? addslashes(old('name')) : '' }}', 
-          editUserEmail: '{{ old('email') && old('_method') === 'PUT' ? addslashes(old('email')) : '' }}', 
-          editUserRole: '{{ old('role') && old('_method') === 'PUT' ? old('role') : 'user' }}', 
-          editUserUrl: '{{ old('edit_user_url', '') }}',
-
-          openEditModal(id, name, email, role, url) {
-              this.editUserId = id;
-              this.editUserName = name;
-              this.editUserEmail = email;
-              this.editUserRole = role;
-              this.editUserUrl = url;
-              this.editModalOpen = true;
-          }
-      }">
+      x-data="{ mobileMenuOpen: false }">
 
     <div class="min-h-screen flex flex-col md:flex-row">
 
@@ -282,14 +219,6 @@
                                 @endif
                             </form>
 
-                            <!-- Add User Trigger Button -->
-                            <button @click="createModalOpen = true" 
-                                    class="px-4 py-2.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-orange-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                                </svg>
-                                <span>Add New User</span>
-                            </button>
                         </div>
                     </div>
 
@@ -302,8 +231,7 @@
                                     <th class="px-4 py-3.5">Email Address</th>
                                     <th class="px-4 py-3.5">Role</th>
                                     <th class="px-4 py-3.5">Orders Placed</th>
-                                    <th class="px-4 py-3.5">Registered Date</th>
-                                    <th class="px-4 py-3.5 text-right">Actions</th>
+                                    <th class="px-4 py-3.5 text-right">Registered Date</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-800 text-slate-300 font-medium">
@@ -368,40 +296,14 @@
                                         </td>
 
                                         <!-- Registered Date -->
-                                        <td class="px-4 py-4 text-slate-400 text-[11px]">
+                                        <td class="px-4 py-4 text-right text-slate-400 text-[11px]">
                                             <div>{{ $user->created_at ? $user->created_at->format('M d, Y') : 'N/A' }}</div>
                                             <div class="text-[10px] text-slate-500 font-mono mt-0.5">{{ $user->created_at ? $user->created_at->diffForHumans() : '' }}</div>
-                                        </td>
-
-                                        <!-- Actions -->
-                                        <td class="px-4 py-4 text-right">
-                                            <div class="flex items-center justify-end gap-2">
-                                                <!-- Edit Trigger -->
-                                                <button @click="openEditModal({{ $user->id }}, '{{ addslashes($user->name) }}', '{{ addslashes($user->email) }}', '{{ $user->role }}', '{{ route('admin.users.update', $user) }}')" 
-                                                        class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-lg border border-slate-700 transition-all text-[11px] font-bold flex items-center gap-1 cursor-pointer">
-                                                    <span>✏️</span>
-                                                    <span>Edit</span>
-                                                </button>
-
-                                                <!-- Delete Form -->
-                                                <form method="POST" 
-                                                      action="{{ route('admin.users.destroy', $user) }}" 
-                                                      onsubmit="return confirmDeleteUser(this, '{{ addslashes($user->name) }}', {{ $isSelf ? 'true' : 'false' }});">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" 
-                                                            {{ $isSelf ? 'disabled' : '' }} 
-                                                            class="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg transition-all text-[11px] font-bold flex items-center gap-1 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
-                                                        <span>🗑️</span>
-                                                        <span>Delete</span>
-                                                    </button>
-                                                </form>
-                                            </div>
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="px-4 py-12 text-center text-slate-500">
+                                        <td colspan="5" class="px-4 py-12 text-center text-slate-500">
                                             <div class="max-w-xs mx-auto space-y-3">
                                                 <div class="text-3xl">👥</div>
                                                 <div class="font-bold text-slate-300 text-sm">No Users Found</div>
@@ -435,172 +337,6 @@
             </main>
         </div>
 
-    </div>
-
-    <!-- ================= CREATE USER MODAL ================= -->
-    <div x-show="createModalOpen" 
-         x-cloak
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-150"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        
-        <div @click.outside="createModalOpen = false" 
-             class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6">
-            
-            <!-- Modal Header -->
-            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-orange-500/10 text-orange-400 flex items-center justify-center text-lg font-bold">
-                        ➕
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-black text-white">Create New User Account</h3>
-                        <p class="text-slate-400 text-xs">Add a new admin or customer profile</p>
-                    </div>
-                </div>
-                <button @click="createModalOpen = false" class="text-slate-500 hover:text-white p-1 text-lg font-bold">✕</button>
-            </div>
-
-            <!-- Modal Form -->
-            <form method="POST" action="{{ route('admin.users.store') }}" class="space-y-4">
-                @csrf
-
-                <!-- Name -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">
-                        Full Name <span class="text-orange-500">*</span>
-                    </label>
-                    <input type="text" 
-                           name="name" 
-                           value="{{ old('name') }}"
-                           required 
-                           autofocus
-                           placeholder="e.g. John Doe" 
-                           class="w-full bg-slate-950 border border-slate-800 focus:border-orange-500 text-slate-100 text-sm rounded-xl px-4 py-2.5 focus:ring-0 transition-all placeholder-slate-600">
-                </div>
-
-                <!-- Email -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">
-                        Email Address <span class="text-orange-500">*</span>
-                    </label>
-                    <input type="email" 
-                           name="email" 
-                           value="{{ old('email') }}"
-                           required 
-                           placeholder="name@example.com" 
-                           class="w-full bg-slate-950 border border-slate-800 focus:border-orange-500 text-slate-100 text-sm rounded-xl px-4 py-2.5 focus:ring-0 transition-all placeholder-slate-600">
-                </div>
-
-                <!-- Role -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">
-                        Access Role <span class="text-orange-500">*</span>
-                    </label>
-                    <select name="role" required class="w-full bg-slate-950 border border-slate-800 focus:border-orange-500 text-slate-100 text-sm rounded-xl px-4 py-2.5 focus:ring-0 transition-all cursor-pointer">
-                        <option value="user" {{ old('role') === 'user' ? 'selected' : '' }}>👤 Customer (Standard Buyer Access)</option>
-                        <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>👑 System Administrator (Full Access)</option>
-                    </select>
-                </div>
-
-                <!-- Password -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">
-                        Password <span class="text-orange-500">*</span>
-                    </label>
-                    <input type="password" 
-                           name="password" 
-                           required 
-                           placeholder="••••••••" 
-                           class="w-full bg-slate-950 border border-slate-800 focus:border-orange-500 text-slate-100 text-sm rounded-xl px-4 py-2.5 focus:ring-0 transition-all placeholder-slate-600">
-                </div>
-
-                <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-800">
-                    <button type="button" @click="createModalOpen = false" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition-all cursor-pointer">
-                        Cancel
-                    </button>
-                    <button type="submit" class="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-orange-500/25 transition-all cursor-pointer">
-                        Create Account
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- ================= EDIT USER MODAL ================= -->
-    <div x-show="editModalOpen" 
-         x-cloak
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-150"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        
-        <div @click.outside="editModalOpen = false" 
-             class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6">
-            
-            <!-- Modal Header -->
-            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-orange-500/10 text-orange-400 flex items-center justify-center text-lg font-bold">
-                        👑
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-black text-white">Edit User Access Role</h3>
-                        <p class="text-slate-400 text-xs">Update administrative privileges & access</p>
-                    </div>
-                </div>
-                <button @click="editModalOpen = false" class="text-slate-500 hover:text-white p-1 text-lg font-bold">✕</button>
-            </div>
-
-            <!-- Modal Form -->
-            <form method="POST" :action="editUserUrl" class="space-y-4">
-                @csrf
-                @method('PUT')
-
-                <input type="hidden" name="edit_user_id" :value="editUserId">
-                <input type="hidden" name="edit_user_url" :value="editUserUrl">
-                <input type="hidden" name="name" :value="editUserName">
-                <input type="hidden" name="email" :value="editUserEmail">
-
-                <!-- Read-Only User Info Card -->
-                <div class="p-3.5 bg-slate-950 border border-slate-800 rounded-xl flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center justify-center font-black text-sm shrink-0"
-                         x-text="editUserName ? editUserName.charAt(0).toUpperCase() : 'U'">
-                    </div>
-                    <div class="overflow-hidden">
-                        <p class="font-extrabold text-white text-sm truncate" x-text="editUserName"></p>
-                        <p class="text-xs text-slate-400 font-mono truncate" x-text="editUserEmail"></p>
-                    </div>
-                </div>
-
-                <!-- Access Role Dropdown -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">
-                        Access Role <span class="text-orange-500">*</span>
-                    </label>
-                    <select name="role" x-model="editUserRole" required class="w-full bg-slate-950 border border-slate-700 focus:border-orange-500 text-slate-100 text-sm rounded-xl px-4 py-3 focus:ring-0 transition-all cursor-pointer font-bold">
-                        <option value="user">👤 Customer (Standard Buyer Access)</option>
-                        <option value="admin">👑 System Administrator (Full Access)</option>
-                    </select>
-                </div>
-
-                <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-800">
-                    <button type="button" @click="editModalOpen = false" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition-all cursor-pointer">
-                        Cancel
-                    </button>
-                    <button type="submit" class="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-orange-500/25 transition-all cursor-pointer">
-                        Update Role
-                    </button>
-                </div>
-            </form>
-        </div>
     </div>
 
 </body>

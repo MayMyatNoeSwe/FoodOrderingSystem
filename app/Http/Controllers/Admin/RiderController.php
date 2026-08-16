@@ -58,6 +58,51 @@ class RiderController extends Controller
     }
 
     /**
+     * Update the specified rider in storage.
+     */
+    public function update(Request $request, User $rider)
+    {
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email,'.$rider->id],
+            'phone_number' => ['required', 'string', 'max:20'],
+            'city' => ['nullable', 'string', 'max:100'],
+            'password' => ['nullable', 'string', 'min:8'],
+        ]);
+
+        $updateData = [
+            'name' => $request->name,
+            'email' => $request->email,
+            'phone_number' => $request->phone_number,
+            'city' => $request->city ?? 'Yangon',
+        ];
+
+        if ($request->filled('password')) {
+            $updateData['password'] = Hash::make($request->password);
+        }
+
+        $rider->update($updateData);
+
+        return redirect()->route('admin.riders.index')
+            ->with('success', "Rider '{$rider->name}' updated successfully! 🛵");
+    }
+
+    /**
+     * Remove the specified rider from storage.
+     */
+    public function destroy(User $rider)
+    {
+        // Unassign orders assigned to this rider so they aren't orphaned with invalid foreign key
+        Order::where('rider_id', $rider->id)->update(['rider_id' => null]);
+
+        $riderName = $rider->name;
+        $rider->delete();
+
+        return redirect()->route('admin.riders.index')
+            ->with('success', "Rider '{$riderName}' deleted successfully! 🗑️");
+    }
+
+    /**
      * Assign a rider to an order.
      */
     public function assignRider(Request $request, Order $order)
@@ -77,3 +122,4 @@ class RiderController extends Controller
         return back()->with('success', "Order #{$order->order_number} assigned to {$riderName}! 📦");
     }
 }
+

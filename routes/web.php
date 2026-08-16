@@ -223,6 +223,8 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     // Admin Rider Management Routes
     Route::get('/riders', [\App\Http\Controllers\Admin\RiderController::class, 'index'])->name('riders.index');
     Route::post('/riders', [\App\Http\Controllers\Admin\RiderController::class, 'store'])->name('riders.store');
+    Route::put('/riders/{rider}', [\App\Http\Controllers\Admin\RiderController::class, 'update'])->name('riders.update');
+    Route::delete('/riders/{rider}', [\App\Http\Controllers\Admin\RiderController::class, 'destroy'])->name('riders.destroy');
     Route::post('/orders/{order}/assign-rider', [\App\Http\Controllers\Admin\RiderController::class, 'assignRider'])->name('orders.assignRider');
     
     // JSON Endpoint for Admin Real-Time Status Polling
@@ -239,7 +241,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::resource('menuItems', MenuItemController::class)->except(['create', 'show', 'edit']);
     Route::resource('orders', OrderController::class)->except(['create', 'show', 'edit']);
     Route::resource('orderItems', OrderItemController::class)->except(['create', 'show', 'edit']);
-    Route::resource('users', UserController::class)->except(['create', 'show', 'edit']);
+    Route::resource('users', UserController::class)->only(['index']);
 });
 
 /*

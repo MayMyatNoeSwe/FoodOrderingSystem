@@ -11,14 +11,34 @@
     </x-slot>
 
     <div class="py-10 bg-slate-50 min-h-screen">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-            
-            <!-- User Header Hero Banner Card (30% Black Structural Hero) -->
+        {{-- Fix dark-mode input styles for this page only --}}
+        <style>
+            .profile-page input,
+            .profile-page textarea,
+            .profile-page select {
+                background-color: #ffffff !important;
+                color: #1e293b !important;
+                border-color: #e2e8f0 !important;
+            }
+            .profile-page input::placeholder,
+            .profile-page textarea::placeholder {
+                color: #94a3b8 !important;
+            }
+            .profile-page input:focus,
+            .profile-page textarea:focus,
+            .profile-page select:focus {
+                background-color: #fff7ed !important;
+                border-color: #f97316 !important;
+                box-shadow: 0 0 0 3px rgba(249,115,22,0.15) !important;
+            }
+        </style>
+        <div class="profile-page max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+
+            <!-- User Header Hero Banner Card -->
             <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden">
                 <div class="absolute -top-16 -right-16 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
                 <div class="flex items-center gap-5 z-10">
-                    <!-- 10% Orange User Avatar Badge -->
                     <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-orange-500 via-amber-500 to-orange-600 text-white flex items-center justify-center text-3xl font-black shadow-xl shadow-orange-500/30 ring-4 ring-orange-500/20">
                         {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
                     </div>
@@ -48,9 +68,9 @@
                 @endif
             </div>
 
-            <!-- Profile Cards Section Grid (60% White Dominant Base Cards) -->
+            <!-- Profile Cards Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                
+
                 <!-- Card 1: Profile Information -->
                 <div class="p-6 sm:p-8 bg-white border border-slate-200/80 rounded-3xl shadow-sm sm:shadow-md hover:shadow-lg transition-shadow duration-300 space-y-6">
                     <div class="flex items-center gap-3 border-b border-slate-100 pb-4">
@@ -62,7 +82,6 @@
                             <p class="text-slate-500 text-xs font-medium">Update your account name and email address</p>
                         </div>
                     </div>
-
                     @include('profile.partials.update-profile-information-form')
                 </div>
 
@@ -77,13 +96,12 @@
                             <p class="text-slate-500 text-xs font-medium">Ensure your account uses a strong, secure password</p>
                         </div>
                     </div>
-
                     @include('profile.partials.update-password-form')
                 </div>
 
             </div>
 
-            <!-- Card 3: Danger Zone (Account Deletion) -->
+            <!-- Card 3: Danger Zone -->
             <div class="p-6 sm:p-8 bg-white border border-red-200/80 rounded-3xl shadow-sm sm:shadow-md space-y-6">
                 <div class="flex items-center gap-3 border-b border-slate-100 pb-4">
                     <div class="w-10 h-10 rounded-2xl bg-red-50 border border-red-100 text-red-600 flex items-center justify-center text-lg shadow-sm">
@@ -94,7 +112,6 @@
                         <p class="text-slate-500 text-xs font-medium">Permanently delete your account and all associated order history</p>
                     </div>
                 </div>
-
                 @include('profile.partials.delete-user-form')
             </div>
 

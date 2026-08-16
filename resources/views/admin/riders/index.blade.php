@@ -13,9 +13,56 @@
 
     <!-- Scripts & Styles -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function confirmDeleteRider(form, riderName) {
+            Swal.fire({
+                title: 'Delete Rider \'' + riderName + '\'?',
+                html: `Are you sure you want to delete rider <strong class="text-orange-400">'${riderName}'</strong>?<br><span class="text-xs text-slate-400 mt-1 block">Any active assigned orders will become unassigned.</span>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#334155',
+                confirmButtonText: 'Yes, Delete Rider',
+                cancelButtonText: 'Cancel',
+                background: '#0f172a',
+                color: '#f8fafc',
+                customClass: {
+                    popup: 'border border-slate-800 rounded-3xl shadow-2xl',
+                    title: 'text-white font-bold text-lg',
+                    confirmButton: 'px-5 py-2.5 rounded-xl font-bold text-xs shadow-lg shadow-red-500/20 cursor-pointer',
+                    cancelButton: 'px-5 py-2.5 rounded-xl font-bold text-xs cursor-pointer'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+            return false;
+        }
+    </script>
 </head>
 <body class="font-sans antialiased text-slate-800 bg-slate-950 selection:bg-orange-500 selection:text-white min-h-screen"
-      x-data="{ createModalOpen: false }">
+      x-data="{ 
+          createModalOpen: false,
+          editModalOpen: false,
+          editRiderId: null,
+          editRiderName: '',
+          editRiderEmail: '',
+          editRiderPhone: '',
+          editRiderCity: '',
+          editRiderUrl: '',
+
+          openEditModal(id, name, email, phone, city, url) {
+              this.editRiderId = id;
+              this.editRiderName = name;
+              this.editRiderEmail = email;
+              this.editRiderPhone = phone;
+              this.editRiderCity = city || 'Yangon';
+              this.editRiderUrl = url;
+              this.editModalOpen = true;
+          }
+      }">
 
     <div class="min-h-screen flex flex-col md:flex-row">
 
@@ -31,7 +78,7 @@
                     <h1 class="text-xl sm:text-2xl font-black text-white flex items-center gap-2.5">
                         <span>🛵</span> Rider Management System
                     </h1>
-                    <p class="text-slate-400 text-xs mt-0.5 font-medium">Manage delivery personnel, track active orders, and register new riders</p>
+                    <p class="text-slate-400 text-xs mt-0.5 font-medium">Manage delivery personnel, track active orders, add, edit, and remove riders</p>
                 </div>
 
                 <button @click="createModalOpen = true" class="px-4 py-2.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-orange-500/20 transition-all flex items-center gap-2 cursor-pointer">
@@ -47,6 +94,15 @@
                     <div class="p-4 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm font-bold rounded-2xl flex items-center gap-3">
                         <span>✅</span>
                         <span>{{ session('success') }}</span>
+                    </div>
+                @endif
+
+                @if($errors->any())
+                    <div class="p-4 bg-red-500/10 border border-red-500/30 rounded-2xl text-red-400 text-xs font-semibold space-y-1">
+                        <div class="font-bold mb-1">Please fix the following errors:</div>
+                        @foreach($errors->all() as $error)
+                            <div>• {{ $error }}</div>
+                        @endforeach
                     </div>
                 @endif
 
@@ -81,7 +137,8 @@
                                     <th class="px-4 py-3.5">City / Zone</th>
                                     <th class="px-4 py-3.5 text-center">Active Deliveries</th>
                                     <th class="px-4 py-3.5 text-center">Completed Deliveries</th>
-                                    <th class="px-4 py-3.5 text-right">Joined Date</th>
+                                    <th class="px-4 py-3.5">Joined Date</th>
+                                    <th class="px-4 py-3.5 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-800 text-slate-300 font-medium">
@@ -98,10 +155,10 @@
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="px-4 py-4 font-mono text-slate-400">{{ $rider->email }}</td>
-                                        <td class="px-4 py-4">
-                                            <span class="px-2.5 py-1 bg-slate-800 border border-slate-700 text-slate-300 rounded-lg text-[11px] font-bold">
-                                                📍 {{ $rider->city ?? 'Yangon' }}
+                                        <td class="px-4 py-4 font-mono text-slate-400 whitespace-nowrap">{{ $rider->email }}</td>
+                                        <td class="px-4 py-4 whitespace-nowrap">
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-800 border border-slate-700 text-slate-300 rounded-lg text-[11px] font-bold whitespace-nowrap">
+                                                <span>📍</span><span>{{ $rider->city ?? 'Yangon' }}</span>
                                             </span>
                                         </td>
                                         <td class="px-4 py-4 text-center">
@@ -118,13 +175,37 @@
                                                 ✅ {{ $rider->completed_deliveries_count }} Done
                                             </span>
                                         </td>
-                                        <td class="px-4 py-4 text-right text-slate-400">
+                                        <td class="px-4 py-4 text-slate-400 text-[11px]">
                                             {{ $rider->created_at ? $rider->created_at->format('M d, Y') : 'N/A' }}
+                                        </td>
+                                        <!-- Actions: Edit & Delete -->
+                                        <td class="px-4 py-4 text-right">
+                                            <div class="flex items-center justify-end gap-2">
+                                                <!-- Edit Trigger -->
+                                                <button @click="openEditModal({{ $rider->id }}, '{{ addslashes($rider->name) }}', '{{ addslashes($rider->email) }}', '{{ addslashes($rider->phone_number ?? '') }}', '{{ addslashes($rider->city ?? 'Yangon') }}', '{{ route('admin.riders.update', $rider) }}')" 
+                                                        class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-lg border border-slate-700 transition-all text-[11px] font-bold flex items-center gap-1 cursor-pointer">
+                                                    <span>✏️</span>
+                                                    <span>Edit</span>
+                                                </button>
+
+                                                <!-- Delete Form -->
+                                                <form method="POST" 
+                                                      action="{{ route('admin.riders.destroy', $rider) }}" 
+                                                      onsubmit="return confirmDeleteRider(this, '{{ addslashes($rider->name) }}');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" 
+                                                            class="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg transition-all text-[11px] font-bold flex items-center gap-1 cursor-pointer">
+                                                        <span>🗑️</span>
+                                                        <span>Delete</span>
+                                                    </button>
+                                                </form>
+                                            </div>
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="px-4 py-12 text-center text-slate-500 font-medium">
+                                        <td colspan="7" class="px-4 py-12 text-center text-slate-500 font-medium">
                                             No riders registered yet. Click "Create New Rider" to add one!
                                         </td>
                                     </tr>
@@ -144,14 +225,14 @@
 
     <!-- ================= CREATE NEW RIDER MODAL ================= -->
     <div x-show="createModalOpen" 
-         x-transition:enter="transition-opacity ease-out duration-200"
+         x-cloak
+         x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100"
-         x-transition:leave="transition-opacity ease-in duration-150"
+         x-transition:leave="transition ease-in duration-150"
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
-         class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-         style="display: none;">
+         class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         
         <div @click.outside="createModalOpen = false" 
              class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-6">
@@ -161,48 +242,113 @@
                     <div class="w-10 h-10 rounded-2xl bg-orange-500/20 text-orange-400 flex items-center justify-center text-xl">🛵</div>
                     <h3 class="text-lg font-black text-white">Create New Rider Account</h3>
                 </div>
-                <button @click="createModalOpen = false" class="text-slate-400 hover:text-white p-1">✕</button>
+                <button @click="createModalOpen = false" class="text-slate-400 hover:text-white p-1 text-lg font-bold">✕</button>
             </div>
 
             <form method="POST" action="{{ route('admin.riders.store') }}" class="space-y-4 text-xs">
                 @csrf
                 
                 <div>
-                    <label class="block font-bold text-slate-400 mb-1">Rider Full Name</label>
+                    <label class="block font-bold text-slate-300 mb-1.5 uppercase tracking-wider">Rider Full Name <span class="text-orange-500">*</span></label>
                     <input type="text" name="name" required placeholder="e.g. Mg Mg Rider" 
-                           class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:border-orange-500 focus:outline-none">
+                           class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:border-orange-500 focus:outline-none text-sm">
                 </div>
 
                 <div>
-                    <label class="block font-bold text-slate-400 mb-1">Email Address (Login ID)</label>
+                    <label class="block font-bold text-slate-300 mb-1.5 uppercase tracking-wider">Email Address (Login ID) <span class="text-orange-500">*</span></label>
                     <input type="email" name="email" required placeholder="rider@foodorder.com" 
-                           class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:border-orange-500 focus:outline-none">
+                           class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:border-orange-500 focus:outline-none text-sm">
                 </div>
 
                 <div>
-                    <label class="block font-bold text-slate-400 mb-1">Phone Number</label>
+                    <label class="block font-bold text-slate-300 mb-1.5 uppercase tracking-wider">Phone Number <span class="text-orange-500">*</span></label>
                     <input type="text" name="phone_number" required placeholder="09xxxxxxxxx" 
-                           class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:border-orange-500 focus:outline-none">
+                           class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:border-orange-500 focus:outline-none text-sm">
                 </div>
 
                 <div>
-                    <label class="block font-bold text-slate-400 mb-1">City / Zone</label>
+                    <label class="block font-bold text-slate-300 mb-1.5 uppercase tracking-wider">City / Zone</label>
                     <input type="text" name="city" value="Yangon" placeholder="Yangon" 
-                           class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:border-orange-500 focus:outline-none">
+                           class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:border-orange-500 focus:outline-none text-sm">
                 </div>
 
                 <div>
-                    <label class="block font-bold text-slate-400 mb-1">Password</label>
+                    <label class="block font-bold text-slate-300 mb-1.5 uppercase tracking-wider">Password <span class="text-orange-500">*</span></label>
                     <input type="password" name="password" required placeholder="••••••••" 
-                           class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:border-orange-500 focus:outline-none">
+                           class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:border-orange-500 focus:outline-none text-sm">
                 </div>
 
                 <div class="pt-4 flex items-center justify-end gap-3 border-t border-slate-800">
-                    <button type="button" @click="createModalOpen = false" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl">Cancel</button>
-                    <button type="submit" class="px-5 py-2 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl shadow-lg shadow-orange-500/20">Create Rider</button>
+                    <button type="button" @click="createModalOpen = false" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition-all cursor-pointer">Cancel</button>
+                    <button type="submit" class="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-bold rounded-xl shadow-lg shadow-orange-500/20 transition-all cursor-pointer">Create Rider</button>
                 </div>
             </form>
         </div>
     </div>
+
+    <!-- ================= EDIT RIDER MODAL ================= -->
+    <div x-show="editModalOpen" 
+         x-cloak
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        
+        <div @click.outside="editModalOpen = false" 
+             class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-6">
+            
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-orange-500/20 text-orange-400 flex items-center justify-center text-xl">✏️</div>
+                    <h3 class="text-lg font-black text-white">Edit Rider Details</h3>
+                </div>
+                <button @click="editModalOpen = false" class="text-slate-400 hover:text-white p-1 text-lg font-bold">✕</button>
+            </div>
+
+            <form method="POST" :action="editRiderUrl" class="space-y-4 text-xs">
+                @csrf
+                @method('PUT')
+                
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1.5 uppercase tracking-wider">Rider Full Name <span class="text-orange-500">*</span></label>
+                    <input type="text" name="name" x-model="editRiderName" required placeholder="e.g. Mg Mg Rider" 
+                           class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:border-orange-500 focus:outline-none text-sm">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1.5 uppercase tracking-wider">Email Address (Login ID) <span class="text-orange-500">*</span></label>
+                    <input type="email" name="email" x-model="editRiderEmail" required placeholder="rider@foodorder.com" 
+                           class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:border-orange-500 focus:outline-none text-sm">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1.5 uppercase tracking-wider">Phone Number <span class="text-orange-500">*</span></label>
+                    <input type="text" name="phone_number" x-model="editRiderPhone" required placeholder="09xxxxxxxxx" 
+                           class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:border-orange-500 focus:outline-none text-sm">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1.5 uppercase tracking-wider">City / Zone</label>
+                    <input type="text" name="city" x-model="editRiderCity" placeholder="Yangon" 
+                           class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:border-orange-500 focus:outline-none text-sm">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1.5 uppercase tracking-wider">New Password <span class="text-slate-500">(Leave blank to keep current)</span></label>
+                    <input type="password" name="password" placeholder="••••••••" 
+                           class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:border-orange-500 focus:outline-none text-sm">
+                </div>
+
+                <div class="pt-4 flex items-center justify-end gap-3 border-t border-slate-800">
+                    <button type="button" @click="editModalOpen = false" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition-all cursor-pointer">Cancel</button>
+                    <button type="submit" class="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-bold rounded-xl shadow-lg shadow-orange-500/20 transition-all cursor-pointer">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 </body>
 </html>
