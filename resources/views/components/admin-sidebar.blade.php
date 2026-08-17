@@ -64,7 +64,7 @@
             </div>
             <div>
                 <span class="text-lg font-black text-slate-900 tracking-tight">Food<span class="text-orange-500">Order</span></span>
-                <span class="block text-[10px] text-amber-600 font-bold uppercase tracking-widest">Admin Portal</span>
+                <span class="block text-[10px] text-amber-600 font-bold uppercase tracking-widest">{{ __('Admin Portal') }}</span>
             </div>
         </a>
 
@@ -75,7 +75,7 @@
                 <a href="{{ route($item['route']) }}"
                    class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium {{ $isActive ? 'bg-orange-500 text-white font-bold shadow-lg shadow-orange-500/25' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80' }}">
                     {!! $item['icon'] !!}
-                    <span>{{ $item['label'] }}</span>
+                    <span>{{ __($item['label']) }}</span>
                     @if($item['badge'] !== null)
                         <span class="ms-auto {{ $isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600' }} text-xs font-bold px-2 py-0.5 rounded-full">
                             {{ $item['badge'] }}
@@ -84,6 +84,11 @@
                 </a>
             @endforeach
         </nav>
+
+        <!-- Language Switcher in Admin Sidebar -->
+        <div class="pt-2">
+            <x-language-switcher variant="sidebar" />
+        </div>
     </div>
 
     <!-- Admin Profile Quick Footer -->
@@ -94,13 +99,13 @@
             </div>
             <div class="text-xs truncate">
                 <div class="font-bold text-slate-800 truncate">{{ Auth::user()->name ?? 'Admin' }}</div>
-                <div class="text-amber-600 font-semibold">System Admin</div>
+                <div class="text-amber-600 font-semibold">{{ __('Admin Portal') }}</div>
             </div>
         </div>
 
         <form method="POST" action="{{ route('logout') }}" onsubmit="localStorage.removeItem('foodorder_cart')">
             @csrf
-            <button type="submit" title="Logout" class="p-2 text-slate-400 hover:text-red-500 transition-colors cursor-pointer rounded-lg hover:bg-slate-100">
+            <button type="submit" title="{{ __('Log Out') }}" class="p-2 text-slate-400 hover:text-red-500 transition-colors cursor-pointer rounded-lg hover:bg-slate-100">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
                 </svg>
@@ -129,7 +134,7 @@
        x-transition:leave-end="-translate-x-full"
        class="fixed inset-y-0 left-0 w-72 bg-white border-r border-slate-200 p-6 flex flex-col justify-between z-50 md:hidden shadow-2xl">
 
-    <div class="space-y-8">
+    <div class="space-y-6">
         <!-- Header & Close -->
         <div class="flex items-center justify-between">
             <a href="{{ route('home') }}" class="flex items-center gap-3">
@@ -138,7 +143,7 @@
                 </div>
                 <div>
                     <span class="text-base font-black text-slate-900">Food<span class="text-orange-500">Order</span></span>
-                    <span class="block text-[9px] text-amber-600 font-bold uppercase tracking-widest">Admin Portal</span>
+                    <span class="block text-[9px] text-amber-600 font-bold uppercase tracking-widest">{{ __('Admin Portal') }}</span>
                 </div>
             </a>
             <button @click="mobileMenuOpen = false" class="text-slate-400 hover:text-slate-700 p-1">
@@ -149,13 +154,13 @@
         </div>
 
         <!-- Navigation Links -->
-        <nav class="space-y-2 text-sm">
+        <nav class="space-y-1.5 text-sm">
             @foreach($navItems as $item)
                 @php $isActive = ($active === $item['key']); @endphp
                 <a href="{{ route($item['route']) }}"
                    class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium {{ $isActive ? 'bg-orange-500 text-white font-bold shadow-lg shadow-orange-500/25' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
                     {!! $item['icon'] !!}
-                    <span>{{ $item['label'] }}</span>
+                    <span>{{ __($item['label']) }}</span>
                     @if($item['badge'] !== null)
                         <span class="ms-auto {{ $isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600' }} text-xs font-bold px-2 py-0.5 rounded-full">
                             {{ $item['badge'] }}
@@ -164,6 +169,11 @@
                 </a>
             @endforeach
         </nav>
+
+        <!-- Mobile Language Switcher -->
+        <div>
+            <x-language-switcher variant="sidebar" />
+        </div>
     </div>
 
     <div class="border-t border-slate-100 pt-4 flex items-center justify-between">
@@ -173,13 +183,13 @@
             </div>
             <div class="text-xs">
                 <div class="font-bold text-slate-800">{{ Auth::user()->name ?? 'Admin' }}</div>
-                <div class="text-amber-600 font-semibold">System Admin</div>
+                <div class="text-amber-600 font-semibold">{{ __('Admin Portal') }}</div>
             </div>
         </div>
 
         <form method="POST" action="{{ route('logout') }}" onsubmit="localStorage.removeItem('foodorder_cart')">
             @csrf
-            <button type="submit" class="p-2 text-slate-400 hover:text-red-500 transition-colors">
+            <button type="submit" title="{{ __('Log Out') }}" class="p-2 text-slate-400 hover:text-red-500 transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
                 </svg>

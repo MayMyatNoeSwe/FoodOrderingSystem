@@ -21,6 +21,15 @@ Route::get('/', function () {
     return view('welcome', compact('categories', 'menuItems'));
 })->name('home');
 
+// Language Switcher Route
+Route::get('/lang/{locale}', function (string $locale) {
+    if (in_array($locale, ['en', 'my'])) {
+        session()->put('locale', $locale);
+        return back()->withCookie(cookie()->forever('locale', $locale));
+    }
+    return back();
+})->name('lang.switch');
+
 // Cart Page
 Route::get('/cart', function () {
     return view('cart');

@@ -31,13 +31,14 @@
             </div>
 
             <div class="flex items-center gap-3">
+                <x-language-switcher variant="compact" />
                 <a href="{{ route('home') }}" class="text-xs font-bold text-slate-400 hover:text-white transition-colors">
-                    Storefront
+                    {{ __('View Storefront') }}
                 </a>
                 <form method="POST" action="{{ route('logout') }}" onsubmit="localStorage.removeItem('foodorder_cart')">
                     @csrf
                     <button type="submit" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-red-400 font-bold text-xs rounded-xl border border-slate-700 transition-all cursor-pointer">
-                        Log Out
+                        {{ __('Log Out') }}
                     </button>
                 </form>
             </div>

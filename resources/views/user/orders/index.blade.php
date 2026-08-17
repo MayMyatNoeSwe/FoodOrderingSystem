@@ -46,16 +46,16 @@
 
         <!-- Page Header -->
         <div class="mb-8">
-            <h1 class="text-2xl sm:text-3xl font-black text-slate-900 flex items-center gap-3">
+            <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-3">
                 <span class="text-3xl">📦</span>
-                My Orders
+                {{ __('My Orders') }}
                 <span class="text-base font-bold text-slate-400 ml-1">({{ $orders->count() }})</span>
             </h1>
-            <p class="text-sm text-slate-500 mt-1.5">View and track the status of all your food orders.</p>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1.5">{{ __('Track and manage all your past and active food orders') }}</p>
         </div>
 
         @if(session('success'))
-            <div class="mb-6 flex items-center gap-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-semibold rounded-2xl px-5 py-4 shadow-sm">
+            <div class="mb-6 flex items-center gap-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 text-sm font-semibold rounded-2xl px-5 py-4 shadow-sm">
                 <span class="text-xl">✅</span>
                 <span>{{ session('success') }}</span>
             </div>
@@ -63,12 +63,12 @@
 
         @if($orders->isEmpty())
             <!-- Empty State -->
-            <div class="bg-white rounded-3xl border border-slate-100 p-16 text-center shadow-sm">
-                <div class="w-24 h-24 bg-orange-50 rounded-full flex items-center justify-center text-5xl mb-6 mx-auto shadow-inner">📦</div>
-                <h3 class="text-2xl font-black text-slate-900 mb-2">No Orders Yet</h3>
-                <p class="text-slate-500 text-sm mb-8 max-w-sm mx-auto">You haven't placed any food orders yet. Browse our menu and place your first order!</p>
+            <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 p-16 text-center shadow-sm">
+                <div class="w-24 h-24 bg-orange-50 dark:bg-slate-800 rounded-full flex items-center justify-center text-5xl mb-6 mx-auto shadow-inner">📦</div>
+                <h3 class="text-2xl font-black text-slate-900 dark:text-white mb-2">{{ __('No orders placed yet') }}</h3>
+                <p class="text-slate-500 dark:text-slate-400 text-sm mb-8 max-w-sm mx-auto">{{ __("Looks like you haven't added any dishes yet.") }}</p>
                 <a href="/" class="px-8 py-3.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm rounded-xl shadow-lg shadow-orange-500/25 transition-all inline-block">
-                    Browse Menu
+                    {{ __('Explore Menu') }}
                 </a>
             </div>
         @else

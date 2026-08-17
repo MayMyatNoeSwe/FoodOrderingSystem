@@ -18,6 +18,11 @@
         <!-- 60% Dominant Background: Warm Soft Gradient -->
         <div class="min-h-screen flex flex-col justify-center items-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-orange-50/80 via-slate-50 to-amber-50/60 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 relative overflow-hidden">
             
+            <!-- Top Right Language Switcher -->
+            <div class="absolute top-4 right-4 sm:top-6 sm:right-6 z-20 flex items-center gap-2">
+                <x-language-switcher variant="compact" />
+            </div>
+
             <!-- Decorative Subtle Food Background Elements -->
             <div class="absolute -top-24 -left-24 w-96 h-96 bg-orange-400/10 rounded-full blur-3xl pointer-events-none"></div>
             <div class="absolute -bottom-24 -right-24 w-96 h-96 bg-amber-400/10 rounded-full blur-3xl pointer-events-none"></div>

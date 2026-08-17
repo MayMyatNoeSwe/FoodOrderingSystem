@@ -216,16 +216,16 @@
 
         <!-- Title -->
         <div class="mb-8">
-            <h1 class="text-3xl font-black text-slate-900">🛒 Your Cart</h1>
-            <p class="text-slate-500 text-sm mt-1">Select your township and payment method to place your order</p>
+            <h1 class="text-3xl font-black text-slate-900 dark:text-white">🛒 {{ __('Shopping Cart') }}</h1>
+            <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">{{ __('Delivery Information') }} &amp; {{ __('Payment Method') }}</p>
         </div>
 
         <!-- ===== EMPTY STATE ===== -->
         <div x-show="items.length === 0" x-transition class="flex flex-col items-center justify-center py-24 text-center">
-            <div class="w-24 h-24 bg-orange-50 rounded-full flex items-center justify-center text-5xl mb-6 shadow-inner">🛒</div>
-            <h2 class="text-2xl font-black text-slate-900 mb-2">Your Cart is Empty</h2>
-            <p class="text-slate-500 mb-6 max-w-sm">Browse our menu and add your favorite delicious items!</p>
-            <a href="/" class="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl shadow-lg shadow-orange-500/25 transition-all">Browse Menu</a>
+            <div class="w-24 h-24 bg-orange-50 dark:bg-slate-900 rounded-full flex items-center justify-center text-5xl mb-6 shadow-inner">🛒</div>
+            <h2 class="text-2xl font-black text-slate-900 dark:text-white mb-2">{{ __('Your Cart is Empty') }}</h2>
+            <p class="text-slate-500 dark:text-slate-400 mb-6 max-w-sm">{{ __("Looks like you haven't added any dishes yet.") }}</p>
+            <a href="/" class="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl shadow-lg shadow-orange-500/25 transition-all">{{ __('Start Ordering') }}</a>
         </div>
 
         <!-- ===== MAIN CART GRID ===== -->
@@ -236,41 +236,41 @@
 
                 <!-- Cart Items Header -->
                 <div class="flex items-center justify-between">
-                    <span class="text-sm font-bold text-slate-500 uppercase tracking-widest">
-                        <span x-text="items.length"></span> Item(s)
+                    <span class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                        <span x-text="items.length"></span> {{ __('Ordered Items') }}
                     </span>
-                    <button @click="clearCart()" class="text-xs font-semibold text-red-400 hover:text-red-600 transition-colors cursor-pointer">🗑 Clear Cart</button>
+                    <button @click="clearCart()" class="text-xs font-semibold text-red-400 hover:text-red-600 transition-colors cursor-pointer">🗑 {{ __('Clear') }}</button>
                 </div>
 
                 <!-- Cart Item Cards -->
                 <template x-for="(item, index) in items" :key="item.id">
-                    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-4 group hover:shadow-md transition-all">
-                        <div class="w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-slate-100">
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-4 flex items-center gap-4 group hover:shadow-md transition-all">
+                        <div class="w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-slate-100 dark:bg-slate-800">
                             <img :src="item.image" :alt="item.name" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                         </div>
                         <div class="flex-1 min-w-0">
-                            <h3 class="font-bold text-slate-900 text-sm truncate" x-text="item.name"></h3>
+                            <h3 class="font-bold text-slate-900 dark:text-white text-sm truncate" x-text="item.name"></h3>
                             <p class="text-orange-500 font-black text-sm mt-0.5"><span x-text="formatPrice(item.price)"></span> MMK</p>
                             <div class="flex items-center gap-2 mt-0.5 flex-wrap">
                                 <p class="text-xs text-slate-400" x-text="item.category ?? ''"></p>
                                 <span class="text-[11px] font-bold px-2 py-0.5 rounded-full"
-                                      :class="isMaxStock(item) ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'">
+                                      :class="isMaxStock(item) ? 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400'">
                                     Stock: <span x-text="getItemStock(item)"></span>
                                     <span x-show="isMaxStock(item)">(Max Reached)</span>
                                 </span>
                             </div>
                         </div>
                         <div class="flex items-center gap-2 shrink-0">
-                            <button @click="decreaseQty(index)" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-orange-100 hover:text-orange-600 font-black text-lg flex items-center justify-center transition-all cursor-pointer">&minus;</button>
-                            <span class="w-8 text-center font-bold text-slate-900 text-sm" x-text="item.qty"></span>
+                            <button @click="decreaseQty(index)" class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-orange-100 hover:text-orange-600 font-black text-lg flex items-center justify-center transition-all cursor-pointer">&minus;</button>
+                            <span class="w-8 text-center font-bold text-slate-900 dark:text-white text-sm" x-text="item.qty"></span>
                             <button @click="increaseQty(index)"
                                     :disabled="isMaxStock(item)"
-                                    :class="isMaxStock(item) ? 'opacity-30 cursor-not-allowed pointer-events-none bg-slate-200 text-slate-400' : 'hover:bg-orange-100 hover:text-orange-600 cursor-pointer bg-slate-100 text-slate-900'"
+                                    :class="isMaxStock(item) ? 'opacity-30 cursor-not-allowed pointer-events-none bg-slate-200 text-slate-400' : 'hover:bg-orange-100 hover:text-orange-600 cursor-pointer bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white'"
                                     class="w-8 h-8 rounded-lg font-black text-lg flex items-center justify-center transition-all">+</button>
                         </div>
                         <div class="text-right shrink-0 min-w-[80px]">
-                            <p class="text-xs text-slate-400 mb-0.5">Subtotal</p>
-                            <p class="font-black text-slate-900 text-sm"><span x-text="formatPrice(item.price * item.qty)"></span> MMK</p>
+                            <p class="text-xs text-slate-400 mb-0.5">{{ __('Subtotal') }}</p>
+                            <p class="font-black text-slate-900 dark:text-white text-sm"><span x-text="formatPrice(item.price * item.qty)"></span> MMK</p>
                         </div>
                         <button @click="removeItem(index)" class="w-8 h-8 rounded-lg text-slate-300 hover:bg-red-50 hover:text-red-500 flex items-center justify-center transition-all cursor-pointer ml-1 shrink-0">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -279,26 +279,26 @@
                 </template>
 
                 <!-- ===== LOCATION SELECTION (YANGON ONLY) ===== -->
-                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4">
+                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6 space-y-4">
                     <div class="flex items-center justify-between">
-                        <h3 class="text-base font-black text-slate-900 flex items-center gap-2">📍 Select Delivery Township</h3>
+                        <h3 class="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">📍 {{ __('Select Township') }}</h3>
                         <span class="text-xs font-bold px-3 py-1 bg-green-100 text-green-700 rounded-full">Yangon Region Only</span>
                     </div>
 
                     <!-- Fresh Food Notice -->
-                    <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-3">
+                    <div class="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 rounded-xl flex items-center gap-3">
                         <span class="text-xl shrink-0">🥗</span>
-                        <p class="text-xs text-emerald-800 font-semibold leading-relaxed">
-                            For maximum freshness, we deliver <strong class="font-black text-emerald-950">exclusively to Yangon Region townships</strong>.
+                        <p class="text-xs text-emerald-800 dark:text-emerald-300 font-semibold leading-relaxed">
+                            {{ __('100% Fresh & Clean') }} — <strong class="font-black text-emerald-950 dark:text-emerald-200">Yangon Region</strong>
                         </p>
                     </div>
 
                     <!-- Yangon Township Select -->
                     <div>
-                        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2">Yangon Township <span class="text-red-400">*</span></label>
+                        <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-2">{{ __('Select Township') }} <span class="text-red-400">*</span></label>
                         <select x-model="selectedTownship" @change="onTownshipChange()"
-                            class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none transition-all bg-white font-medium">
-                            <option value="">-- Select Township --</option>
+                            class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none transition-all bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 font-medium">
+                            <option value="">-- {{ __('Select Township') }} --</option>
                             <optgroup label="── Zone 1 ── 2,000 MMK (Downtown)">
                                 <option value="Kyauktada">Kyauktada</option>
                                 <option value="Pabedan">Pabedan</option>
@@ -341,13 +341,13 @@
                     </div>
 
                     <!-- Delivery Fee Badge -->
-                    <div x-show="selectedTownship && deliveryFee > 0" x-transition class="mt-3 flex items-center gap-4 p-4 bg-orange-50 rounded-xl border border-orange-100">
+                    <div x-show="selectedTownship && deliveryFee > 0" x-transition class="mt-3 flex items-center gap-4 p-4 bg-orange-50 dark:bg-orange-950/30 rounded-xl border border-orange-100 dark:border-orange-900/40">
                         <span class="text-3xl">🛵</span>
                         <div>
-                            <p class="text-xs text-orange-700 font-bold uppercase tracking-wide">Delivery Fee</p>
+                            <p class="text-xs text-orange-700 dark:text-orange-400 font-bold uppercase tracking-wide">{{ __('Delivery Fee') }}</p>
                             <p class="text-2xl font-black text-orange-500"><span x-text="formatPrice(deliveryFee)"></span> <span class="text-base">MMK</span></p>
                         </div>
-                        <span class="ml-auto text-xs font-black px-3 py-1.5 rounded-full bg-orange-100 text-orange-700" x-text="getZoneLabel()"></span>
+                        <span class="ml-auto text-xs font-black px-3 py-1.5 rounded-full bg-orange-100 dark:bg-orange-900/60 text-orange-700 dark:text-orange-300" x-text="getZoneLabel()"></span>
                     </div>
                 </div>
 
@@ -357,22 +357,22 @@
             <div class="space-y-5">
 
                 <!-- Order Summary -->
-                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-                    <h2 class="text-base font-black text-slate-900 mb-4">Order Summary</h2>
+                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6">
+                    <h2 class="text-base font-black text-slate-900 dark:text-white mb-4">{{ __('Order Summary') }}</h2>
                     <div class="space-y-2.5 text-sm">
-                        <div class="flex justify-between text-slate-600">
-                            <span>Subtotal (<span x-text="totalQty()"></span> items)</span>
-                            <span class="font-semibold text-slate-900"><span x-text="formatPrice(subtotal())"></span> MMK</span>
+                        <div class="flex justify-between text-slate-600 dark:text-slate-300">
+                            <span>{{ __('Subtotal') }} (<span x-text="totalQty()"></span> items)</span>
+                            <span class="font-semibold text-slate-900 dark:text-white"><span x-text="formatPrice(subtotal())"></span> MMK</span>
                         </div>
-                        <div class="flex justify-between text-slate-600">
-                            <span>Delivery Fee</span>
-                            <span class="font-semibold" :class="deliveryFee > 0 ? 'text-slate-900' : 'text-slate-400'">
+                        <div class="flex justify-between text-slate-600 dark:text-slate-300">
+                            <span>{{ __('Delivery Fee') }}</span>
+                            <span class="font-semibold" :class="deliveryFee > 0 ? 'text-slate-900 dark:text-white' : 'text-slate-400'">
                                 <span x-show="deliveryFee > 0" x-text="formatPrice(deliveryFee) + ' MMK'"></span>
-                                <span x-show="deliveryFee === 0" class="text-xs">Select township</span>
+                                <span x-show="deliveryFee === 0" class="text-xs">{{ __('Select Township') }}</span>
                             </span>
                         </div>
-                        <div class="border-t border-slate-100 pt-3 mt-2 flex justify-between">
-                            <span class="font-black text-slate-900">Total Amount</span>
+                        <div class="border-t border-slate-100 dark:border-slate-800 pt-3 mt-2 flex justify-between">
+                            <span class="font-black text-slate-900 dark:text-white">{{ __('Total Amount') }}</span>
                             <span class="font-black text-orange-500 text-lg"><span x-text="formatPrice(total())"></span> MMK</span>
                         </div>
                     </div>
@@ -381,7 +381,7 @@
                 <!-- ===== CHECKOUT FORM ===== -->
                 <form id="checkout-form" method="POST" action="{{ route('user.orders.store') }}"
                     enctype="multipart/form-data"
-                    class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4">
+                    class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6 space-y-4">
                     @csrf
 
                     {{-- Hidden fields injected by Alpine --}}
@@ -391,53 +391,53 @@
                     <input type="hidden" name="region_type"       id="region_type_input">
                     <input type="hidden" name="delivery_township" id="delivery_township_input">
 
-                    <h2 class="text-base font-black text-slate-900">Delivery Information</h2>
+                    <h2 class="text-base font-black text-slate-900 dark:text-white">{{ __('Delivery Information') }}</h2>
 
                     {{-- Full Address --}}
                     <div>
-                        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1.5">
-                            Detailed Delivery Address <span class="text-red-400">*</span>
+                        <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1.5">
+                            {{ __('Delivery Address') }} <span class="text-red-400">*</span>
                         </label>
                         <textarea name="delivery_address" rows="2" required
-                            placeholder="Building, street, ward/township details..."
-                            class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none transition-all resize-none placeholder-slate-400">{{ old('delivery_address', Auth::check() ? (Auth::user()->detail_address ?? '') : '') }}</textarea>
+                            placeholder="{{ __('Enter your full address (Street, Ward, City)') }}"
+                            class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none transition-all resize-none placeholder-slate-400 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">{{ old('delivery_address', Auth::check() ? (Auth::user()->detail_address ?? '') : '') }}</textarea>
                     </div>
 
                     {{-- Phone --}}
                     <div>
-                        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1.5">
-                            Phone Number <span class="text-red-400">*</span>
+                        <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1.5">
+                            {{ __('Contact Phone') }} <span class="text-red-400">*</span>
                         </label>
                         <input type="tel" name="delivery_phone" required
                             value="{{ old('delivery_phone', Auth::check() ? (Auth::user()->phone_number ?? '') : '') }}"
                             placeholder="+95 9 ..."
-                            class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none transition-all placeholder-slate-400">
+                            class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none transition-all placeholder-slate-400 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
                     </div>
 
                     {{-- Payment Method (COD ONLY) --}}
                     <div>
-                        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2">
-                            Payment Method <span class="text-red-400">*</span>
+                        <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-2">
+                            {{ __('Payment Method') }} <span class="text-red-400">*</span>
                         </label>
                         <input type="hidden" name="payment_method" value="cod">
 
-                        <div class="bg-green-50 border-2 border-green-500 rounded-xl p-4 flex items-center gap-4">
+                        <div class="bg-green-50 dark:bg-green-950/30 border-2 border-green-500 rounded-xl p-4 flex items-center gap-4">
                             <div class="w-12 h-12 rounded-xl bg-green-500 text-white flex items-center justify-center text-2xl shadow-md shrink-0">
                                 💵
                             </div>
                             <div>
-                                <h4 class="font-black text-slate-900 text-sm">Cash on Delivery (COD)</h4>
-                                <p class="text-xs text-green-700 font-semibold mt-0.5">Pay in cash when your order is delivered — No advance payment required</p>
+                                <h4 class="font-black text-slate-900 dark:text-white text-sm">{{ __('Cash on Delivery') }}</h4>
+                                <p class="text-xs text-green-700 dark:text-green-400 font-semibold mt-0.5">{{ __('Pay in cash when your food arrives') }}</p>
                             </div>
                         </div>
                     </div>
 
                     {{-- Notes --}}
                     <div>
-                        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Notes <span class="text-slate-300">(optional)</span></label>
+                        <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1.5">{{ __('Special Notes / Instructions') }} <span class="text-slate-300">(optional)</span></label>
                         <textarea name="notes" rows="2"
-                            placeholder="Special instructions, extra sauce..."
-                            class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none transition-all resize-none placeholder-slate-400"></textarea>
+                            placeholder="{{ __('Any allergy or delivery note (optional)') }}"
+                            class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none transition-all resize-none placeholder-slate-400 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100"></textarea>
                     </div>
 
                     {{-- Submit Button --}}
@@ -460,7 +460,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                                 </svg>
                             </template>
-                            <span x-text="isSubmitting ? 'Placing Order...' : 'Place Order (COD)'"></span>
+                            <span x-text="isSubmitting ? '{{ __('Placing Order...') }}' : '{{ __('Proceed to Checkout') }}'"></span>
                             <span x-show="!isSubmitting">&mdash; <span x-text="formatPrice(total())"></span> MMK</span>
                         </button>
                     @else
@@ -469,12 +469,12 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                             </svg>
-                            Place Order
+                            {{ __('Log in') }} / {{ __('Proceed to Checkout') }}
                         </button>
                     @endauth
 
                     <p class="text-xs text-center text-slate-400 leading-relaxed">
-                        <span x-show="paymentMethod === 'cod'">Pay cash upon delivery</span>
+                        <span x-show="paymentMethod === 'cod'">{{ __('Pay in cash when your food arrives') }}</span>
                     </p>
                 </form>
 
