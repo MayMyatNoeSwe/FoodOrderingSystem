@@ -93,12 +93,12 @@
         <x-storefront-navbar />
 
         <!-- ================= HERO SECTION ================= -->
-        <section id="hero" class="relative py-12 lg:py-20 bg-white dark:bg-slate-950 transition-colors duration-300 overflow-hidden">
+        <section id="hero" class="relative py-6 lg:py-10 bg-white dark:bg-slate-950 transition-colors duration-300 overflow-hidden">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center">
                     
                     <!-- Hero Text Content -->
-                    <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
+                    <div class="lg:col-span-7 space-y-4 text-center lg:text-left">
                         
                         <!-- Promo Tag -->
                         <div class="inline-flex items-center gap-2 px-4 py-2 bg-orange-100/80 dark:bg-orange-950/60 border border-orange-200 dark:border-orange-800/60 rounded-full text-orange-700 dark:text-orange-300 text-xs font-bold tracking-wide uppercase shadow-sm">
@@ -107,13 +107,13 @@
                         </div>
 
                         <!-- Main Headline -->
-                        <h1 class="font-display text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
+                        <h1 class="font-display text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-snug">
                             {{ __('Hero Title Start') }} <br class="hidden sm:inline" />
                             <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600">{{ __('Hero Title End') }}</span>
                         </h1>
 
                         <!-- Subtitle -->
-                        <p class="text-slate-600 dark:text-slate-300 text-base sm:text-lg max-w-xl mx-auto lg:mx-0 font-normal leading-relaxed">
+                        <p class="text-slate-600 dark:text-slate-300 text-sm sm:text-base max-w-xl mx-auto lg:mx-0 font-normal leading-relaxed">
                             {{ __('Hero Description') }}
                         </p>
 
@@ -134,19 +134,19 @@
                         </div>
 
                         <!-- Stats & Trust Badges -->
-                        <div class="pt-4 flex items-center justify-center lg:justify-start gap-8 border-t border-slate-200/60 dark:border-slate-800/80">
+                        <div class="pt-3 flex items-center justify-center lg:justify-start gap-6 border-t border-slate-200/60 dark:border-slate-800/80">
                             <div>
-                                <div class="text-2xl font-extrabold text-slate-900 dark:text-white">10k+</div>
+                                <div class="text-xl font-extrabold text-slate-900 dark:text-white">10k+</div>
                                 <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">{{ __('Active Foodies') }}</div>
                             </div>
                             <div class="h-8 w-px bg-slate-200 dark:bg-slate-800"></div>
                             <div>
-                                <div class="text-2xl font-extrabold text-slate-900 dark:text-white">30 Min</div>
+                                <div class="text-xl font-extrabold text-slate-900 dark:text-white">30 Min</div>
                                 <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">{{ __('15-30 Min Delivery') }}</div>
                             </div>
                             <div class="h-8 w-px bg-slate-200 dark:bg-slate-800"></div>
                             <div>
-                                <div class="text-2xl font-extrabold text-slate-900 dark:text-white">4.9 ★</div>
+                                <div class="text-xl font-extrabold text-slate-900 dark:text-white">4.9 ★</div>
                                 <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">{{ __('Top Rated') }}</div>
                             </div>
                         </div>
@@ -159,7 +159,7 @@
                             
                             <!-- Main Hero Image Container -->
                             <div class="relative z-10 rounded-3xl overflow-hidden shadow-2xl border-4 border-white dark:border-slate-800 bg-slate-900 group">
-                                <img src="/images/hero_food.png" alt="Delicious Food Showcase" class="w-full h-[420px] object-cover group-hover:scale-105 transition-transform duration-700">
+                                <img src="/images/hero_food.png" alt="Delicious Food Showcase" class="w-full h-[300px] lg:h-[360px] object-cover group-hover:scale-105 transition-transform duration-700">
                                 <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent"></div>
                             </div>
 
@@ -332,10 +332,14 @@
                                     <button
                                         @click="addToCart({{ json_encode(['id' => $item->id, 'name' => $item->name, 'price' => $item->price, 'image' => $item->image_url, 'category' => $catName, 'stock' => $item->stock]) }}); window.location.href='{{ route('cart') }}';"
                                         class="px-3 py-2 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-orange-500/25 flex items-center gap-1.5 transition-all cursor-pointer">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                                        </svg>
-                                        <span>{{ __('Add to Cart') }}</span>
+                                        @if(app()->getLocale() === 'my')
+                                            <span class="font-bold">🛒 ဝယ်ရန်</span>
+                                        @else
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                            </svg>
+                                            <span>{{ __('Add to Cart') }}</span>
+                                        @endif
                                     </button>
                                 @endif
                             </div>

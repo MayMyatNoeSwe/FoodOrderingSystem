@@ -10,20 +10,21 @@
 
 @if($variant === 'compact')
     <!-- Compact Pill Toggle -->
-    <div class="inline-flex items-center p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200/60 dark:border-slate-700/60 text-xs font-bold shadow-inner">
+    <div class="lang-switcher-pill inline-flex items-center p-0.5 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200/60 dark:border-slate-700/60 text-xs font-bold shadow-inner gap-0.5">
         <a href="{{ route('lang.switch', 'en') }}" 
            title="Switch to English"
-           class="px-2.5 py-1 rounded-lg transition-all flex items-center gap-1.5 {{ !$isMyanmar ? 'bg-white dark:bg-slate-700 text-orange-600 dark:text-orange-400 shadow-sm font-extrabold' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200' }}">
+           class="{{ !$isMyanmar ? 'active-lang bg-white dark:bg-slate-700 text-orange-600 dark:text-orange-400 shadow-sm font-extrabold' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200' }} px-2.5 py-1 rounded-[10px] flex items-center gap-1.5">
             <span>🇬🇧</span>
             <span>EN</span>
         </a>
         <a href="{{ route('lang.switch', 'my') }}" 
            title="မြန်မာဘာသာသို့ ပြောင်းရန်"
-           class="px-2.5 py-1 rounded-lg transition-all flex items-center gap-1.5 {{ $isMyanmar ? 'bg-white dark:bg-slate-700 text-orange-600 dark:text-orange-400 shadow-sm font-extrabold' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200' }}">
+           class="{{ $isMyanmar ? 'active-lang bg-white dark:bg-slate-700 text-orange-600 dark:text-orange-400 shadow-sm font-extrabold' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200' }} px-2.5 py-1 rounded-[10px] flex items-center gap-1.5">
             <span>🇲🇲</span>
             <span>MM</span>
         </a>
     </div>
+
 
 @elseif($variant === 'sidebar')
     <!-- Sidebar / Drawer Format -->
