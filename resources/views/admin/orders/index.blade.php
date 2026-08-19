@@ -51,9 +51,21 @@
                 activeRejectReason: 'Kitchen Busy',
                 audioEnabled: true,
                 statusStateMap: {},
+                now: Date.now(),
+
+                getRemainingSeconds: function(isoDate) {
+                    if (!isoDate) return 0;
+                    var t = new Date(isoDate).getTime();
+                    var elapsed = Math.floor((this.now - t) / 1000);
+                    return Math.max(0, 30 - elapsed);
+                },
 
                 init: function() {
                     var self = this;
+                    setInterval(function() {
+                        self.now = Date.now();
+                    }, 1000);
+
                     setInterval(function() {
                         fetch('{{ route('admin.orders.json_list') }}')
                             .then(function(res) { return res.json(); })
@@ -421,8 +433,9 @@
                                             </div>
                                         </td>
 
-                                        <!-- Order Status & Rider Dropdown Form -->
-                                        <td class="px-4 py-4 space-y-2">
+                                        <!-- Order Status & Rider Dispatch Column -->
+                                        <td class="px-4 py-4 space-y-2.5 min-w-[220px]">
+                                            <!-- Status Selector Form -->
                                             <form method="POST" action="{{ route('admin.orders.update', $order) }}" class="block">
                                                 @csrf
                                                 @method('PUT')
@@ -443,27 +456,72 @@
                                                 </div>
                                             </form>
 
-                                            <!-- Rider Assignment -->
-                                            @if(!in_array($order->status, ['cancelled', 'completed']))
-                                                <form method="POST" action="{{ route('admin.orders.assignRider', $order) }}" class="block">
-                                                    @csrf
-                                                    <div class="relative">
-                                                        <select name="rider_id" onchange="this.form.submit()" 
-                                                                class="w-full text-[11px] font-bold px-2.5 py-1 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 focus:outline-none focus:border-orange-500 cursor-pointer appearance-none pr-6">
-                                                            <option value="">🛵 Select Rider...</option>
-                                                            @foreach($riders as $riderItem)
-                                                                <option value="{{ $riderItem->id }}" {{ $order->rider_id == $riderItem->id ? 'selected' : '' }}>
-                                                                    🛵 {{ $riderItem->name }}
-                                                                </option>
-                                                            @endforeach
-                                                        </select>
-                                                        <div class="pointer-events-none absolute right-2 top-1.5 text-slate-500 text-[9px]">
-                                                            ▼
+                                            <!-- Rider Assignment & 30-Second Countdown Pool State -->
+                                            @if(in_array($order->status, ['confirmed', 'preparing']))
+                                                @if(!$order->rider_id)
+                                                    @php
+                                                        $orderApprovedTimestamp = $order->updated_at ? $order->updated_at->toISOString() : $order->created_at->toISOString();
+                                                    @endphp
+                                                    <div class="space-y-1.5 p-2.5 bg-amber-50 border border-amber-200 rounded-xl">
+                                                        <!-- Live 30s Countdown Condition -->
+                                                        <div x-show="getRemainingSeconds('{{ $orderApprovedTimestamp }}') > 0" class="flex items-center gap-1.5 text-[10px] font-bold text-amber-700">
+                                                            <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+                                                            <span>Waiting Rider (<span class="font-mono font-black" x-text="getRemainingSeconds('{{ $orderApprovedTimestamp }}')"></span>s)</span>
                                                         </div>
+
+                                                        <div x-show="getRemainingSeconds('{{ $orderApprovedTimestamp }}') === 0" class="space-y-1">
+                                                            <div class="flex items-center gap-1.5 text-[10px] font-black text-red-600 animate-pulse">
+                                                                <span>⚠️</span>
+                                                                <span>30s Elapsed! No Rider Yet</span>
+                                                            </div>
+                                                            <p class="text-[9px] text-slate-500 font-semibold">Assign rider manually:</p>
+                                                        </div>
+
+                                                        <form method="POST" action="{{ route('admin.orders.assignRider', $order) }}" class="block">
+                                                            @csrf
+                                                            <div class="relative">
+                                                                <select name="rider_id" onchange="this.form.submit()" 
+                                                                        class="w-full text-[11px] font-bold px-2 py-1 rounded-lg bg-white border border-amber-300 text-slate-800 focus:outline-none focus:border-orange-500 cursor-pointer appearance-none pr-5">
+                                                                    <option value="">🛵 Select Rider...</option>
+                                                                    @foreach($riders as $riderItem)
+                                                                        <option value="{{ $riderItem->id }}">
+                                                                            🛵 {{ $riderItem->name }}
+                                                                        </option>
+                                                                    @endforeach
+                                                                </select>
+                                                                <div class="pointer-events-none absolute right-2 top-1.5 text-slate-500 text-[9px]">
+                                                                    ▼
+                                                                </div>
+                                                            </div>
+                                                        </form>
                                                     </div>
-                                                </form>
+                                                @else
+                                                    <div class="p-2 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between gap-1">
+                                                        <div class="text-[11px] font-bold text-emerald-800 flex items-center gap-1">
+                                                            <span>🛵</span>
+                                                            <span>{{ $order->rider->name }}</span>
+                                                        </div>
+                                                        <!-- Re-assign / change rider form -->
+                                                        <form method="POST" action="{{ route('admin.orders.assignRider', $order) }}">
+                                                            @csrf
+                                                            <select name="rider_id" onchange="this.form.submit()" class="text-[10px] bg-white border border-slate-200 rounded px-1 py-0.5 font-semibold text-slate-600 cursor-pointer">
+                                                                <option value="{{ $order->rider_id }}">Assigned</option>
+                                                                <option value="">✕ Unassign</option>
+                                                                @foreach($riders as $riderItem)
+                                                                    @if($riderItem->id != $order->rider_id)
+                                                                        <option value="{{ $riderItem->id }}">🛵 {{ $riderItem->name }}</option>
+                                                                    @endif
+                                                                @endforeach
+                                                            </select>
+                                                        </form>
+                                                    </div>
+                                                @endif
+                                            @elseif($order->status === 'delivering' && $order->rider)
+                                                <div class="text-[11px] font-bold text-purple-700 flex items-center gap-1.5 px-2.5 py-1.5 bg-purple-50 rounded-xl border border-purple-200">
+                                                    <span>🛵</span> <span>{{ $order->rider->name }} (Delivering)</span>
+                                                </div>
                                             @elseif($order->rider)
-                                                <div class="text-[11px] font-bold text-orange-600 flex items-center gap-1">
+                                                <div class="text-[11px] font-bold text-slate-600 flex items-center gap-1 px-2 py-1">
                                                     <span>🛵</span> <span>{{ $order->rider->name }}</span>
                                                 </div>
                                             @endif

@@ -142,6 +142,9 @@ Route::middleware('auth')->prefix('user')->name('user.')->group(function () {
             'status'         => $order->status,
             'payment_status' => $order->payment_status,
             'notes'          => $order->notes,
+            'rider_id'       => $order->rider_id,
+            'rider_name'     => $order->rider ? $order->rider->name : null,
+            'rider_phone'    => $order->rider ? ($order->rider->phone_number ?? $order->rider->phone ?? null) : null,
         ]);
     })->name('orders.json_status');
 
@@ -150,7 +153,7 @@ Route::middleware('auth')->prefix('user')->name('user.')->group(function () {
         if ($order->user_id !== Auth::id() && (!Auth::user()->isAdmin())) {
             abort(403);
         }
-        $order->load('orderItems.menuItem');
+        $order->load(['orderItems.menuItem', 'rider']);
         return view('user.orders.show', compact('order'));
     })->name('orders.show');
 });
@@ -204,12 +207,15 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
     // Quick Action Endpoint: Accept Order
     Route::post('/orders/{order}/accept', function (Order $order) {
-        $updateData = ['status' => 'confirmed'];
+        $updateData = [
+            'status' => 'confirmed',
+            'updated_at' => now(),
+        ];
         if (in_array($order->payment_method, ['kbzpay', 'wavepay'])) {
             $updateData['payment_status'] = 'paid';
         }
         $order->update($updateData);
-        return back()->with('success', "Order #{$order->order_number} Confirmed & Accepted! 🎉");
+        return back()->with('success', "Order #{$order->order_number} Confirmed & Accepted! 🎉 Waiting for rider pickup (30s)...");
     })->name('orders.accept');
 
     // Quick Action Endpoint: Reject Order
@@ -260,6 +266,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 */
 Route::middleware(['auth'])->prefix('rider')->as('rider.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\Rider\RiderDashboardController::class, 'index'])->name('dashboard');
+    Route::post('/orders/{order}/pickup', [\App\Http\Controllers\Rider\RiderDashboardController::class, 'pickup'])->name('orders.pickup');
     Route::post('/orders/{order}/start-delivery', [\App\Http\Controllers\Rider\RiderDashboardController::class, 'startDelivery'])->name('orders.start');
     Route::post('/orders/{order}/complete-delivery', [\App\Http\Controllers\Rider\RiderDashboardController::class, 'completeDelivery'])->name('orders.complete');
 });

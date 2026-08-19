@@ -19,13 +19,15 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <!-- Order Tracker JS -->
     <script>
-        window.initOrderTracker = function(initialStatus, initialPaymentStatus, initialNotes, jsonUrl) {
+        window.initOrderTracker = function(initialStatus, initialPaymentStatus, initialNotes, initialRiderName, initialRiderPhone, jsonUrl) {
             return {
                 imgModal: false,
                 imgSrc: '',
                 currentStatus: initialStatus,
                 currentPaymentStatus: initialPaymentStatus,
                 currentNotes: initialNotes,
+                currentRiderName: initialRiderName,
+                currentRiderPhone: initialRiderPhone,
                 justApproved: false,
                 darkMode: localStorage.getItem('foodorder_theme') === 'dark',
                 toggleTheme: function() {
@@ -54,6 +56,12 @@
                                     if (data.notes !== undefined) {
                                         self.currentNotes = data.notes;
                                     }
+                                    if (data.rider_name !== undefined) {
+                                        self.currentRiderName = data.rider_name;
+                                    }
+                                    if (data.rider_phone !== undefined) {
+                                        self.currentRiderPhone = data.rider_phone;
+                                    }
                                 }
                             })
                             .catch(function() {});
@@ -64,7 +72,7 @@
     </script>
 </head>
 <body class="font-sans antialiased bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 selection:bg-orange-500 selection:text-white"
-    x-data="initOrderTracker({{ json_encode($order->status) }}, {{ json_encode($order->payment_status) }}, {{ json_encode($order->notes ?? '') }}, '{{ route('user.orders.json_status', $order) }}')">
+    x-data="initOrderTracker({{ json_encode($order->status) }}, {{ json_encode($order->payment_status) }}, {{ json_encode($order->notes ?? '') }}, {{ json_encode($order->rider ? $order->rider->name : null) }}, {{ json_encode($order->rider ? ($order->rider->phone_number ?? $order->rider->phone ?? null) : null) }}, '{{ route('user.orders.json_status', $order) }}')">
 
     <!-- ===== NAVBAR ===== -->
     <x-storefront-navbar />
@@ -89,29 +97,60 @@
             </div>
         </div>
 
-        <!-- 2. APPROVED / CONFIRMED BANNER -->
-        <div x-show="currentStatus === 'confirmed' || currentStatus === 'preparing'" x-transition class="mb-8 p-5 bg-emerald-600 text-white rounded-3xl shadow-xl shadow-emerald-600/20 flex items-center gap-4 border border-emerald-500">
-            <div class="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-3xl shrink-0">
-                🎉
+        <!-- 2. APPROVED / CONFIRMED - WAITING FOR RIDER PICKUP -->
+        <div x-show="(currentStatus === 'confirmed' || currentStatus === 'preparing') && !currentRiderName" x-transition class="mb-8 p-5 bg-emerald-600 text-white rounded-3xl shadow-xl shadow-emerald-600/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-emerald-500">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-3xl shrink-0">
+                    👨‍🍳
+                </div>
+                <div>
+                    <h3 class="font-black text-lg">Order Confirmed by Admin!</h3>
+                    <p class="text-xs text-emerald-100 mt-0.5">Kitchen is preparing your food. Waiting for a nearby rider to pick up...</p>
+                </div>
             </div>
-            <div>
-                <h3 class="font-black text-lg">Order Confirmed by Admin!</h3>
-                <p class="text-xs text-emerald-100 mt-0.5">Our kitchen has started preparing your food.</p>
-            </div>
-        </div>
-
-        <!-- 3. DISPATCHED / DELIVERING BANNER -->
-        <div x-show="currentStatus === 'delivering'" x-transition class="mb-8 p-5 bg-purple-600 text-white rounded-3xl shadow-xl shadow-purple-600/20 flex items-center gap-4 border border-purple-500">
-            <div class="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-3xl shrink-0">
-                🛵
-            </div>
-            <div>
-                <h3 class="font-black text-lg">Order is on the way!</h3>
-                <p class="text-xs text-purple-100 mt-0.5">Our delivery rider is heading to your location.</p>
+            <div class="shrink-0 flex items-center gap-2 bg-white/20 px-3.5 py-1.5 rounded-xl text-xs font-bold">
+                <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
+                <span>Rider Pickup Pool Active</span>
             </div>
         </div>
 
-        <!-- 4. COMPLETED BANNER -->
+        <!-- 3. RIDER ASSIGNED (PREPARING / HEADING TO PICKUP) -->
+        <div x-show="(currentStatus === 'confirmed' || currentStatus === 'preparing') && currentRiderName" x-transition class="mb-8 p-5 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-3xl shadow-xl shadow-orange-500/25 flex items-center justify-between gap-4 border border-orange-400">
+            <div class="flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-3xl shrink-0">
+                    🛵
+                </div>
+                <div>
+                    <h3 class="font-black text-lg">Rider Assigned: <span x-text="currentRiderName"></span></h3>
+                    <p class="text-xs text-orange-100 mt-0.5">Your rider has accepted this order and is heading to the kitchen for pickup!</p>
+                </div>
+            </div>
+            <template x-if="currentRiderPhone">
+                <a :href="'tel:' + currentRiderPhone" class="shrink-0 px-4 py-2 bg-white text-orange-600 font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 hover:bg-orange-50 transition-colors">
+                    <span>📞 Call Rider</span>
+                </a>
+            </template>
+        </div>
+
+        <!-- 4. DISPATCHED / DELIVERING BANNER -->
+        <div x-show="currentStatus === 'delivering'" x-transition class="mb-8 p-5 bg-purple-600 text-white rounded-3xl shadow-xl shadow-purple-600/20 flex items-center justify-between gap-4 border border-purple-500">
+            <div class="flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-3xl shrink-0 animate-pulse">
+                    🛵
+                </div>
+                <div>
+                    <h3 class="font-black text-lg">Order is Out for Delivery!</h3>
+                    <p class="text-xs text-purple-100 mt-0.5" x-text="currentRiderName ? 'Rider ' + currentRiderName + ' is heading to your address.' : 'Our delivery rider is heading to your location.'"></p>
+                </div>
+            </div>
+            <template x-if="currentRiderPhone">
+                <a :href="'tel:' + currentRiderPhone" class="shrink-0 px-4 py-2 bg-white text-purple-700 font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 hover:bg-purple-50 transition-colors">
+                    <span>📞 Call Rider</span>
+                </a>
+            </template>
+        </div>
+
+        <!-- 5. COMPLETED BANNER -->
         <div x-show="currentStatus === 'completed'" x-transition class="mb-8 p-5 bg-blue-600 text-white rounded-3xl shadow-xl shadow-blue-600/20 flex items-center gap-4 border border-blue-500">
             <div class="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-3xl shrink-0">
                 ✅
@@ -122,7 +161,7 @@
             </div>
         </div>
 
-        <!-- 5. CANCELLED / REJECTED BANNER -->
+        <!-- 6. CANCELLED / REJECTED BANNER -->
         <div x-show="currentStatus === 'cancelled'" x-transition class="mb-8 p-5 bg-red-600 text-white rounded-3xl shadow-xl shadow-red-600/20 flex items-center gap-4 border border-red-500">
             <div class="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-3xl shrink-0">
                 ❌
@@ -134,14 +173,14 @@
         </div>
 
         <!-- Header Status Card -->
-        <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8 mb-8">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-6 mb-6">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 sm:p-8 mb-8 transition-colors">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-6 mb-6">
                 <div>
                     <div class="flex items-center gap-2">
-                        <span class="text-xs font-bold px-3 py-1 bg-slate-100 text-slate-600 rounded-full">Order #{{ $order->order_number }}</span>
+                        <span class="text-xs font-bold px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-full">Order #{{ $order->order_number }}</span>
                         <span class="text-xs text-slate-400 font-medium">{{ $order->created_at->format('M d, Y • h:i A') }}</span>
                     </div>
-                    <h1 class="text-2xl sm:text-3xl font-black text-slate-900 mt-2">Order Details</h1>
+                    <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-2">Order Details</h1>
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2">
@@ -172,17 +211,17 @@
             <!-- Grid Info -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
                 <!-- Delivery Info -->
-                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                <div class="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
                     <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">📍 Delivery Info</p>
-                    <p class="font-bold text-slate-800">{{ $order->delivery_township ?? 'Yangon' }}</p>
-                    <p class="text-xs text-slate-600 mt-1 leading-relaxed">{{ $order->delivery_address }}</p>
-                    <p class="text-xs font-bold text-slate-800 mt-2">📞 {{ $order->delivery_phone }}</p>
+                    <p class="font-bold text-slate-800 dark:text-slate-100">{{ $order->delivery_township ?? 'Yangon' }}</p>
+                    <p class="text-xs text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">{{ $order->delivery_address }}</p>
+                    <p class="text-xs font-bold text-slate-800 dark:text-slate-200 mt-2">📞 {{ $order->delivery_phone }}</p>
                 </div>
 
                 <!-- Payment Method Info -->
-                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                <div class="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
                     <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">💳 Payment Method</p>
-                    <p class="font-black text-slate-900 uppercase text-base mb-1">
+                    <p class="font-black text-slate-900 dark:text-white uppercase text-base mb-1">
                         @if($order->payment_method === 'cod') 💵 Cash on Delivery
                         @elseif($order->payment_method === 'kbzpay') 📱 KBZPay
                         @elseif($order->payment_method === 'wavepay') 🌊 WavePay
@@ -197,27 +236,35 @@
                             </button>
                         </div>
                     @else
-                        <p class="text-xs text-slate-500">Pay on delivery (COD)</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Pay on delivery (COD)</p>
                     @endif
                 </div>
 
-                <!-- Notes -->
-                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">📝 Notes</p>
-                    <p class="text-xs text-slate-700 leading-relaxed italic" x-text="currentNotes && currentNotes.trim() !== '' ? '&quot;' + currentNotes + '&quot;' : 'None'">
-                        {{ $order->notes ? '"'.$order->notes.'"' : 'None' }}
-                    </p>
+                <!-- Assigned Rider / Notes -->
+                <div class="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">🛵 Delivery Rider</p>
+                    <div x-show="currentRiderName">
+                        <p class="font-bold text-slate-900 dark:text-white" x-text="currentRiderName"></p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5" x-text="currentRiderPhone ? '📞 ' + currentRiderPhone : ''"></p>
+                    </div>
+                    <div x-show="!currentRiderName">
+                        <p class="text-xs text-slate-500 dark:text-slate-400 italic">Waiting for pickup...</p>
+                    </div>
+                    <div class="mt-3 pt-2 border-t border-slate-200/60 dark:border-slate-700/60 text-xs text-slate-600 dark:text-slate-400">
+                        <span class="font-bold text-slate-500">Notes: </span>
+                        <span x-text="currentNotes && currentNotes.trim() !== '' ? currentNotes : 'None'"></span>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Items Table Card -->
-        <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8 mb-8">
-            <h2 class="text-lg font-black text-slate-900 mb-6">Ordered Items</h2>
+        <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 sm:p-8 mb-8 transition-colors">
+            <h2 class="text-lg font-black text-slate-900 dark:text-white mb-6">Ordered Items</h2>
 
-            <div class="overflow-x-auto rounded-2xl border border-slate-100 mb-6">
+            <div class="overflow-x-auto rounded-2xl border border-slate-100 dark:border-slate-800 mb-6">
                 <table class="w-full text-left text-xs sm:text-sm">
-                    <thead class="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider border-b border-slate-100">
+                    <thead class="bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
                         <tr>
                             <th class="px-4 py-3">Item</th>
                             <th class="px-4 py-3 text-center">Quantity</th>
@@ -225,28 +272,28 @@
                             <th class="px-4 py-3 text-right">Subtotal</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100 text-slate-800 font-medium">
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-800 dark:text-slate-200 font-medium">
                         @foreach ($order->orderItems as $item)
-                            <tr class="hover:bg-slate-50/50 transition-colors">
+                            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                                 <td class="px-4 py-3.5">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-12 h-12 bg-slate-100 rounded-xl overflow-hidden shrink-0">
+                                        <div class="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-xl overflow-hidden shrink-0">
                                             <img src="{{ $item->menuItem?->image_url ?? asset('images/hero_food.png') }}"
                                                  alt="{{ $item->menuItem?->name }}" class="w-full h-full object-cover">
                                         </div>
                                         <div>
-                                            <h3 class="font-bold text-slate-900 text-sm">{{ $item->menuItem?->name ?? 'Menu Item' }}</h3>
+                                            <h3 class="font-bold text-slate-900 dark:text-white text-sm">{{ $item->menuItem?->name ?? 'Menu Item' }}</h3>
                                             <p class="text-xs text-slate-400 font-medium">{{ $item->menuItem?->category?->name ?? '' }}</p>
                                         </div>
                                     </div>
                                 </td>
-                                <td class="px-4 py-3.5 text-center font-bold font-mono text-slate-700">
-                                    <span class="px-2.5 py-1 bg-slate-100 rounded-lg">{{ $item->quantity }}</span>
+                                <td class="px-4 py-3.5 text-center font-bold font-mono text-slate-700 dark:text-slate-300">
+                                    <span class="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg">{{ $item->quantity }}</span>
                                 </td>
-                                <td class="px-4 py-3.5 text-right font-semibold text-slate-600">
+                                <td class="px-4 py-3.5 text-right font-semibold text-slate-600 dark:text-slate-400">
                                     {{ number_format($item->unit_price) }} MMK
                                 </td>
-                                <td class="px-4 py-3.5 text-right font-black text-slate-900">
+                                <td class="px-4 py-3.5 text-right font-black text-slate-900 dark:text-white">
                                     {{ number_format($item->subtotal) }} MMK
                                 </td>
                             </tr>
@@ -256,17 +303,17 @@
             </div>
 
             <!-- Cost Summary Footer -->
-            <div class="border-t border-slate-100 pt-6 mt-6 space-y-2 text-sm">
-                <div class="flex justify-between text-slate-600">
+            <div class="border-t border-slate-100 dark:border-slate-800 pt-6 mt-6 space-y-2 text-sm">
+                <div class="flex justify-between text-slate-600 dark:text-slate-400">
                     <span>Subtotal</span>
-                    <span class="font-bold text-slate-900">{{ number_format($order->total_amount - $order->delivery_fee) }} MMK</span>
+                    <span class="font-bold text-slate-900 dark:text-white">{{ number_format($order->total_amount - $order->delivery_fee) }} MMK</span>
                 </div>
-                <div class="flex justify-between text-slate-600">
+                <div class="flex justify-between text-slate-600 dark:text-slate-400">
                     <span>Delivery Fee</span>
-                    <span class="font-bold text-slate-900">{{ number_format($order->delivery_fee) }} MMK</span>
+                    <span class="font-bold text-slate-900 dark:text-white">{{ number_format($order->delivery_fee) }} MMK</span>
                 </div>
-                <div class="border-t border-slate-100 pt-3 flex justify-between items-center">
-                    <span class="font-black text-slate-900 text-base">Total Amount Payable</span>
+                <div class="border-t border-slate-100 dark:border-slate-800 pt-3 flex justify-between items-center">
+                    <span class="font-black text-slate-900 dark:text-white text-base">Total Amount Payable</span>
                     <span class="font-black text-orange-500 text-xl">{{ number_format($order->total_amount) }} MMK</span>
                 </div>
             </div>
@@ -277,7 +324,7 @@
             <a href="/" class="w-full sm:w-auto px-8 py-3.5 bg-orange-500 hover:bg-orange-600 text-white font-black text-sm rounded-2xl shadow-lg shadow-orange-500/25 transition-all text-center">
                 ← Back to Menu
             </a>
-            <a href="{{ route('user.orders.index') }}" class="w-full sm:w-auto px-8 py-3.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-black text-sm rounded-2xl transition-all text-center">
+            <a href="{{ route('user.orders.index') }}" class="w-full sm:w-auto px-8 py-3.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-black text-sm rounded-2xl transition-all text-center">
                 📦 View My Orders
             </a>
         </div>
@@ -286,10 +333,10 @@
 
     <!-- Screenshot Modal -->
     <div x-show="imgModal" x-transition class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4" style="display:none;">
-        <div class="bg-white rounded-3xl p-4 max-w-lg w-full relative shadow-2xl" @click.outside="imgModal = false">
-            <button @click="imgModal = false" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-slate-100 text-slate-600 font-bold hover:bg-slate-200 flex items-center justify-center">✕</button>
-            <p class="font-bold text-slate-900 text-sm mb-3">Payment Screenshot</p>
-            <img :src="imgSrc" alt="Payment Screenshot" class="w-full h-auto rounded-2xl border border-slate-100 max-h-[70vh] object-contain">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl p-4 max-w-lg w-full relative shadow-2xl" @click.outside="imgModal = false">
+            <button @click="imgModal = false" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-200 flex items-center justify-center">✕</button>
+            <p class="font-bold text-slate-900 dark:text-white text-sm mb-3">Payment Screenshot</p>
+            <img :src="imgSrc" alt="Payment Screenshot" class="w-full h-auto rounded-2xl border border-slate-100 dark:border-slate-800 max-h-[70vh] object-contain">
         </div>
     </div>
 

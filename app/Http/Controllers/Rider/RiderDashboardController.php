@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Auth;
 class RiderDashboardController extends Controller
 {
     /**
-     * Display the rider dashboard with active and past deliveries.
+     * Display the rider dashboard with open pickup pool, active deliveries, and past deliveries.
      */
     public function index()
     {
@@ -21,7 +21,14 @@ class RiderDashboardController extends Controller
             return redirect()->route('home')->with('error', 'Access denied. Rider accounts only.');
         }
 
-        // Active Deliveries assigned to this rider only
+        // Open Pickup Pool: Approved orders waiting for ANY rider to pick up
+        $availableOrders = Order::with(['user', 'orderItems.menuItem'])
+            ->whereNull('rider_id')
+            ->whereIn('status', ['confirmed', 'preparing'])
+            ->latest()
+            ->get();
+
+        // Active Deliveries assigned to this rider
         $activeDeliveries = Order::with(['user', 'orderItems.menuItem'])
             ->where('rider_id', $rider->id)
             ->whereIn('status', ['confirmed', 'preparing', 'delivering'])
@@ -38,6 +45,7 @@ class RiderDashboardController extends Controller
 
         // Quick Stats
         $stats = [
+            'available_count' => $availableOrders->count(),
             'active_count' => $activeDeliveries->count(),
             'completed_today' => $completedDeliveries->filter(function ($o) {
                 return $o->updated_at && $o->updated_at->isToday();
@@ -47,7 +55,35 @@ class RiderDashboardController extends Controller
             })->sum('delivery_fee'),
         ];
 
-        return view('rider.dashboard', compact('activeDeliveries', 'completedDeliveries', 'stats', 'rider'));
+        return view('rider.dashboard', compact('availableOrders', 'activeDeliveries', 'completedDeliveries', 'stats', 'rider'));
+    }
+
+    /**
+     * Claim / Pick up an unassigned order from the open pool.
+     */
+    public function pickup(Order $order)
+    {
+        /** @var \App\Models\User $rider */
+        $rider = Auth::user();
+        if (!$rider || !$rider->isRider()) {
+            return redirect()->route('home')->with('error', 'Access denied.');
+        }
+
+        // Check if another rider already claimed it
+        if ($order->rider_id !== null) {
+            return back()->with('error', "Sorry! Order #{$order->order_number} has already been picked up by another rider.");
+        }
+
+        if (!in_array($order->status, ['confirmed', 'preparing'])) {
+            return back()->with('error', 'This order is not currently available for pickup.');
+        }
+
+        $order->update([
+            'rider_id' => $rider->id,
+            'status' => 'delivering',
+        ]);
+
+        return back()->with('success', "Order #{$order->order_number} successfully picked up! It is now in your Active Deliveries. 🛵💨");
     }
 
     /**

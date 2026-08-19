@@ -13,15 +13,43 @@
 
     <!-- Scripts & Styles -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script>
+        window.riderPortalApp = function(initialTab) {
+            return {
+                activeTab: initialTab || 'available',
+                openOrdersCount: {{ $availableOrders->count() }},
+                init: function() {
+                    // Auto-poll for new unassigned orders every 4 seconds
+                    var self = this;
+                    setInterval(function() {
+                        fetch('{{ route('admin.orders.json_list') }}')
+                            .then(function(r) { return r.json(); })
+                            .then(function(data) {
+                                if (data && data.orders) {
+                                    // Check if there are confirmed orders without rider
+                                    var currentUnassigned = data.orders.filter(function(o) {
+                                        return (o.status === 'confirmed' || o.status === 'preparing') && !o.rider_id;
+                                    }).length;
+                                    if (currentUnassigned !== self.openOrdersCount) {
+                                        window.location.reload();
+                                    }
+                                }
+                            })
+                            .catch(function() {});
+                    }, 4000);
+                }
+            };
+        };
+    </script>
 </head>
 <body class="font-sans antialiased bg-slate-950 text-slate-100 selection:bg-orange-500 selection:text-white min-h-screen pb-16"
-      x-data="{ activeTab: 'active' }">
+      x-data="riderPortalApp('{{ $availableOrders->count() > 0 ? 'available' : ($activeDeliveries->count() > 0 ? 'active' : 'available') }}')">
 
     <!-- Top Header -->
     <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-4 sm:px-6 py-4 shadow-xl">
         <div class="max-w-4xl mx-auto flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-2xl bg-orange-500 flex items-center justify-center text-white text-xl font-black shadow-lg shadow-orange-500/30">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-500 flex items-center justify-center text-white text-xl font-black shadow-lg shadow-orange-500/30">
                     🛵
                 </div>
                 <div>
@@ -55,40 +83,144 @@
             </div>
         @endif
 
+        @if(session('error'))
+            <div class="p-4 bg-red-500/10 border border-red-500/30 text-red-400 text-xs sm:text-sm font-bold rounded-2xl flex items-center gap-3 shadow-lg">
+                <span class="text-lg">⚠️</span>
+                <span>{{ session('error') }}</span>
+            </div>
+        @endif
+
         <!-- Quick Stats Cards -->
         <div class="grid grid-cols-3 gap-3 sm:gap-4 text-center">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 shadow-lg relative overflow-hidden">
+                <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Ready for Pick Up</span>
+                <span class="text-2xl sm:text-3xl font-black text-amber-400 mt-1 block">{{ $availableOrders->count() }}</span>
+                @if($availableOrders->count() > 0)
+                    <span class="absolute top-2 right-2 flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                    </span>
+                @endif
+            </div>
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 shadow-lg">
-                <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Active</span>
-                <span class="text-2xl sm:text-3xl font-black text-purple-400 mt-1 block">{{ $stats['active_count'] }}</span>
+                <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">My Active</span>
+                <span class="text-2xl sm:text-3xl font-black text-purple-400 mt-1 block">{{ $activeDeliveries->count() }}</span>
             </div>
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 shadow-lg">
                 <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Delivered Today</span>
                 <span class="text-2xl sm:text-3xl font-black text-emerald-400 mt-1 block">{{ $stats['completed_today'] }}</span>
             </div>
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 shadow-lg">
-                <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Delivery Fees</span>
-                <span class="text-lg sm:text-xl font-black text-orange-400 mt-1.5 block font-mono">{{ number_format($stats['total_earnings_today']) }} MMK</span>
-            </div>
         </div>
 
-        <!-- Navigation Tabs -->
+        <!-- Navigation Tabs (3 Tabs: Open Orders Pool, My Active, Completed) -->
         <div class="flex items-center gap-2 p-1.5 bg-slate-900 border border-slate-800 rounded-2xl">
+            <button @click="activeTab = 'available'"
+                    :class="activeTab === 'available' ? 'bg-amber-500 text-slate-950 font-black shadow-md' : 'text-slate-400 hover:text-white font-bold'"
+                    class="flex-1 py-2.5 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer relative">
+                <span>📢 Open Pickups</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] {{ $availableOrders->count() > 0 ? 'bg-amber-900 text-white font-black animate-pulse' : 'bg-slate-950/40 text-slate-400' }}">
+                    {{ $availableOrders->count() }}
+                </span>
+            </button>
+
             <button @click="activeTab = 'active'"
                     :class="activeTab === 'active' ? 'bg-orange-500 text-white font-black shadow-md' : 'text-slate-400 hover:text-white font-bold'"
-                    class="flex-1 py-2.5 rounded-xl text-xs transition-all flex items-center justify-center gap-2 cursor-pointer">
-                <span>🛵 Active Deliveries</span>
+                    class="flex-1 py-2.5 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                <span>🛵 My Deliveries</span>
                 <span class="px-2 py-0.5 rounded-full text-[10px] bg-slate-950/40">{{ $activeDeliveries->count() }}</span>
             </button>
+
             <button @click="activeTab = 'completed'"
                     :class="activeTab === 'completed' ? 'bg-orange-500 text-white font-black shadow-md' : 'text-slate-400 hover:text-white font-bold'"
-                    class="flex-1 py-2.5 rounded-xl text-xs transition-all flex items-center justify-center gap-2 cursor-pointer">
-                <span>✅ Completed History</span>
+                    class="flex-1 py-2.5 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                <span>✅ History</span>
                 <span class="px-2 py-0.5 rounded-full text-[10px] bg-slate-950/40">{{ $completedDeliveries->count() }}</span>
             </button>
         </div>
 
-        <!-- ACTIVE DELIVERIES TAB -->
-        <div x-show="activeTab === 'active'" class="space-y-4">
+        <!-- 1. OPEN PICKUPS TAB (ORDERS WAITING FOR RIDER) -->
+        <div x-show="activeTab === 'available'" class="space-y-4">
+            @if($availableOrders->count() > 0)
+                <div class="p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center justify-between text-xs text-amber-300">
+                    <span class="flex items-center gap-2 font-bold">
+                        <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping"></span>
+                        <span>{{ $availableOrders->count() }} new order(s) approved by kitchen & ready for rider pickup!</span>
+                    </span>
+                    <span class="text-[11px] opacity-80">First Come First Serve</span>
+                </div>
+            @endif
+
+            @forelse($availableOrders as $order)
+                <div class="bg-slate-900 border-2 border-amber-500/40 hover:border-amber-500 rounded-3xl p-5 sm:p-6 shadow-xl space-y-4 transition-all">
+                    
+                    <!-- Header -->
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="px-3 py-1 bg-amber-500/20 border border-amber-500/40 text-amber-400 font-mono font-black text-xs rounded-full">
+                                #{{ $order->order_number }}
+                            </span>
+                            <span class="text-[11px] text-slate-400 font-medium">
+                                Approved: {{ $order->updated_at ? $order->updated_at->diffForHumans() : 'Just now' }}
+                            </span>
+                        </div>
+
+                        <span class="px-3 py-1 bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-black text-[11px] uppercase tracking-wider rounded-xl animate-pulse flex items-center gap-1.5">
+                            <span>🍳 Ready for Pickup</span>
+                        </span>
+                    </div>
+
+                    <!-- Delivery & Customer Info -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                        <div class="bg-slate-950 p-3.5 rounded-2xl border border-slate-800 space-y-1.5">
+                            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">📍 Delivery Destination</p>
+                            <p class="font-bold text-orange-400 text-sm">{{ $order->delivery_township ?? 'Yangon' }}</p>
+                            <p class="text-slate-300 leading-relaxed">{{ $order->delivery_address }}</p>
+                        </div>
+
+                        <div class="bg-slate-950 p-3.5 rounded-2xl border border-slate-800 space-y-1.5">
+                            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">👤 Customer & Payment</p>
+                            <p class="font-bold text-white">{{ $order->user->name ?? 'Customer' }}</p>
+                            <div class="flex items-center justify-between pt-1">
+                                <span class="text-slate-400 uppercase font-semibold">
+                                    @if($order->payment_method === 'cod') 💵 Cash on Delivery
+                                    @elseif($order->payment_method === 'kbzpay') 📱 KBZPay
+                                    @elseif($order->payment_method === 'wavepay') 🌊 WavePay
+                                    @else {{ $order->payment_method }} @endif
+                                </span>
+                                <span class="font-black text-emerald-400 font-mono text-sm">
+                                    {{ number_format($order->total_amount) }} MMK
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ordered Items Summary -->
+                    <div class="bg-slate-950/60 p-3 rounded-2xl border border-slate-800/60 text-xs text-slate-300 flex items-center justify-between">
+                        <span>🍽️ <strong>{{ $order->orderItems->sum('quantity') }} items:</strong> {{ $order->orderItems->map(fn($i) => $i->menuItem->name ?? 'Dish')->take(3)->implode(', ') }}</span>
+                        <span class="text-orange-400 font-bold">+{{ number_format($order->delivery_fee) }} MMK Fee</span>
+                    </div>
+
+                    <!-- Claim / Pickup CTA Button -->
+                    <form method="POST" action="{{ route('rider.orders.pickup', $order) }}">
+                        @csrf
+                        <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 active:scale-95 text-slate-950 font-black text-sm rounded-2xl shadow-lg shadow-orange-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer">
+                            <span class="text-base">🛵</span>
+                            <span>Accept & Pick Up This Order</span>
+                        </button>
+                    </form>
+
+                </div>
+            @empty
+                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-12 text-center text-slate-500 space-y-3">
+                    <div class="text-4xl">🛵</div>
+                    <p class="font-bold text-slate-300 text-base">No Open Orders Waiting for Pickup</p>
+                    <p class="text-xs text-slate-500">When customers order and admin approves, available orders will appear here in real-time!</p>
+                </div>
+            @endforelse
+        </div>
+
+        <!-- 2. MY ACTIVE DELIVERIES TAB -->
+        <div x-show="activeTab === 'active'" class="space-y-4" style="display: none;">
             @forelse($activeDeliveries as $order)
                 <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-xl space-y-4 transition-all hover:border-slate-700">
                     
@@ -110,11 +242,11 @@
                             </span>
                         @elseif($order->status === 'preparing')
                             <span class="px-3 py-1 bg-indigo-500/20 border border-indigo-500/30 text-indigo-400 font-black text-[11px] uppercase tracking-wider rounded-xl flex items-center gap-1.5">
-                                <span>👨‍🍳 Preparing</span>
+                                <span>👨‍🍳 Kitchen Preparing</span>
                             </span>
                         @else
                             <span class="px-3 py-1 bg-blue-500/20 border border-blue-500/30 text-blue-400 font-black text-[11px] uppercase tracking-wider rounded-xl">
-                                <span>✓ Confirmed</span>
+                                <span>✓ Picked Up</span>
                             </span>
                         @endif
                     </div>
@@ -159,7 +291,7 @@
                         </div>
 
                         <div class="text-right">
-                            <span class="text-slate-400 font-medium">Total Cash to Collect: </span>
+                            <span class="text-slate-400 font-medium">Cash to Collect: </span>
                             <span class="text-sm font-black text-emerald-400 font-mono">
                                 {{ number_format($order->total_amount) }} MMK
                             </span>
@@ -183,19 +315,14 @@
                             <form method="POST" action="{{ route('rider.orders.start', $order) }}" class="flex-1">
                                 @csrf
                                 <button type="submit" class="w-full py-3 bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-bold text-xs rounded-2xl shadow-lg shadow-purple-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer">
-                                    <span>🛵 Start Delivery (Pick Up)</span>
+                                    <span>🛵 Start Delivery Route</span>
                                 </button>
                             </form>
-
-                            <!-- Disabled Mark Delivered Button (Requires Pick Up first) -->
-                            <button type="button" disabled title="Please pick up order first" class="flex-1 py-3 bg-slate-800/80 text-slate-500 border border-slate-700/50 font-bold text-xs rounded-2xl cursor-not-allowed flex items-center justify-center gap-2 opacity-60">
-                                <span>🔒 Mark Delivered & Paid</span>
-                            </button>
                         @else
                             <form method="POST" action="{{ route('rider.orders.complete', $order) }}" class="w-full">
                                 @csrf
                                 <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold text-xs rounded-2xl shadow-lg shadow-emerald-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer">
-                                    <span>✅ Mark Delivered & Paid</span>
+                                    <span>✅ Mark Delivered & Collected</span>
                                 </button>
                             </form>
                         @endif
@@ -206,12 +333,12 @@
                 <div class="bg-slate-900 border border-slate-800 rounded-3xl p-12 text-center text-slate-500 space-y-3">
                     <div class="text-4xl">🛵</div>
                     <p class="font-bold text-slate-300 text-base">No Active Deliveries Right Now!</p>
-                    <p class="text-xs text-slate-500">When orders are confirmed by admin, they will appear here for pickup and delivery.</p>
+                    <p class="text-xs text-slate-500">Pick up orders from the <strong>Open Pickups</strong> tab to start delivering.</p>
                 </div>
             @endforelse
         </div>
 
-        <!-- COMPLETED HISTORY TAB -->
+        <!-- 3. COMPLETED HISTORY TAB -->
         <div x-show="activeTab === 'completed'" class="space-y-4" style="display: none;">
             @forelse($completedDeliveries as $order)
                 <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-lg flex items-center justify-between gap-4 text-xs">
@@ -225,8 +352,8 @@
                     </div>
 
                     <div class="text-right">
-                        <p class="font-black text-emerald-400 font-mono text-sm">{{ number_format($order->total_amount + $order->delivery_fee) }} MMK</p>
-                        <p class="text-[10px] text-slate-500 font-medium">Fee: {{ number_format($order->delivery_fee) }} MMK</p>
+                        <p class="font-black text-emerald-400 font-mono text-sm">{{ number_format($order->total_amount) }} MMK</p>
+                        <p class="text-[10px] text-slate-500 font-medium">Earned Fee: {{ number_format($order->delivery_fee) }} MMK</p>
                     </div>
                 </div>
             @empty
