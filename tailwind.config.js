@@ -13,8 +13,8 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['"DM Sans"', 'sans-serif'],
-                display: ['"Cabinet Grotesk"', '"DM Sans"', 'sans-serif'],
+                sans: ['"DM Sans"', '"Noto Sans Myanmar"', '"Padauk"', '"Pyidaungsu"', 'system-ui', 'sans-serif'],
+                display: ['"Cabinet Grotesk"', '"DM Sans"', '"Noto Sans Myanmar"', '"Padauk"', 'sans-serif'],
             },
         },
     },

@@ -18,8 +18,10 @@
 :lang(my) body,
 html[lang="my"] body {
     font-family: 'Noto Sans Myanmar', 'Padauk', 'Pyidaungsu', 'DM Sans', system-ui, sans-serif;
-    line-height: 1.65;
-    word-spacing: 0.03em;
+    line-height: 1.85;
+    word-spacing: 0.06em;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
 }
 
 /* Headings — Burmese stacked characters need a bit more room */
@@ -29,23 +31,39 @@ html[lang="my"] h3,
 html[lang="my"] h4,
 html[lang="my"] h5,
 html[lang="my"] h6 {
-    line-height: 1.75;
-    letter-spacing: 0;
+    line-height: 1.9;
+    letter-spacing: 0 !important;
+    word-spacing: 0.04em;
 }
 
-/* Hero h1 must not overflow viewport in Myanmar mode */
+/* Hero section typography in Myanmar mode */
 html[lang="my"] #hero h1 {
-    font-size: clamp(1.5rem, 4vw, 2.75rem);
-    line-height: 1.7;
+    font-size: clamp(1.65rem, 4vw, 2.75rem);
+    line-height: 1.9;
+}
+
+html[lang="my"] #hero p {
+    font-size: 0.95rem;
+    line-height: 1.95;
+}
+
+html[lang="my"] #hero input {
+    font-size: 0.95rem;
+    line-height: 1.9;
+}
+
+html[lang="my"] #hero a,
+html[lang="my"] #hero button {
+    line-height: 1.9;
 }
 
 /* Body paragraphs & list items */
 html[lang="my"] p,
 html[lang="my"] li {
-    line-height: 1.7;
+    line-height: 1.9;
 }
 
-/* Small text — just enough for ascending/descending glyphs */
+/* Small text — ascending/descending Myanmar glyphs need generous line height */
 html[lang="my"] .text-xs,
 html[lang="my"] .text-sm,
 html[lang="my"] span,
@@ -54,22 +72,58 @@ html[lang="my"] button,
 html[lang="my"] label,
 html[lang="my"] td,
 html[lang="my"] th {
-    line-height: 1.65;
+    line-height: 1.85;
 }
 
 /* Nav links */
 html[lang="my"] nav a,
 html[lang="my"] nav span,
 html[lang="my"] nav button {
-    line-height: 1.65;
+    font-size: 0.925rem;
+    line-height: 1.95;
 }
 
 /* Input fields */
 html[lang="my"] input,
 html[lang="my"] textarea,
 html[lang="my"] select {
-    line-height: 1.65;
+    line-height: 1.8;
     font-family: 'Noto Sans Myanmar', 'Padauk', 'Pyidaungsu', system-ui, sans-serif;
+}
+
+/* =============================================
+   Myanmar — Disable uppercase & tracking
+   Tailwind's uppercase/tracking classes break Myanmar
+   ============================================= */
+html[lang="my"] .uppercase,
+html[lang="my"] .tracking-wider,
+html[lang="my"] .tracking-widest,
+html[lang="my"] .tracking-tight {
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+}
+
+/* =============================================
+   Myanmar — Cap font-weight at 800
+   font-black (900) looks unnatural for Myanmar script
+   ============================================= */
+html[lang="my"] .font-black {
+    font-weight: 800 !important;
+}
+
+/* =============================================
+   Myanmar — Extra vertical padding for small elements
+   Buttons, badges, pills need more room for diacritics
+   ============================================= */
+html[lang="my"] button,
+html[lang="my"] .rounded-full,
+html[lang="my"] .rounded-xl,
+html[lang="my"] .rounded-2xl,
+html[lang="my"] a[class*="py-1"],
+html[lang="my"] span[class*="py-0"],
+html[lang="my"] span[class*="py-1"] {
+    padding-top: 0.15em;
+    padding-bottom: 0.15em;
 }
 
 /* =============================================

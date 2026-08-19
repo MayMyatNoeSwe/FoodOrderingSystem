@@ -93,8 +93,8 @@
         <x-storefront-navbar />
 
         <!-- ================= HERO SECTION ================= -->
-        <section id="hero" class="relative py-6 lg:py-10 bg-white dark:bg-slate-950 transition-colors duration-300 overflow-hidden">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section id="hero" class="relative bg-white dark:bg-slate-950 transition-colors duration-300 overflow-hidden flex items-center" style="min-height: calc(100vh - 72px)">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-6 lg:py-10">
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center">
                     
                     <!-- Hero Text Content -->
@@ -190,9 +190,10 @@
 
                 </div>
             </div>
+        </section>
 
-         <!-- ================= CATEGORIES SECTION ================= -->
-        <section id="categories" class="py-8 bg-white dark:bg-slate-950 transition-colors duration-300">
+        <!-- ================= CATEGORIES SECTION ================= -->
+        <section id="categories" class="py-12 bg-slate-50/50 dark:bg-slate-900/40 border-t border-slate-100 dark:border-slate-800/60 transition-colors duration-300">
             <div class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
 
                 <div class="flex items-center gap-3 mb-6">
