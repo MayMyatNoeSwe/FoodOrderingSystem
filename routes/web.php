@@ -92,6 +92,7 @@ Route::middleware('auth')->prefix('user')->name('user.')->group(function () {
             'user_id'            => Auth::id(),
             'total_amount'       => $request->total_amount,
             'delivery_fee'       => $request->delivery_fee ?? 0,
+            'tax_amount'         => $request->tax_amount ?? 0,
             'delivery_address'   => $request->delivery_address,
             'region_type'        => $request->region_type ?? 'yangon',
             'delivery_township'  => $request->delivery_township,

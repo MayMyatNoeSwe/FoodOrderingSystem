@@ -185,17 +185,28 @@
                                     </div>
 
                                     <!-- Price Breakdown -->
+                                    @php
+                                        $subtotalCalc = $order->orderItems->sum('subtotal');
+                                        if ($subtotalCalc == 0) {
+                                            $subtotalCalc = $order->total_amount - ($order->delivery_fee ?? 0) - ($order->tax_amount ?? 0);
+                                        }
+                                        $taxCalc = $order->tax_amount > 0 ? $order->tax_amount : round($subtotalCalc * 0.05);
+                                    @endphp
                                     <div class="bg-slate-50 rounded-xl p-3 space-y-1.5">
                                         <div class="flex justify-between text-xs text-slate-500">
-                                            <span>Items Subtotal</span>
-                                            <span>{{ number_format($order->total_amount - ($order->delivery_fee ?? 0)) }} MMK</span>
+                                            <span>{{ __('Subtotal') }}</span>
+                                            <span>{{ number_format($subtotalCalc) }} MMK</span>
                                         </div>
                                         <div class="flex justify-between text-xs text-slate-500">
-                                            <span>Delivery Fee</span>
-                                            <span>{{ number_format($order->delivery_fee ?? 0) }} MMK</span>
+                                            <span>{{ __('Tax (5%)') }}</span>
+                                            <span>+{{ number_format($taxCalc) }} MMK</span>
+                                        </div>
+                                        <div class="flex justify-between text-xs text-slate-500">
+                                            <span>{{ __('Delivery Fee') }}</span>
+                                            <span>+{{ number_format($order->delivery_fee ?? 0) }} MMK</span>
                                         </div>
                                         <div class="border-t border-slate-200 pt-1.5 flex justify-between">
-                                            <span class="text-xs font-black text-slate-900">Total</span>
+                                            <span class="text-xs font-black text-slate-900">{{ __('Total Amount') }}</span>
                                             <span class="text-sm font-black text-orange-500">{{ number_format($order->total_amount) }} MMK</span>
                                         </div>
                                     </div>

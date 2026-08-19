@@ -575,6 +575,10 @@
                                         <td class="px-4 py-4 text-right">
                                             <div class="flex items-center justify-end gap-2">
                                                 <!-- View Details Button -->
+                                                @php
+                                                    $subtotalVal = $order->orderItems->sum('subtotal');
+                                                    $taxVal = $order->tax_amount > 0 ? $order->tax_amount : round($subtotalVal * 0.05);
+                                                @endphp
                                                 <button @click="openDetailsModal({{ json_encode([
                                                             'id' => $order->id,
                                                             'order_number' => $order->order_number,
@@ -582,6 +586,9 @@
                                                             'customer_email' => $order->user ? $order->user->email : 'N/A',
                                                             'delivery_phone' => $order->delivery_phone,
                                                             'delivery_address' => $order->delivery_address,
+                                                            'subtotal' => number_format($subtotalVal),
+                                                            'delivery_fee' => number_format($order->delivery_fee),
+                                                            'tax_amount' => number_format($taxVal),
                                                             'total_amount' => number_format($order->total_amount),
                                                             'payment_method' => $order->payment_method,
                                                             'payment_status' => $order->payment_status,
@@ -737,15 +744,30 @@
                         </div>
                     </div>
 
-                    <!-- Total Amount & Payment Summary -->
-                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex items-center justify-between">
-                        <div>
-                            <span class="text-slate-500 font-bold uppercase tracking-wider block">Payment Channel</span>
-                            <div class="font-bold text-slate-900 text-xs mt-1 uppercase" x-text="activeOrder.payment_method + ' (' + activeOrder.payment_status + ')'"></div>
+                    <!-- Total Amount, Tax & Payment Summary -->
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
+                        <div class="flex items-center justify-between text-slate-600">
+                            <span class="font-bold uppercase tracking-wider text-[11px]">Payment Channel</span>
+                            <span class="font-bold text-slate-900 uppercase" x-text="activeOrder.payment_method + ' (' + activeOrder.payment_status + ')'"></span>
                         </div>
-                        <div class="text-right">
-                            <span class="text-slate-500 font-bold uppercase tracking-wider block">Total Amount</span>
-                            <div class="text-xl font-black text-orange-600 mt-0.5" x-text="activeOrder.total_amount + ' MMK'"></div>
+                        <div class="flex items-center justify-between text-slate-600">
+                            <span>Subtotal</span>
+                            <span class="font-bold text-slate-900" x-text="activeOrder.subtotal + ' MMK'"></span>
+                        </div>
+                        <div class="flex items-center justify-between text-slate-600">
+                            <span class="flex items-center gap-1">
+                                <span>Tax (5%)</span>
+                                <span class="text-[9px] px-1 py-0.2 rounded bg-slate-200 text-slate-700 font-bold uppercase">Tax</span>
+                            </span>
+                            <span class="font-bold text-slate-900" x-text="'+' + activeOrder.tax_amount + ' MMK'"></span>
+                        </div>
+                        <div class="flex items-center justify-between text-slate-600">
+                            <span>Delivery Fee</span>
+                            <span class="font-bold text-slate-900" x-text="'+' + activeOrder.delivery_fee + ' MMK'"></span>
+                        </div>
+                        <div class="border-t border-slate-200 pt-2 flex items-center justify-between">
+                            <span class="font-black text-slate-900 uppercase tracking-wider text-xs">Total Amount</span>
+                            <div class="text-lg font-black text-orange-600" x-text="activeOrder.total_amount + ' MMK'"></div>
                         </div>
                     </div>
 

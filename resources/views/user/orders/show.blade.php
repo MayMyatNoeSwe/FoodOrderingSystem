@@ -303,17 +303,31 @@
             </div>
 
             <!-- Cost Summary Footer -->
+            @php
+                $itemsSubtotal = $order->orderItems->sum('subtotal');
+                if ($itemsSubtotal == 0) {
+                    $itemsSubtotal = $order->total_amount - $order->delivery_fee - ($order->tax_amount ?? 0);
+                }
+                $displayTax = $order->tax_amount > 0 ? $order->tax_amount : round($itemsSubtotal * 0.05);
+            @endphp
             <div class="border-t border-slate-100 dark:border-slate-800 pt-6 mt-6 space-y-2 text-sm">
                 <div class="flex justify-between text-slate-600 dark:text-slate-400">
-                    <span>Subtotal</span>
-                    <span class="font-bold text-slate-900 dark:text-white">{{ number_format($order->total_amount - $order->delivery_fee) }} MMK</span>
+                    <span>{{ __('Subtotal') }}</span>
+                    <span class="font-bold text-slate-900 dark:text-white">{{ number_format($itemsSubtotal) }} MMK</span>
                 </div>
                 <div class="flex justify-between text-slate-600 dark:text-slate-400">
-                    <span>Delivery Fee</span>
-                    <span class="font-bold text-slate-900 dark:text-white">{{ number_format($order->delivery_fee) }} MMK</span>
+                    <span class="flex items-center gap-1.5">
+                        <span>{{ __('Tax (5%)') }}</span>
+                        <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 font-bold uppercase">{{ __('Tax') }}</span>
+                    </span>
+                    <span class="font-bold text-slate-900 dark:text-white">+{{ number_format($displayTax) }} MMK</span>
+                </div>
+                <div class="flex justify-between text-slate-600 dark:text-slate-400">
+                    <span>{{ __('Delivery Fee') }}</span>
+                    <span class="font-bold text-slate-900 dark:text-white">+{{ number_format($order->delivery_fee) }} MMK</span>
                 </div>
                 <div class="border-t border-slate-100 dark:border-slate-800 pt-3 flex justify-between items-center">
-                    <span class="font-black text-slate-900 dark:text-white text-base">Total Amount Payable</span>
+                    <span class="font-black text-slate-900 dark:text-white text-base">{{ __('Total Amount') }}</span>
                     <span class="font-black text-orange-500 text-xl">{{ number_format($order->total_amount) }} MMK</span>
                 </div>
             </div>

@@ -17,6 +17,7 @@ class Order extends Model
         'rider_id',
         'total_amount',
         'delivery_fee',
+        'tax_amount',
         'delivery_address',
         'delivery_township',
         'region_type',

@@ -122,8 +122,14 @@
                     if (confirm('Are you sure you want to clear all items from your cart?')) { this.items = []; this.save(); }
                 },
 
+                taxRate: 0.05,
+
                 subtotal() {
                     return this.items.reduce((sum, item) => sum + (item.price * item.qty), 0);
+                },
+
+                taxAmount() {
+                    return Math.round(this.subtotal() * this.taxRate);
                 },
 
                 totalQty() {
@@ -131,7 +137,7 @@
                 },
 
                 total() {
-                    return this.subtotal() + (this.deliveryFee || 0);
+                    return this.subtotal() + this.taxAmount() + (this.deliveryFee || 0);
                 },
 
                 formatPrice(num) {
@@ -182,6 +188,7 @@
                     document.getElementById('cart_items_input').value        = JSON.stringify(this.items);
                     document.getElementById('total_amount_input').value      = this.total();
                     document.getElementById('delivery_fee_input').value      = this.deliveryFee;
+                    document.getElementById('tax_amount_input').value        = this.taxAmount();
                     document.getElementById('region_type_input').value       = 'Yangon';
                     document.getElementById('delivery_township_input').value = `Yangon — ${this.selectedTownship}`;
 
@@ -365,9 +372,16 @@
                             <span class="font-semibold text-slate-900 dark:text-white"><span x-text="formatPrice(subtotal())"></span> MMK</span>
                         </div>
                         <div class="flex justify-between text-slate-600 dark:text-slate-300">
+                            <span class="flex items-center gap-1.5">
+                                <span>{{ __('Tax (5%)') }}</span>
+                                <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 font-bold uppercase">{{ __('Tax') }}</span>
+                            </span>
+                            <span class="font-semibold text-slate-900 dark:text-white">+<span x-text="formatPrice(taxAmount())"></span> MMK</span>
+                        </div>
+                        <div class="flex justify-between text-slate-600 dark:text-slate-300">
                             <span>{{ __('Delivery Fee') }}</span>
                             <span class="font-semibold" :class="deliveryFee > 0 ? 'text-slate-900 dark:text-white' : 'text-slate-400'">
-                                <span x-show="deliveryFee > 0" x-text="formatPrice(deliveryFee) + ' MMK'"></span>
+                                <span x-show="deliveryFee > 0" x-text="'+' + formatPrice(deliveryFee) + ' MMK'"></span>
                                 <span x-show="deliveryFee === 0" class="text-xs">{{ __('Select Township') }}</span>
                             </span>
                         </div>
@@ -388,6 +402,7 @@
                     <input type="hidden" name="cart_items"        id="cart_items_input">
                     <input type="hidden" name="total_amount"      id="total_amount_input">
                     <input type="hidden" name="delivery_fee"      id="delivery_fee_input">
+                    <input type="hidden" name="tax_amount"        id="tax_amount_input">
                     <input type="hidden" name="region_type"       id="region_type_input">
                     <input type="hidden" name="delivery_township" id="delivery_township_input">
 
