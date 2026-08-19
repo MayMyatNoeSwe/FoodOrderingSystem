@@ -106,9 +106,9 @@ class RiderDashboardController extends Controller
     }
 
     /**
-     * Mark an order as completed & paid upon successful delivery.
+     * Mark an order as completed & paid upon successful delivery with proof of delivery photo.
      */
-    public function completeDelivery(Order $order)
+    public function completeDelivery(Request $request, Order $order)
     {
         if ($order->status !== 'delivering') {
             return back()->with('error', 'Order must be picked up first before marking as delivered!');
@@ -120,12 +120,34 @@ class RiderDashboardController extends Controller
             return redirect()->route('home')->with('error', 'Access denied.');
         }
 
-        $order->update([
+        $request->validate([
+            'delivery_proof_photo' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:8192',
+        ]);
+
+        $proofPath = null;
+        if ($request->hasFile('delivery_proof_photo')) {
+            $file = $request->file('delivery_proof_photo');
+            $destinationPath = public_path('uploads/delivery_proofs');
+            if (!file_exists($destinationPath)) {
+                mkdir($destinationPath, 0777, true);
+            }
+            $fileName = 'proof_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            $file->move($destinationPath, $fileName);
+            $proofPath = 'uploads/delivery_proofs/' . $fileName;
+        }
+
+        $updateData = [
             'rider_id' => $rider->id,
             'status' => 'completed',
             'payment_status' => 'paid',
-        ]);
+        ];
 
-        return back()->with('success', "Order #{$order->order_number} successfully Delivered & Payment Collected! 🎉💰");
+        if ($proofPath) {
+            $updateData['delivery_proof_photo'] = $proofPath;
+        }
+
+        $order->update($updateData);
+
+        return back()->with('success', "Order #{$order->order_number} Delivered & Photo Proof Verified! 📸✅🎉");
     }
 }

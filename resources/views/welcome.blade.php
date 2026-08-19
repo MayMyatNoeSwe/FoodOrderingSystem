@@ -543,11 +543,7 @@
 
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 
-                <div class="text-center max-w-2xl mx-auto mb-14 space-y-2">
-                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-orange-500/10 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 text-xs font-black tracking-widest uppercase">
-                        <span>✨</span>
-                        <span>{{ __('Why Choose Us Subtitle') }}</span>
-                    </div>
+                <div class="text-center max-w-2xl mx-auto mb-14">
                     <h2 class="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
                         {{ __('Why FoodOrder?') }}
                     </h2>

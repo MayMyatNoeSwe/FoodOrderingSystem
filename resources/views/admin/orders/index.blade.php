@@ -46,6 +46,9 @@
                 mobileMenuOpen: false,
                 detailsModalOpen: false,
                 rejectModalOpen: false,
+                proofModalOpen: false,
+                proofModalSrc: '',
+                proofModalTitle: '',
                 activeOrder: null,
                 activeRejectOrder: null,
                 activeRejectReason: 'Kitchen Busy',
@@ -80,7 +83,7 @@
                                         }
                                         self.statusStateMap[k] = v;
                                     });
-                                    if (hasChange && !self.detailsModalOpen && !self.rejectModalOpen) {
+                                    if (hasChange && !self.detailsModalOpen && !self.rejectModalOpen && !self.proofModalOpen) {
                                         window.location.reload();
                                     }
                                 }
@@ -110,6 +113,12 @@
                 openDetailsModal: function(order) {
                     this.activeOrder = order;
                     this.detailsModalOpen = true;
+                },
+
+                openProofPhoto: function(src, title) {
+                    this.proofModalSrc = src;
+                    this.proofModalTitle = title || 'Delivery Proof Photo';
+                    this.proofModalOpen = true;
                 },
 
                 openRejectModal: function(orderId, orderNum) {
@@ -574,6 +583,17 @@
                                         <!-- Actions -->
                                         <td class="px-4 py-4 text-right">
                                             <div class="flex items-center justify-end gap-2">
+                                                <!-- Direct Proof Photo Button (If available) -->
+                                                @if($order->delivery_proof_photo)
+                                                    <button type="button"
+                                                            @click="openProofPhoto('{{ asset($order->delivery_proof_photo) }}', 'Order #{{ $order->order_number }} - Delivery Proof Photo (သက်သေဓာတ်ပုံ)')"
+                                                            title="View Delivery Proof Photo (သုံးစွဲသူထံ ရောက်ရှိမှု ဓာတ်ပုံ ကြည့်ရန်)"
+                                                            class="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold rounded-xl border border-emerald-200 transition-all flex items-center gap-1 cursor-pointer shadow-sm">
+                                                        <span>📸</span>
+                                                        <span class="hidden sm:inline text-[11px]">Proof</span>
+                                                    </button>
+                                                @endif
+
                                                 <!-- View Details Button -->
                                                 @php
                                                     $subtotalVal = $order->orderItems->sum('subtotal');
@@ -592,6 +612,7 @@
                                                             'total_amount' => number_format($order->total_amount),
                                                             'payment_method' => $order->payment_method,
                                                             'payment_status' => $order->payment_status,
+                                                            'delivery_proof_photo' => $order->delivery_proof_photo ? asset($order->delivery_proof_photo) : null,
                                                             'status' => $order->status,
                                                             'notes' => $order->notes ?? 'No notes provided',
                                                             'created_at' => $order->created_at ? $order->created_at->format('M d, Y • h:i A') : 'N/A',
@@ -771,6 +792,48 @@
                         </div>
                     </div>
 
+                    <!-- Proof of Delivery Photo Card with Full-Screen Preview -->
+                    <template x-if="activeOrder.delivery_proof_photo">
+                        <div class="bg-gradient-to-r from-emerald-50 to-teal-50 border-2 border-emerald-300 rounded-2xl p-4 sm:p-5 space-y-3 shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2.5 text-emerald-900 font-black text-sm">
+                                    <div class="w-8 h-8 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-base shadow-sm">
+                                        📸
+                                    </div>
+                                    <div>
+                                        <span>Delivery Proof Photo (သုံးစွဲသူထံ ရောက်ရှိမှု အတည်ပြု ဓာတ်ပုံ)</span>
+                                        <p class="text-[11px] text-emerald-700 font-medium">Captured &amp; submitted by rider upon delivery</p>
+                                    </div>
+                                </div>
+                                <span class="px-2.5 py-1 bg-emerald-600 text-white text-[10px] font-black rounded-full uppercase shadow-sm">
+                                    ✓ Photo Verified
+                                </span>
+                            </div>
+
+                            <div class="flex flex-col sm:flex-row items-center gap-4 pt-1">
+                                <div @click="openProofPhoto(activeOrder.delivery_proof_photo, 'Order #' + activeOrder.order_number + ' - Delivery Proof Photo (သက်သေဓာတ်ပုံ)')"
+                                     class="w-full sm:w-24 h-24 rounded-xl overflow-hidden border-2 border-emerald-400 shrink-0 bg-slate-900 group relative cursor-pointer shadow-md">
+                                    <img :src="activeOrder.delivery_proof_photo" alt="Delivery Proof" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                                    <div class="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors flex items-center justify-center text-white text-xs font-bold gap-1">
+                                        <span>🔍</span>
+                                        <span>Zoom</span>
+                                    </div>
+                                </div>
+                                <div class="text-xs text-slate-700 space-y-2 flex-1 w-full">
+                                    <p class="text-emerald-950 font-bold leading-relaxed">
+                                        ✓ သုံးစွဲသူထံ အစားအသောက် အရောက်ပို့ဆောင်ပြီးစီးကြောင်း ရိုက်ကူးအတည်ပြုထားသော ဓာတ်ပုံဖြစ်ပါသည်။
+                                    </p>
+                                    <button type="button" 
+                                            @click="openProofPhoto(activeOrder.delivery_proof_photo, 'Order #' + activeOrder.order_number + ' - Delivery Proof Photo (သက်သေဓာတ်ပုံ)')"
+                                            class="w-full sm:w-auto px-4 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-600/20 transition-all inline-flex items-center justify-center gap-1.5 cursor-pointer">
+                                        <span>🔍</span>
+                                        <span>Full-Screen ဖြင့် ကြည့်ရန် (View Full-Screen)</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
                 </div>
             </template>
         </div>
@@ -847,6 +910,49 @@
                     </div>
                 </form>
             </template>
+        </div>
+    </div>
+
+    <!-- ================= FULL-SCREEN DELIVERY PROOF MODAL ================= -->
+    <div x-show="proofModalOpen" 
+         x-cloak
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-[100] flex items-center justify-center p-4 sm:p-6"
+         style="display: none;">
+        
+        <div @click.outside="proofModalOpen = false" 
+             class="bg-slate-900 border border-slate-700 rounded-3xl p-5 sm:p-6 max-w-3xl w-full shadow-2xl space-y-4 max-h-[95vh] flex flex-col">
+            
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3 shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg font-bold border border-emerald-500/30">
+                        📸
+                    </div>
+                    <div>
+                        <h3 class="text-base font-black text-white" x-text="proofModalTitle"></h3>
+                        <p class="text-xs text-slate-400">သုံးစွဲသူထံ အစားအသောက် ရောက်ရှိမှု အတည်ပြု သက်သေဓာတ်ပုံ</p>
+                    </div>
+                </div>
+                <button @click="proofModalOpen = false" class="w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white font-bold flex items-center justify-center transition-colors cursor-pointer">✕</button>
+            </div>
+
+            <div class="flex-1 overflow-hidden flex items-center justify-center bg-slate-950/80 rounded-2xl border border-slate-800 p-2">
+                <img :src="proofModalSrc" :alt="proofModalTitle" class="max-h-[72vh] w-auto max-w-full object-contain rounded-xl shadow-2xl">
+            </div>
+
+            <div class="flex items-center justify-between pt-2 border-t border-slate-800 shrink-0 text-xs">
+                <span class="text-emerald-400 font-bold flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Photo Verification Confirmed
+                </span>
+                <a :href="proofModalSrc" target="_blank" class="text-orange-400 hover:text-orange-300 font-bold flex items-center gap-1 hover:underline">
+                    <span>Open Original Tab</span> ↗
+                </a>
+            </div>
         </div>
     </div>
 

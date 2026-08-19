@@ -140,12 +140,13 @@ Route::middleware('auth')->prefix('user')->name('user.')->group(function () {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
         return response()->json([
-            'status'         => $order->status,
-            'payment_status' => $order->payment_status,
-            'notes'          => $order->notes,
-            'rider_id'       => $order->rider_id,
-            'rider_name'     => $order->rider ? $order->rider->name : null,
-            'rider_phone'    => $order->rider ? ($order->rider->phone_number ?? $order->rider->phone ?? null) : null,
+            'status'               => $order->status,
+            'payment_status'       => $order->payment_status,
+            'notes'                => $order->notes,
+            'rider_id'             => $order->rider_id,
+            'rider_name'           => $order->rider ? $order->rider->name : null,
+            'rider_phone'          => $order->rider ? ($order->rider->phone_number ?? $order->rider->phone ?? null) : null,
+            'delivery_proof_photo' => $order->delivery_proof_photo ? asset($order->delivery_proof_photo) : null,
         ]);
     })->name('orders.json_status');
 

@@ -26,6 +26,7 @@ class Order extends Model
         'payment_method',
         'payment_status',
         'payment_screenshot',
+        'delivery_proof_photo',
         'notes'
     ];
     public function user() :BelongsTo{

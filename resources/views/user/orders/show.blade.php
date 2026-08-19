@@ -19,15 +19,17 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <!-- Order Tracker JS -->
     <script>
-        window.initOrderTracker = function(initialStatus, initialPaymentStatus, initialNotes, initialRiderName, initialRiderPhone, jsonUrl) {
+        window.initOrderTracker = function(initialStatus, initialPaymentStatus, initialNotes, initialRiderName, initialRiderPhone, initialDeliveryProofPhoto, jsonUrl) {
             return {
                 imgModal: false,
                 imgSrc: '',
+                imgTitle: 'Payment Screenshot',
                 currentStatus: initialStatus,
                 currentPaymentStatus: initialPaymentStatus,
                 currentNotes: initialNotes,
                 currentRiderName: initialRiderName,
                 currentRiderPhone: initialRiderPhone,
+                currentDeliveryProofPhoto: initialDeliveryProofPhoto,
                 justApproved: false,
                 darkMode: localStorage.getItem('foodorder_theme') === 'dark',
                 toggleTheme: function() {
@@ -62,6 +64,9 @@
                                     if (data.rider_phone !== undefined) {
                                         self.currentRiderPhone = data.rider_phone;
                                     }
+                                    if (data.delivery_proof_photo !== undefined) {
+                                        self.currentDeliveryProofPhoto = data.delivery_proof_photo;
+                                    }
                                 }
                             })
                             .catch(function() {});
@@ -72,7 +77,7 @@
     </script>
 </head>
 <body class="font-sans antialiased bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 selection:bg-orange-500 selection:text-white"
-    x-data="initOrderTracker({{ json_encode($order->status) }}, {{ json_encode($order->payment_status) }}, {{ json_encode($order->notes ?? '') }}, {{ json_encode($order->rider ? $order->rider->name : null) }}, {{ json_encode($order->rider ? ($order->rider->phone_number ?? $order->rider->phone ?? null) : null) }}, '{{ route('user.orders.json_status', $order) }}')">
+    x-data="initOrderTracker({{ json_encode($order->status) }}, {{ json_encode($order->payment_status) }}, {{ json_encode($order->notes ?? '') }}, {{ json_encode($order->rider ? $order->rider->name : null) }}, {{ json_encode($order->rider ? ($order->rider->phone_number ?? $order->rider->phone ?? null) : null) }}, {{ json_encode($order->delivery_proof_photo ? asset($order->delivery_proof_photo) : null) }}, '{{ route('user.orders.json_status', $order) }}')">
 
     <!-- ===== NAVBAR ===== -->
     <x-storefront-navbar />
@@ -156,8 +161,8 @@
                 ✅
             </div>
             <div>
-                <h3 class="font-black text-lg">Order Completed!</h3>
-                <p class="text-xs text-blue-100 mt-0.5">Thank you for ordering with us. Enjoy your meal!</p>
+                <h3 class="font-black text-lg">Order Completed &amp; Delivered!</h3>
+                <p class="text-xs text-blue-100 mt-0.5">အစားအသောက် ပို့ဆောင်မှု ပြီးစီးပါပြီ။ Thank you for ordering with us. Enjoy your meal!</p>
             </div>
         </div>
 
@@ -169,6 +174,50 @@
             <div>
                 <h3 class="font-black text-lg">Order Cancelled</h3>
                 <p class="text-xs text-red-100 mt-0.5" x-text="currentNotes && currentNotes.trim() !== '' ? currentNotes : 'The order was cancelled by the administrator.'"></p>
+            </div>
+        </div>
+
+        <!-- ===== PROOF OF DELIVERY PHOTO CARD (DISPLAYED WHEN ORDER IS COMPLETED) ===== -->
+        <div x-show="currentStatus === 'completed' && currentDeliveryProofPhoto" x-transition class="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-slate-900 rounded-3xl border-2 border-emerald-400 dark:border-emerald-700/80 p-6 sm:p-7 mb-8 shadow-xl">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="flex items-center gap-3.5">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center text-2xl shadow-lg shadow-emerald-500/30 shrink-0">
+                        📸
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 class="font-black text-slate-900 dark:text-white text-base">Delivery Proof Photo (ရောက်ရှိမှု အတည်ပြု ဓာတ်ပုံ)</h3>
+                            <span class="px-2.5 py-0.5 rounded-full bg-emerald-600 text-white font-black text-[10px] shadow-sm">✓ Photo Verified</span>
+                        </div>
+                        <p class="text-xs text-emerald-800 dark:text-emerald-300 font-medium mt-0.5">
+                            သုံးစွဲသူထံ အစားအသောက် ရောက်ရှိပြီး ရိုက်ကူးအတည်ပြုထားသော သက်သေဓာတ်ပုံ
+                        </p>
+                    </div>
+                </div>
+
+                <button type="button" @click="imgTitle = 'Delivery Proof Photo (သုံးစွဲသူထံ ရောက်ရှိမှု အတည်ပြု ဓာတ်ပုံ)'; imgSrc = currentDeliveryProofPhoto; imgModal = true;"
+                        class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-xs rounded-xl shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0">
+                    <span>🔍</span>
+                    <span>View Full Photo</span>
+                </button>
+            </div>
+
+            <div class="mt-4 pt-4 border-t border-emerald-200/60 dark:border-slate-800 flex items-center gap-4">
+                <div @click="imgTitle = 'Delivery Proof Photo (သုံးစွဲသူထံ ရောက်ရှိမှု အတည်ပြု ဓာတ်ပုံ)'; imgSrc = currentDeliveryProofPhoto; imgModal = true;"
+                     class="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden border-2 border-emerald-500 shrink-0 cursor-pointer group relative shadow-md bg-slate-900">
+                    <img :src="currentDeliveryProofPhoto" alt="Proof of delivery photo" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                    <div class="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors flex items-center justify-center text-white text-xs font-black">
+                        🔍 Tap
+                    </div>
+                </div>
+                <div class="text-xs text-slate-700 dark:text-slate-300 space-y-1.5">
+                    <p class="font-bold text-slate-900 dark:text-white">
+                        🛵 Delivered by Rider: <span class="text-orange-500" x-text="currentRiderName || 'Assigned Rider'"></span>
+                    </p>
+                    <p class="text-emerald-700 dark:text-emerald-400 font-semibold leading-relaxed">
+                        ✓ အစားအသောက်များ သင့်လိပ်စာသို့ စနစ်တကျ အရောက်ပို့ဆောင်ပြီးစီးကြောင်း ဓာတ်ပုံဖြင့် အတည်ပြုပြီးပါပြီ။
+                    </p>
+                </div>
             </div>
         </div>
 
@@ -230,7 +279,7 @@
                     @if($order->payment_screenshot)
                         <div class="mt-2 flex items-center gap-2">
                             <span class="text-xs text-slate-500 font-medium">Screenshot:</span>
-                            <button @click="imgModal = true; imgSrc = '{{ asset($order->payment_screenshot) }}'"
+                            <button @click="imgTitle = 'Payment Screenshot'; imgModal = true; imgSrc = '{{ asset($order->payment_screenshot) }}'"
                                     class="text-xs font-bold text-orange-500 underline hover:text-orange-600 cursor-pointer">
                                 View 🔍
                             </button>
@@ -345,12 +394,14 @@
 
     </main>
 
-    <!-- Screenshot Modal -->
+    <!-- Screenshot & Proof Modal -->
     <div x-show="imgModal" x-transition class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4" style="display:none;">
-        <div class="bg-white dark:bg-slate-900 rounded-3xl p-4 max-w-lg w-full relative shadow-2xl" @click.outside="imgModal = false">
-            <button @click="imgModal = false" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-200 flex items-center justify-center">✕</button>
-            <p class="font-bold text-slate-900 dark:text-white text-sm mb-3">Payment Screenshot</p>
-            <img :src="imgSrc" alt="Payment Screenshot" class="w-full h-auto rounded-2xl border border-slate-100 dark:border-slate-800 max-h-[70vh] object-contain">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 max-w-lg w-full relative shadow-2xl space-y-3" @click.outside="imgModal = false">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <p class="font-bold text-slate-900 dark:text-white text-sm" x-text="imgTitle"></p>
+                <button @click="imgModal = false" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center cursor-pointer">✕</button>
+            </div>
+            <img :src="imgSrc" :alt="imgTitle" class="w-full h-auto rounded-2xl border border-slate-100 dark:border-slate-800 max-h-[70vh] object-contain mx-auto">
         </div>
     </div>
 

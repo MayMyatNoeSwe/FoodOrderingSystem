@@ -18,6 +18,8 @@
             return {
                 activeTab: initialTab || 'available',
                 openOrdersCount: {{ $availableOrders->count() }},
+                proofModalOpen: false,
+                proofModalSrc: '',
                 init: function() {
                     // Auto-poll for new unassigned orders every 4 seconds
                     var self = this;
@@ -309,20 +311,68 @@
                         @endforeach
                     </div>
 
-                    <!-- Action Buttons -->
-                    <div class="pt-2 flex items-center gap-3">
+                    <!-- Action Buttons & Delivery Proof Section -->
+                    <div class="pt-2">
                         @if($order->status !== 'delivering')
-                            <form method="POST" action="{{ route('rider.orders.start', $order) }}" class="flex-1">
+                            <form method="POST" action="{{ route('rider.orders.start', $order) }}">
                                 @csrf
-                                <button type="submit" class="w-full py-3 bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-bold text-xs rounded-2xl shadow-lg shadow-purple-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer">
+                                <button type="submit" class="w-full py-3.5 bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-bold text-xs rounded-2xl shadow-lg shadow-purple-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer">
                                     <span>🛵 Start Delivery Route</span>
                                 </button>
                             </form>
                         @else
-                            <form method="POST" action="{{ route('rider.orders.complete', $order) }}" class="w-full">
+                            <!-- PROOF OF DELIVERY FORM WITH PHOTO -->
+                            <form method="POST" action="{{ route('rider.orders.complete', $order) }}" enctype="multipart/form-data" 
+                                  x-data="{ photoPreview: null, isUploading: false }" 
+                                  @submit="isUploading = true"
+                                  class="space-y-3 p-4 bg-slate-950 rounded-2xl border border-purple-500/40 shadow-inner">
                                 @csrf
-                                <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold text-xs rounded-2xl shadow-lg shadow-emerald-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer">
-                                    <span>✅ Mark Delivered & Collected</span>
+                                
+                                <div class="space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <label class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                                            <span>📸</span>
+                                            <span>သုံးစွဲသူထံ အစားအသောက် ရောက်ရှိကြောင်း ဓာတ်ပုံ (Photo Proof)</span>
+                                        </label>
+                                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-bold">Photo Verification</span>
+                                    </div>
+
+                                    <!-- Camera & File capture box -->
+                                    <div class="relative border-2 border-dashed border-slate-700 hover:border-purple-400 rounded-2xl p-4 text-center transition-all bg-slate-900/60 group cursor-pointer">
+                                        <input type="file" name="delivery_proof_photo" accept="image/*" capture="environment" required
+                                               @change="const file = $event.target.files[0]; if(file) { const reader = new FileReader(); reader.onload = (e) => { photoPreview = e.target.result; }; reader.readAsDataURL(file); }"
+                                               class="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10">
+                                        
+                                        <template x-if="!photoPreview">
+                                            <div class="py-2 space-y-1.5 pointer-events-none">
+                                                <div class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center mx-auto text-xl group-hover:scale-110 transition-transform">
+                                                    📷
+                                                </div>
+                                                <p class="text-xs font-bold text-white">Tap to Take or Upload Delivery Photo</p>
+                                                <p class="text-[10px] text-slate-400">သုံးစွဲသူထံ အစားအသောက် ပေးအပ်သည့် ဓာတ်ပုံ ရိုက်ကူးပါ</p>
+                                            </div>
+                                        </template>
+
+                                        <template x-if="photoPreview">
+                                            <div class="relative inline-block">
+                                                <img :src="photoPreview" alt="Delivery Proof" class="max-h-44 mx-auto rounded-xl border border-purple-500 object-cover shadow-xl">
+                                                <span class="absolute bottom-2 right-2 px-2.5 py-1 bg-emerald-600 text-white font-black text-[10px] rounded-lg shadow-lg flex items-center gap-1">
+                                                    ✓ Photo Ready
+                                                </span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <button type="submit" 
+                                        :disabled="isUploading"
+                                        class="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 active:scale-98 text-white font-black text-xs rounded-xl shadow-lg shadow-emerald-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer">
+                                    <template x-if="isUploading">
+                                        <span>⏳ Uploading & Confirming...</span>
+                                    </template>
+                                    <template x-if="!isUploading">
+                                        <span>✅ သုံးစွဲသူထံ အစားအသောက် ရောက်ရှိပြီး အတည်ပြုမည်</span>
+                                    </template>
                                 </button>
                             </form>
                         @endif
@@ -341,7 +391,7 @@
         <!-- 3. COMPLETED HISTORY TAB -->
         <div x-show="activeTab === 'completed'" class="space-y-4" style="display: none;">
             @forelse($completedDeliveries as $order)
-                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-lg flex items-center justify-between gap-4 text-xs">
+                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
                     <div>
                         <div class="flex items-center gap-2">
                             <span class="font-mono font-bold text-emerald-400">#{{ $order->order_number }}</span>
@@ -349,9 +399,18 @@
                         </div>
                         <p class="font-bold text-white mt-1">{{ $order->user->name ?? 'Customer' }} • {{ $order->delivery_township }}</p>
                         <p class="text-[11px] text-slate-400 mt-0.5">{{ $order->updated_at ? $order->updated_at->format('M d, Y • h:i A') : '' }}</p>
+                        
+                        @if($order->delivery_proof_photo)
+                            <div class="mt-2 flex items-center gap-2">
+                                <button type="button" @click="proofModalSrc = '{{ asset($order->delivery_proof_photo) }}'; proofModalOpen = true;"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 text-purple-300 text-[11px] font-bold rounded-xl transition-colors cursor-pointer">
+                                    <span>📸 View Photo Proof (သက်သေဓာတ်ပုံ)</span>
+                                </button>
+                            </div>
+                        @endif
                     </div>
 
-                    <div class="text-right">
+                    <div class="text-right sm:self-center">
                         <p class="font-black text-emerald-400 font-mono text-sm">{{ number_format($order->total_amount) }} MMK</p>
                         <p class="text-[10px] text-slate-500 font-medium">Earned Fee: {{ number_format($order->delivery_fee) }} MMK</p>
                     </div>
@@ -365,6 +424,20 @@
         </div>
 
     </main>
+
+    <!-- Photo Proof Viewer Modal -->
+    <div x-show="proofModalOpen" x-transition class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4" style="display:none;">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 max-w-lg w-full relative shadow-2xl space-y-3" @click.outside="proofModalOpen = false">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div class="flex items-center gap-2">
+                    <span class="text-lg">📸</span>
+                    <h3 class="font-black text-white text-sm">Delivery Proof Photo (သုံးစွဲသူထံ အစားအသောက် ရောက်ရှိမှု ဓာတ်ပုံ)</h3>
+                </div>
+                <button @click="proofModalOpen = false" class="w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white font-bold flex items-center justify-center cursor-pointer">✕</button>
+            </div>
+            <img :src="proofModalSrc" alt="Delivery Proof" class="w-full h-auto rounded-2xl border border-slate-800 max-h-[70vh] object-contain mx-auto">
+        </div>
+    </div>
 
 </body>
 </html>
