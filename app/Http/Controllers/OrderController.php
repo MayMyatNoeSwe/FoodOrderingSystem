@@ -90,18 +90,20 @@ class OrderController extends Controller
             $message = "Order #{$order->order_number} status updated to " . ucfirst($validated['status']) . " successfully!";
         }
 
-        return redirect()->route('admin.orders.index')->with('success', $message);
+        $returnUrl = $request->input('return_url') ?: url()->previous(route('admin.orders.index'));
+        return redirect()->to($returnUrl)->with('success', $message);
     }
 
     /**
      * Delete specified order from storage.
      */
-    public function destroy(Order $order)
+    public function destroy(Request $request, Order $order)
     {
         $orderNumber = $order->order_number;
         $order->orderItems()->delete();
         $order->delete();
 
-        return redirect()->route('admin.orders.index')->with('success', "Order #{$orderNumber} deleted successfully!");
+        $returnUrl = $request->input('return_url') ?: url()->previous(route('admin.orders.index'));
+        return redirect()->to($returnUrl)->with('success', "Order #{$orderNumber} deleted successfully!");
     }
 }

@@ -53,7 +53,8 @@ class RiderController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        return redirect()->route('admin.riders.index')
+        $returnUrl = $request->input('return_url') ?: url()->previous(route('admin.riders.index'));
+        return redirect()->to($returnUrl)
             ->with('success', "Rider '{$rider->name}' created successfully! 🛵");
     }
 
@@ -83,14 +84,15 @@ class RiderController extends Controller
 
         $rider->update($updateData);
 
-        return redirect()->route('admin.riders.index')
+        $returnUrl = $request->input('return_url') ?: url()->previous(route('admin.riders.index'));
+        return redirect()->to($returnUrl)
             ->with('success', "Rider '{$rider->name}' updated successfully! 🛵");
     }
 
     /**
      * Remove the specified rider from storage.
      */
-    public function destroy(User $rider)
+    public function destroy(Request $request, User $rider)
     {
         // Unassign orders assigned to this rider so they aren't orphaned with invalid foreign key
         Order::where('rider_id', $rider->id)->update(['rider_id' => null]);
@@ -98,7 +100,8 @@ class RiderController extends Controller
         $riderName = $rider->name;
         $rider->delete();
 
-        return redirect()->route('admin.riders.index')
+        $returnUrl = $request->input('return_url') ?: url()->previous(route('admin.riders.index'));
+        return redirect()->to($returnUrl)
             ->with('success', "Rider '{$riderName}' deleted successfully! 🗑️");
     }
 

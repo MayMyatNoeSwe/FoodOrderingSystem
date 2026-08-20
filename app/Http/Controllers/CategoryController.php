@@ -41,7 +41,8 @@ class CategoryController extends Controller
             'slug' => Str::slug($validated['name']),
         ]);
 
-        return redirect()->route('admin.categories.index')->with('success', 'Category created successfully!');
+        $returnUrl = $request->input('return_url') ?: url()->previous(route('admin.categories.index'));
+        return redirect()->to($returnUrl)->with('success', 'Category created successfully!');
     }
 
     /**
@@ -58,16 +59,18 @@ class CategoryController extends Controller
             'slug' => Str::slug($validated['name']),
         ]);
 
-        return redirect()->route('admin.categories.index')->with('success', 'Category updated successfully!');
+        $returnUrl = $request->input('return_url') ?: url()->previous(route('admin.categories.index'));
+        return redirect()->to($returnUrl)->with('success', 'Category updated successfully!');
     }
 
     /**
      * Remove the specified category from storage.
      */
-    public function destroy(Category $category)
+    public function destroy(Request $request, Category $category)
     {
         $category->delete();
 
-        return redirect()->route('admin.categories.index')->with('success', 'Category deleted successfully!');
+        $returnUrl = $request->input('return_url') ?: url()->previous(route('admin.categories.index'));
+        return redirect()->to($returnUrl)->with('success', 'Category deleted successfully!');
     }
 }

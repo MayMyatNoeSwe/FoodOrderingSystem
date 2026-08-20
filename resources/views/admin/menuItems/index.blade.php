@@ -181,7 +181,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                     
                     <!-- Metric Card 1: Total Menu Items -->
-                    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 relative overflow-hidden group hover:border-slate-300 hover:shadow-md transition-all shadow-sm">
+                    <a href="{{ route('admin.menuItems.index') }}" class="bg-white border border-slate-200/80 rounded-2xl p-5 relative overflow-hidden group hover:border-orange-300 hover:shadow-md transition-all shadow-sm block">
                         <div class="flex items-center justify-between">
                             <span class="text-slate-500 text-xs font-bold uppercase tracking-wider">Total Menu Items</span>
                             <div class="w-9 h-9 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center font-bold text-base border border-orange-100">
@@ -190,10 +190,10 @@
                         </div>
                         <div class="text-3xl font-black text-slate-900 mt-2">{{ $totalItemsCount ?? $menuItems->total() }}</div>
                         <div class="text-xs text-slate-500 font-medium mt-2">Total Dishes in catalog</div>
-                    </div>
+                    </a>
 
                     <!-- Metric Card 2: In Stock -->
-                    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 relative overflow-hidden group hover:border-slate-300 hover:shadow-md transition-all shadow-sm">
+                    <a href="{{ route('admin.menuItems.index', array_filter(['category_id' => $categoryId, 'stock_status' => 'in_stock', 'search' => $search])) }}" class="bg-white border {{ ($stockStatus ?? '') === 'in_stock' ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-slate-200/80' }} rounded-2xl p-5 relative overflow-hidden group hover:border-emerald-300 hover:shadow-md transition-all shadow-sm block">
                         <div class="flex items-center justify-between">
                             <span class="text-slate-500 text-xs font-bold uppercase tracking-wider">In Stock (> 10)</span>
                             <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-base border border-emerald-100">
@@ -204,10 +204,10 @@
                             {{ $inStockCount ?? 0 }}
                         </div>
                         <div class="text-xs text-slate-500 font-medium mt-2">Healthy inventory levels</div>
-                    </div>
+                    </a>
 
                     <!-- Metric Card 3: Low Stock Alert -->
-                    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 relative overflow-hidden group hover:border-slate-300 hover:shadow-md transition-all shadow-sm">
+                    <a href="{{ route('admin.menuItems.index', array_filter(['category_id' => $categoryId, 'stock_status' => 'low_stock', 'search' => $search])) }}" class="bg-white border {{ ($stockStatus ?? '') === 'low_stock' ? 'border-amber-500 ring-2 ring-amber-500/20' : 'border-slate-200/80' }} rounded-2xl p-5 relative overflow-hidden group hover:border-amber-300 hover:shadow-md transition-all shadow-sm block">
                         <div class="flex items-center justify-between">
                             <span class="text-slate-500 text-xs font-bold uppercase tracking-wider">Low Stock (1-10)</span>
                             <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-base border border-amber-100">
@@ -218,10 +218,10 @@
                             {{ $lowStockCount ?? 0 }}
                         </div>
                         <div class="text-xs text-slate-500 font-medium mt-2">Needs restocking soon</div>
-                    </div>
+                    </a>
 
                     <!-- Metric Card 4: Out of Stock -->
-                    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 relative overflow-hidden group hover:border-slate-300 hover:shadow-md transition-all shadow-sm">
+                    <a href="{{ route('admin.menuItems.index', array_filter(['category_id' => $categoryId, 'stock_status' => 'out_of_stock', 'search' => $search])) }}" class="bg-white border {{ ($stockStatus ?? '') === 'out_of_stock' ? 'border-red-500 ring-2 ring-red-500/20' : 'border-slate-200/80' }} rounded-2xl p-5 relative overflow-hidden group hover:border-red-300 hover:shadow-md transition-all shadow-sm block">
                         <div class="flex items-center justify-between">
                             <span class="text-slate-500 text-xs font-bold uppercase tracking-wider">Out of Stock (0)</span>
                             <div class="w-9 h-9 rounded-xl bg-red-50 text-red-600 flex items-center justify-center font-bold text-base border border-red-100">
@@ -232,7 +232,7 @@
                             {{ $outOfStockCount ?? 0 }}
                         </div>
                         <div class="text-xs text-slate-500 font-medium mt-2">Items depleted</div>
-                    </div>
+                    </a>
 
                 </div>
 
@@ -285,7 +285,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                     </svg>
 
-                                    @if($search || $categoryId)
+                                    @if($search || $categoryId || $stockStatus)
                                         <a href="{{ route('admin.menuItems.index') }}" 
                                            title="Clear Filters" 
                                            class="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-700 p-0.5 text-xs font-bold rounded-full">
@@ -414,6 +414,7 @@
                                                       onsubmit="return confirmDelete(this, '{{ addslashes($item->name) }}', 'item');">
                                                     @csrf
                                                     @method('DELETE')
+                                                    <input type="hidden" name="return_url" value="{{ request()->fullUrl() }}">
                                                     <button type="submit" class="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg transition-all text-[11px] font-bold flex items-center gap-1 cursor-pointer">
                                                         <span>🗑️</span>
                                                         <span>Delete</span>
@@ -429,13 +430,13 @@
                                                 <div class="text-3xl">🍕</div>
                                                 <div class="font-bold text-slate-800 text-sm">No Menu Items Found</div>
                                                 <p class="text-xs text-slate-500">
-                                                    @if($search || $categoryId)
+                                                    @if($search || $categoryId || $stockStatus)
                                                         No dish matching your current filter. Try clearing filters.
                                                     @else
                                                         Start adding delicious dishes and beverages to your food ordering catalog.
                                                     @endif
                                                 </p>
-                                                @if($search || $categoryId)
+                                                @if($search || $categoryId || $stockStatus)
                                                     <a href="{{ route('admin.menuItems.index') }}" class="inline-block px-4 py-2 bg-slate-100 text-slate-700 text-xs font-bold rounded-xl border border-slate-200 hover:bg-slate-200">Clear Filters</a>
                                                 @else
                                                     <button @click="createModalOpen = true" class="inline-block px-4 py-2 bg-orange-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-orange-500/20">Add First Menu Item</button>
@@ -493,6 +494,7 @@
             <!-- Form -->
             <form method="POST" action="{{ route('admin.menuItems.store') }}" enctype="multipart/form-data" class="space-y-4">
                 @csrf
+                <input type="hidden" name="return_url" value="{{ request()->fullUrl() }}">
 
                 <!-- Name -->
                 <div>
@@ -655,6 +657,7 @@
 
                 <input type="hidden" name="edit_item_id" :value="editItemId">
                 <input type="hidden" name="edit_item_url" :value="editItemUrl">
+                <input type="hidden" name="return_url" value="{{ request()->fullUrl() }}">
 
                 <!-- Name -->
                 <div>

@@ -72,12 +72,13 @@ class OrderItemController extends Controller
     /**
      * Remove the specified order item from storage.
      */
-    public function destroy(OrderItem $orderItem)
+    public function destroy(Request $request, OrderItem $orderItem)
     {
         $itemName = $orderItem->menuItem ? $orderItem->menuItem->name : 'Item';
         OrderItem::destroy($orderItem->id);
 
-        return redirect()->route('admin.orderItems.index')->with('success', "Order item '{$itemName}' deleted successfully!");
+        $returnUrl = $request->input('return_url') ?: url()->previous(route('admin.orderItems.index'));
+        return redirect()->to($returnUrl)->with('success', "Order item '{$itemName}' deleted successfully!");
     }
 }
 

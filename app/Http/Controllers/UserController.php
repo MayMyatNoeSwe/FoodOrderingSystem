@@ -68,7 +68,8 @@ class UserController extends Controller
             'role' => $validated['role'],
         ]);
 
-        return redirect()->route('admin.users.index')->with('success', "User '{$validated['name']}' created successfully!");
+        $returnUrl = $request->input('return_url') ?: url()->previous(route('admin.users.index'));
+        return redirect()->to($returnUrl)->with('success', "User '{$validated['name']}' created successfully!");
     }
 
     /**
@@ -96,21 +97,23 @@ class UserController extends Controller
 
         $user->update($updateData);
 
-        return redirect()->route('admin.users.index')->with('success', "Role for '{$user->name}' updated to " . ($validated['role'] === 'admin' ? 'System Administrator' : 'Customer') . " successfully!");
+        $returnUrl = $request->input('return_url') ?: url()->previous(route('admin.users.index'));
+        return redirect()->to($returnUrl)->with('success', "Role for '{$user->name}' updated to " . ($validated['role'] === 'admin' ? 'System Administrator' : 'Customer') . " successfully!");
     }
 
     /**
      * Remove the specified user from storage.
      */
-    public function destroy(User $user)
+    public function destroy(Request $request, User $user)
     {
+        $returnUrl = $request->input('return_url') ?: url()->previous(route('admin.users.index'));
         if ($user->id === Auth::id()) {
-            return redirect()->route('admin.users.index')->with('error', 'You cannot delete your own logged-in admin account!');
+            return redirect()->to($returnUrl)->with('error', 'You cannot delete your own logged-in admin account!');
         }
 
         $userName = $user->name;
         $user->delete();
 
-        return redirect()->route('admin.users.index')->with('success', "User '{$userName}' deleted successfully!");
+        return redirect()->to($returnUrl)->with('success', "User '{$userName}' deleted successfully!");
     }
 }

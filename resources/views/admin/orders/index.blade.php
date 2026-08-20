@@ -560,6 +560,7 @@
                                                         @csrf
                                                         @method('PUT')
                                                         <input type="hidden" name="status" value="delivering">
+                                                        <input type="hidden" name="return_url" value="{{ request()->fullUrl() }}">
                                                         <button type="submit" class="w-full px-3 py-1.5 bg-purple-500 hover:bg-purple-600 text-white font-bold text-[11px] rounded-lg shadow-lg shadow-purple-500/20 transition-all flex items-center justify-center gap-1 cursor-pointer">
                                                             <span>🛵 Dispatch</span>
                                                         </button>
@@ -570,6 +571,7 @@
                                                         @method('PUT')
                                                         <input type="hidden" name="status" value="completed">
                                                         <input type="hidden" name="payment_status" value="paid">
+                                                        <input type="hidden" name="return_url" value="{{ request()->fullUrl() }}">
                                                         <button type="submit" class="w-full px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[11px] rounded-lg shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-1 cursor-pointer">
                                                             <span>✅ Complete</span>
                                                         </button>
@@ -640,6 +642,7 @@
                                                 <form method="POST" action="{{ route('admin.orders.destroy', $order) }}" onsubmit="return confirmDeleteOrder(this, '{{ $order->order_number }}')">
                                                     @csrf
                                                     @method('DELETE')
+                                                    <input type="hidden" name="return_url" value="{{ request()->fullUrl() }}">
                                                     <button type="submit" title="Delete Record" class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-red-100">
                                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>

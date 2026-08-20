@@ -92,7 +92,8 @@ class MenuItemController extends Controller
             'is_available' => $request->has('is_available') ? $request->boolean('is_available') : true,
         ]);
 
-        return redirect()->route('admin.menuItems.index')->with('success', 'Menu item created successfully!');
+        $returnUrl = $request->input('return_url') ?: url()->previous(route('admin.menuItems.index'));
+        return redirect()->to($returnUrl)->with('success', 'Menu item created successfully!');
     }
 
     /**
@@ -131,13 +132,14 @@ class MenuItemController extends Controller
             'is_available' => $request->has('is_available') ? $request->boolean('is_available') : false,
         ]);
 
-        return redirect()->route('admin.menuItems.index')->with('success', 'Menu item updated successfully!');
+        $returnUrl = $request->input('return_url') ?: url()->previous(route('admin.menuItems.index'));
+        return redirect()->to($returnUrl)->with('success', 'Menu item updated successfully!');
     }
 
     /**
      * Remove the specified menu item from storage.
      */
-    public function destroy(MenuItem $menuItem)
+    public function destroy(Request $request, MenuItem $menuItem)
     {
         if ($menuItem->image && Storage::disk('public')->exists($menuItem->image)) {
             Storage::disk('public')->delete($menuItem->image);
@@ -145,6 +147,7 @@ class MenuItemController extends Controller
 
         MenuItem::destroy($menuItem->id);
 
-        return redirect()->route('admin.menuItems.index')->with('success', 'Menu item deleted successfully!');
+        $returnUrl = $request->input('return_url') ?: url()->previous(route('admin.menuItems.index'));
+        return redirect()->to($returnUrl)->with('success', 'Menu item deleted successfully!');
     }
 }

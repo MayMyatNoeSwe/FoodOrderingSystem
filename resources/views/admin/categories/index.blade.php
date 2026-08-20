@@ -327,6 +327,7 @@
                                                       onsubmit="return confirmDelete(this, '{{ addslashes($category->name) }}', 'category');">
                                                     @csrf
                                                     @method('DELETE')
+                                                    <input type="hidden" name="return_url" value="{{ request()->fullUrl() }}">
                                                     <button type="submit" class="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg transition-all text-[11px] font-bold flex items-center gap-1 cursor-pointer">
                                                         <span>🗑️</span>
                                                         <span>Delete</span>
@@ -406,6 +407,7 @@
             <!-- Modal Form -->
             <form method="POST" action="{{ route('admin.categories.store') }}" class="space-y-5">
                 @csrf
+                <input type="hidden" name="return_url" value="{{ request()->fullUrl() }}">
 
                 <div>
                     <label for="create_category_name" class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
@@ -477,6 +479,7 @@
                 <!-- Hidden inputs to retain state on validation failure -->
                 <input type="hidden" name="edit_category_id" :value="editCategoryId">
                 <input type="hidden" name="edit_category_url" :value="editCategoryUrl">
+                <input type="hidden" name="return_url" value="{{ request()->fullUrl() }}">
 
                 <div>
                     <label for="edit_category_name_input" class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
