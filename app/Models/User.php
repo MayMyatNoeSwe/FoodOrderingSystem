@@ -24,6 +24,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'status',
         'phone_number',
         'city',
         'detail_address',
@@ -66,6 +67,22 @@ class User extends Authenticatable
     public function isRider(): bool
     {
         return isset($this->role) && $this->role === 'rider';
+    }
+
+    /**
+     * Check if user is banned
+     */
+    public function isBanned(): bool
+    {
+        return isset($this->status) && $this->status === 'banned';
+    }
+
+    /**
+     * Check if user account is active
+     */
+    public function isActive(): bool
+    {
+        return !isset($this->status) || $this->status === 'active';
     }
 
     /**

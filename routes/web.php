@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\MenuItemController;
 use App\Http\Controllers\OrderController;
@@ -35,129 +36,146 @@ Route::get('/cart', function () {
     return view('cart');
 })->name('cart');
 
-// User Order Routes (auth required)
-Route::middleware('auth')->prefix('user')->name('user.')->group(function () {
-    // Place order from cart
-    Route::post('/orders', function (\Illuminate\Http\Request $request) {
-        $request->validate([
-            'delivery_address'   => 'required|string|max:500',
-            'delivery_phone'     => 'required|string|max:30',
-            'payment_method'     => 'required|in:cod,kbzpay,wavepay',
-            'cart_items'         => 'required|string',
-            'total_amount'       => 'required|numeric|min:1',
-            'payment_screenshot' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
-            'region_type'        => 'nullable|string',
-            'delivery_township'  => 'nullable|string',
-        ]);
-
-        $cartItems = json_decode($request->cart_items, true);
-        if (empty($cartItems)) {
-            return redirect()->route('cart')->with('error', 'Your cart is empty.');
-        }
-
-        // Validate backend stock for every cart item
-        foreach ($cartItems as $cartItem) {
-            $menuItem = MenuItem::find($cartItem['id']);
-            if (!$menuItem || !$menuItem->is_available) {
-                return redirect()->route('cart')->with('error', "Item '" . ($cartItem['name'] ?? 'Item') . "' is currently unavailable.");
+// Customer Order Routes (auth required)
+Route::middleware('auth')->group(function () {
+    // Shared Order Handling Logic Group
+    Route::prefix('customer')->name('customer.')->group(function () {
+        // Place order from cart
+        Route::post('/orders', function (\Illuminate\Http\Request $request) {
+            /** @var \App\Models\User $authUser */
+            $authUser = Auth::user();
+            if ($authUser && $authUser->isBanned()) {
+                return redirect()->route('cart')->with('error', 'Your customer account has been suspended/banned from placing orders. Please contact support.');
             }
-            if ($menuItem->stock < $cartItem['qty']) {
-                return redirect()->route('cart')->with('error', "Sorry! Cannot place order because '{$menuItem->name}' has only {$menuItem->stock} unit(s) available in stock (you requested {$cartItem['qty']}). Please adjust your quantity.");
+
+            $request->validate([
+                'delivery_address'   => 'required|string|max:500',
+                'delivery_phone'     => 'required|string|max:30',
+                'payment_method'     => 'required|in:cod,kbzpay,wavepay',
+                'cart_items'         => 'required|string',
+                'total_amount'       => 'required|numeric|min:1',
+                'payment_screenshot' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+                'region_type'        => 'nullable|string',
+                'delivery_township'  => 'nullable|string',
+            ]);
+
+            $cartItems = json_decode($request->cart_items, true);
+            if (empty($cartItems)) {
+                return redirect()->route('cart')->with('error', 'Your cart is empty.');
             }
-        }
 
-        $screenshotPath = null;
-        if ($request->hasFile('payment_screenshot')) {
-            $file = $request->file('payment_screenshot');
-            $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('uploads/payments'), $fileName);
-            $screenshotPath = 'uploads/payments/' . $fileName;
-        }
-
-        // Prevent duplicate order creation if identical order was submitted in the last 15 seconds
-        $existingRecentOrder = Order::where('user_id', Auth::id())
-            ->where('total_amount', $request->total_amount)
-            ->where('delivery_address', $request->delivery_address)
-            ->where('created_at', '>=', now()->subSeconds(15))
-            ->latest()
-            ->first();
-
-        if ($existingRecentOrder) {
-            return redirect()->route('user.orders.show', $existingRecentOrder)
-                ->with('success', "Order #{$existingRecentOrder->order_number} placed successfully! 🎉");
-        }
-
-        $order = Order::create([
-            'order_number'       => 'ORD-' . strtoupper(uniqid()),
-            'user_id'            => Auth::id(),
-            'total_amount'       => $request->total_amount,
-            'delivery_fee'       => $request->delivery_fee ?? 0,
-            'tax_amount'         => $request->tax_amount ?? 0,
-            'delivery_address'   => $request->delivery_address,
-            'region_type'        => $request->region_type ?? 'yangon',
-            'delivery_township'  => $request->delivery_township,
-            'delivery_phone'     => $request->delivery_phone,
-            'payment_method'     => $request->payment_method,
-            'payment_screenshot' => $screenshotPath,
-            'notes'              => $request->notes,
-            'status'             => 'pending',
-        ]);
-
-        foreach ($cartItems as $cartItem) {
-            $menuItem = MenuItem::find($cartItem['id']);
-            if ($menuItem) {
-                $order->orderItems()->create([
-                    'menu_item_id' => $menuItem->id,
-                    'quantity'     => $cartItem['qty'],
-                    'unit_price'   => $menuItem->price,
-                    'subtotal'     => $menuItem->price * $cartItem['qty'],
-                ]);
-
-                // Decrement stock in database
-                $menuItem->decrement('stock', $cartItem['qty']);
-                if ($menuItem->stock <= 0) {
-                    $menuItem->update(['stock' => 0, 'is_available' => false]);
+            // Validate backend stock for every cart item
+            foreach ($cartItems as $cartItem) {
+                $menuItem = MenuItem::find($cartItem['id']);
+                if (!$menuItem || !$menuItem->is_available) {
+                    return redirect()->route('cart')->with('error', "Item '" . ($cartItem['name'] ?? 'Item') . "' is currently unavailable.");
+                }
+                if ($menuItem->stock < $cartItem['qty']) {
+                    return redirect()->route('cart')->with('error', "Sorry! Cannot place order because '{$menuItem->name}' has only {$menuItem->stock} unit(s) available in stock (you requested {$cartItem['qty']}). Please adjust your quantity.");
                 }
             }
-        }
 
-        return redirect()->route('user.orders.show', $order)
-            ->with('success', "Order #{$order->order_number} placed successfully! 🎉");
-    })->name('orders.store');
+            $screenshotPath = null;
+            if ($request->hasFile('payment_screenshot')) {
+                $file = $request->file('payment_screenshot');
+                $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                $file->move(public_path('uploads/payments'), $fileName);
+                $screenshotPath = 'uploads/payments/' . $fileName;
+            }
 
-    // User Orders History List (My Orders)
-    Route::get('/orders', function () {
-        $orders = Order::where('user_id', Auth::id())
-            ->with(['orderItems.menuItem'])
-            ->latest()
-            ->get();
-        return view('user.orders.index', compact('orders'));
-    })->name('orders.index');
+            // Prevent duplicate order creation if identical order was submitted in the last 15 seconds
+            $existingRecentOrder = Order::where('user_id', Auth::id())
+                ->where('total_amount', $request->total_amount)
+                ->where('delivery_address', $request->delivery_address)
+                ->where('created_at', '>=', now()->subSeconds(15))
+                ->latest()
+                ->first();
 
-    // Order Status JSON endpoint for real-time polling
-    Route::get('/orders/{order}/json-status', function (Order $order) {
-        if ($order->user_id !== Auth::id() && (!Auth::user()->isAdmin())) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
-        return response()->json([
-            'status'               => $order->status,
-            'payment_status'       => $order->payment_status,
-            'notes'                => $order->notes,
-            'rider_id'             => $order->rider_id,
-            'rider_name'           => $order->rider ? $order->rider->name : null,
-            'rider_phone'          => $order->rider ? ($order->rider->phone_number ?? $order->rider->phone ?? null) : null,
-            'delivery_proof_photo' => $order->delivery_proof_photo ? asset($order->delivery_proof_photo) : null,
-        ]);
-    })->name('orders.json_status');
+            if ($existingRecentOrder) {
+                return redirect()->route('customer.orders.show', $existingRecentOrder)
+                    ->with('success', "Order #{$existingRecentOrder->order_number} placed successfully! 🎉");
+            }
 
-    // Order Detail (tracking)
-    Route::get('/orders/{order}', function (Order $order) {
-        if ($order->user_id !== Auth::id() && (!Auth::user()->isAdmin())) {
-            abort(403);
-        }
-        $order->load(['orderItems.menuItem', 'rider']);
-        return view('user.orders.show', compact('order'));
-    })->name('orders.show');
+            $order = Order::create([
+                'order_number'       => 'ORD-' . strtoupper(uniqid()),
+                'user_id'            => Auth::id(),
+                'total_amount'       => $request->total_amount,
+                'delivery_fee'       => $request->delivery_fee ?? 0,
+                'tax_amount'         => $request->tax_amount ?? 0,
+                'delivery_address'   => $request->delivery_address,
+                'region_type'        => $request->region_type ?? 'yangon',
+                'delivery_township'  => $request->delivery_township,
+                'delivery_phone'     => $request->delivery_phone,
+                'payment_method'     => $request->payment_method,
+                'payment_screenshot' => $screenshotPath,
+                'notes'              => $request->notes,
+                'status'             => 'pending',
+            ]);
+
+            foreach ($cartItems as $cartItem) {
+                $menuItem = MenuItem::find($cartItem['id']);
+                if ($menuItem) {
+                    $order->orderItems()->create([
+                        'menu_item_id' => $menuItem->id,
+                        'quantity'     => $cartItem['qty'],
+                        'unit_price'   => $menuItem->price,
+                        'subtotal'     => $menuItem->price * $cartItem['qty'],
+                    ]);
+
+                    // Decrement stock in database
+                    $menuItem->decrement('stock', $cartItem['qty']);
+                    if ($menuItem->stock <= 0) {
+                        $menuItem->update(['stock' => 0, 'is_available' => false]);
+                    }
+                }
+            }
+
+            return redirect()->route('customer.orders.show', $order)
+                ->with('success', "Order #{$order->order_number} placed successfully! 🎉");
+        })->name('orders.store');
+
+        // Customer Orders History List (My Orders)
+        Route::get('/orders', function () {
+            $orders = Order::where('user_id', Auth::id())
+                ->with(['orderItems.menuItem'])
+                ->latest()
+                ->get();
+            return view('user.orders.index', compact('orders'));
+        })->name('orders.index');
+
+        // Order Status JSON endpoint for real-time polling
+        Route::get('/orders/{order}/json-status', function (Order $order) {
+            if ($order->user_id !== Auth::id() && (!Auth::user()->isAdmin())) {
+                return response()->json(['error' => 'Unauthorized'], 403);
+            }
+            return response()->json([
+                'status'               => $order->status,
+                'payment_status'       => $order->payment_status,
+                'notes'                => $order->notes,
+                'rider_id'             => $order->rider_id,
+                'rider_name'           => $order->rider ? $order->rider->name : null,
+                'rider_phone'          => $order->rider ? ($order->rider->phone_number ?? $order->rider->phone ?? null) : null,
+                'delivery_proof_photo' => $order->delivery_proof_photo ? asset($order->delivery_proof_photo) : null,
+            ]);
+        })->name('orders.json_status');
+
+        // Order Detail (tracking)
+        Route::get('/orders/{order}', function (Order $order) {
+            if ($order->user_id !== Auth::id() && (!Auth::user()->isAdmin())) {
+                abort(403);
+            }
+            $order->load(['orderItems.menuItem', 'rider']);
+            return view('user.orders.show', compact('order'));
+        })->name('orders.show');
+    });
+
+    // Legacy user.* aliases for backwards compatibility
+    Route::prefix('user')->name('user.')->group(function () {
+        Route::post('/orders', fn(\Illuminate\Http\Request $r) => redirect()->route('customer.orders.store'))->name('orders.store');
+        Route::get('/orders', fn() => redirect()->route('customer.orders.index'))->name('orders.index');
+        Route::get('/orders/{order}/json-status', fn(Order $order) => redirect()->route('customer.orders.json_status', $order))->name('orders.json_status');
+        Route::get('/orders/{order}', fn(Order $order) => redirect()->route('customer.orders.show', $order))->name('orders.show');
+    });
 });
 
 
@@ -258,7 +276,12 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::resource('menuItems', MenuItemController::class)->except(['create', 'show', 'edit']);
     Route::resource('orders', OrderController::class)->except(['create', 'show', 'edit']);
     Route::resource('orderItems', OrderItemController::class)->except(['create', 'show', 'edit']);
-    Route::resource('users', UserController::class)->only(['index']);
+    // Admin Customer Routes (Ban/Unban status management only)
+    Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
+    Route::post('/customers/{customer}/toggle-status', [CustomerController::class, 'toggleStatus'])->name('customers.toggle-status');
+    Route::get('/users', function () {
+        return redirect()->route('admin.customers.index');
+    })->name('users.index');
 });
 
 /*

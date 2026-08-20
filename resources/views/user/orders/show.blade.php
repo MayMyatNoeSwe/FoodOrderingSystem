@@ -77,7 +77,7 @@
     </script>
 </head>
 <body class="font-sans antialiased bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 selection:bg-orange-500 selection:text-white"
-    x-data="initOrderTracker({{ json_encode($order->status) }}, {{ json_encode($order->payment_status) }}, {{ json_encode($order->notes ?? '') }}, {{ json_encode($order->rider ? $order->rider->name : null) }}, {{ json_encode($order->rider ? ($order->rider->phone_number ?? $order->rider->phone ?? null) : null) }}, {{ json_encode($order->delivery_proof_photo ? asset($order->delivery_proof_photo) : null) }}, '{{ route('user.orders.json_status', $order) }}')">
+    x-data="initOrderTracker({{ json_encode($order->status) }}, {{ json_encode($order->payment_status) }}, {{ json_encode($order->notes ?? '') }}, {{ json_encode($order->rider ? $order->rider->name : null) }}, {{ json_encode($order->rider ? ($order->rider->phone_number ?? $order->rider->phone ?? null) : null) }}, {{ json_encode($order->delivery_proof_photo ? asset($order->delivery_proof_photo) : null) }}, '{{ route('customer.orders.json_status', $order) }}')">
 
     <!-- ===== NAVBAR ===== -->
     <x-storefront-navbar />
@@ -387,7 +387,7 @@
             <a href="/" class="w-full sm:w-auto px-8 py-3.5 bg-orange-500 hover:bg-orange-600 text-white font-black text-sm rounded-2xl shadow-lg shadow-orange-500/25 transition-all text-center">
                 ← Back to Menu
             </a>
-            <a href="{{ route('user.orders.index') }}" class="w-full sm:w-auto px-8 py-3.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-black text-sm rounded-2xl transition-all text-center">
+            <a href="{{ route('customer.orders.index') }}" class="w-full sm:w-auto px-8 py-3.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-black text-sm rounded-2xl transition-all text-center">
                 📦 View My Orders
             </a>
         </div>

@@ -32,6 +32,7 @@ class AppServiceProvider extends ServiceProvider
                 'navOrderCount'     => Order::count(),
                 'navOrderItemCount' => OrderItem::count(),
                 'navRiderCount'     => User::where('role', 'rider')->count(),
+                'navCustomerCount'  => User::where('role', 'user')->count(),
                 'navUserCount'      => User::count(),
             ]);
         });

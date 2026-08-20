@@ -121,7 +121,7 @@
 
                             <div class="flex items-center gap-3">
                                 <span class="text-xs text-slate-400 font-medium">{{ $order->created_at->format('M d, Y • h:i A') }}</span>
-                                <a href="{{ route('user.orders.show', $order) }}"
+                                <a href="{{ route('customer.orders.show', $order) }}"
                                    class="px-3.5 py-1.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-bold text-xs rounded-xl shadow-sm shadow-orange-500/20 transition-all whitespace-nowrap">
                                     Details &rarr;
                                 </a>

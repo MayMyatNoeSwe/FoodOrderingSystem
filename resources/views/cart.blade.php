@@ -393,7 +393,7 @@
                 </div>
 
                 <!-- ===== CHECKOUT FORM ===== -->
-                <form id="checkout-form" method="POST" action="{{ route('user.orders.store') }}"
+                <form id="checkout-form" method="POST" action="{{ route('customer.orders.store') }}"
                     enctype="multipart/form-data"
                     class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6 space-y-4">
                     @csrf
