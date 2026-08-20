@@ -126,9 +126,6 @@ html[lang="my"] span[class*="py-1"] {
     padding-bottom: 0.15em;
 }
 
-/* =============================================
-   Language Switcher — Smooth Transition Motion
-   ============================================= */
 .lang-switcher-pill a {
     transition: background-color 0.25s ease, color 0.25s ease,
                 box-shadow 0.25s ease, transform 0.2s ease;
@@ -138,4 +135,137 @@ html[lang="my"] span[class*="py-1"] {
 }
 .lang-switcher-pill a.active-lang {
     transform: scale(1.05);
+}
+
+/* =============================================
+   PAGE TRANSITION
+   html gets .page-ready on load (fade-in)
+   html gets .page-leaving on navigation (fade-out)
+   ============================================= */
+html {
+    opacity: 0;
+    transition: opacity 0.28s ease;
+}
+html.page-ready {
+    opacity: 1;
+}
+html.page-leaving {
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+/* =============================================
+   SCROLL REVEAL — base state (hidden)
+   Elements with [data-reveal] start invisible.
+   The JS adds .revealed when they enter the viewport.
+   ============================================= */
+[data-reveal] {
+    opacity: 0;
+    transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+                transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: opacity, transform;
+}
+
+/* Revealed state — shared */
+[data-reveal].revealed {
+    opacity: 1;
+    transform: none !important;
+}
+
+/* Variant: fade-up (default) */
+[data-reveal="fade-up"]    { transform: translateY(28px); }
+
+/* Variant: fade-down */
+[data-reveal="fade-down"]  { transform: translateY(-28px); }
+
+/* Variant: fade-left (slide in from right) */
+[data-reveal="fade-left"]  { transform: translateX(36px); }
+
+/* Variant: fade-right (slide in from left) */
+[data-reveal="fade-right"] { transform: translateX(-36px); }
+
+/* Variant: zoom-in */
+[data-reveal="zoom-in"]    { transform: scale(0.9); }
+
+/* Variant: zoom-fade */
+[data-reveal="zoom-fade"]  { transform: scale(0.95) translateY(16px); }
+
+/* Variant: plain fade */
+[data-reveal="fade"]       { transform: none; }
+
+/* =============================================
+   STAGGER DELAYS — use data-reveal-delay="N" in ms
+   Pre-built helper delay classes for common stagger
+   ============================================= */
+.reveal-delay-75  { transition-delay: 75ms  !important; }
+.reveal-delay-100 { transition-delay: 100ms !important; }
+.reveal-delay-150 { transition-delay: 150ms !important; }
+.reveal-delay-200 { transition-delay: 200ms !important; }
+.reveal-delay-300 { transition-delay: 300ms !important; }
+.reveal-delay-400 { transition-delay: 400ms !important; }
+.reveal-delay-500 { transition-delay: 500ms !important; }
+
+/* =============================================
+   HERO — entrance animation
+   Hero children animate in on page load
+   (uses CSS animation, no JS needed)
+   ============================================= */
+@keyframes heroFadeUp {
+    from { opacity: 0; transform: translateY(32px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes heroFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+@keyframes heroSlideRight {
+    from { opacity: 0; transform: translateX(-32px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes heroSlideLeft {
+    from { opacity: 0; transform: translateX(32px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes heroZoomIn {
+    from { opacity: 0; transform: scale(0.92); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+/* Apply hero entrance classes */
+.hero-anim-fade-up {
+    animation: heroFadeUp 0.65s cubic-bezier(0.22,1,0.36,1) both;
+}
+.hero-anim-fade-in {
+    animation: heroFadeIn 0.65s ease both;
+}
+.hero-anim-slide-right {
+    animation: heroSlideRight 0.7s cubic-bezier(0.22,1,0.36,1) both;
+}
+.hero-anim-slide-left {
+    animation: heroSlideLeft 0.7s cubic-bezier(0.22,1,0.36,1) both;
+}
+.hero-anim-zoom-in {
+    animation: heroZoomIn 0.65s cubic-bezier(0.22,1,0.36,1) both;
+}
+
+/* Stagger delays for hero children */
+.hero-delay-100 { animation-delay: 0.10s; }
+.hero-delay-200 { animation-delay: 0.20s; }
+.hero-delay-300 { animation-delay: 0.30s; }
+.hero-delay-400 { animation-delay: 0.40s; }
+.hero-delay-500 { animation-delay: 0.50s; }
+.hero-delay-600 { animation-delay: 0.60s; }
+.hero-delay-700 { animation-delay: 0.70s; }
+.hero-delay-800 { animation-delay: 0.80s; }
+
+/* =============================================
+   CARD HOVER lift effect — reusable
+   ============================================= */
+.card-lift {
+    transition: transform 0.25s cubic-bezier(0.22,1,0.36,1),
+                box-shadow 0.25s cubic-bezier(0.22,1,0.36,1);
+}
+.card-lift:hover {
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 0 20px 40px -12px rgba(0,0,0,0.12);
 }

@@ -92,7 +92,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                     
                     <!-- Stat 1: Today's Revenue -->
-                    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 relative overflow-hidden group hover:border-slate-300 hover:shadow-md transition-all shadow-sm">
+                    <div data-reveal="fade-up" data-reveal-delay="0" class="bg-white border border-slate-200/80 rounded-2xl p-5 relative overflow-hidden group hover:border-slate-300 hover:shadow-md transition-all shadow-sm">
                         <div class="flex items-center justify-between">
                             <span class="text-slate-500 text-xs font-bold uppercase tracking-wider">Today's Revenue</span>
                             <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-base border border-emerald-100">
@@ -109,7 +109,7 @@
                     </div>
 
                     <!-- Stat 2: Today's Orders -->
-                    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 relative overflow-hidden group hover:border-slate-300 hover:shadow-md transition-all shadow-sm">
+                    <div data-reveal="fade-up" data-reveal-delay="80" class="bg-white border border-slate-200/80 rounded-2xl p-5 relative overflow-hidden group hover:border-slate-300 hover:shadow-md transition-all shadow-sm">
                         <div class="flex items-center justify-between">
                             <span class="text-slate-500 text-xs font-bold uppercase tracking-wider">Today's Orders</span>
                             <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-base border border-blue-100">
@@ -123,7 +123,7 @@
                     </div>
 
                     <!-- Stat 3: Pending Orders -->
-                    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 relative overflow-hidden group hover:border-slate-300 hover:shadow-md transition-all shadow-sm">
+                    <div data-reveal="fade-up" data-reveal-delay="160" class="bg-white border border-slate-200/80 rounded-2xl p-5 relative overflow-hidden group hover:border-slate-300 hover:shadow-md transition-all shadow-sm">
                         <div class="flex items-center justify-between">
                             <span class="text-slate-500 text-xs font-bold uppercase tracking-wider">Pending Orders</span>
                             <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-base border border-amber-100">

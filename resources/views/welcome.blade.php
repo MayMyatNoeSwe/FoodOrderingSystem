@@ -190,7 +190,7 @@
                     <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
                         
                         <!-- Promo Tag with Pulse Indicator -->
-                        <div class="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-gradient-to-r from-orange-500/10 via-amber-500/10 to-orange-500/10 dark:from-orange-500/20 dark:via-amber-500/20 dark:to-orange-500/20 border border-orange-500/30 text-orange-600 dark:text-orange-400 text-xs font-extrabold tracking-wide uppercase shadow-sm hover:scale-105 transition-transform duration-300">
+                        <div class="hero-anim-fade-up hero-delay-100 inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-gradient-to-r from-orange-500/10 via-amber-500/10 to-orange-500/10 dark:from-orange-500/20 dark:via-amber-500/20 dark:to-orange-500/20 border border-orange-500/30 text-orange-600 dark:text-orange-400 text-xs font-extrabold tracking-wide uppercase shadow-sm hover:scale-105 transition-transform duration-300">
                             <span class="relative flex h-2.5 w-2.5">
                                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-500 opacity-75"></span>
                                 <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-orange-500"></span>
@@ -199,7 +199,7 @@
                         </div>
 
                         <!-- Main Headline with Gradient Display Text -->
-                        <h1 class="font-display text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.12]">
+                        <h1 class="hero-anim-fade-up hero-delay-200 font-display text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.12]">
                             {{ __('Hero Title Start') }}
                             <span class="block mt-1 bg-gradient-to-r from-orange-500 via-amber-500 to-rose-500 bg-clip-text text-transparent drop-shadow-sm">
                                 {{ __('Hero Title End') }}
@@ -207,12 +207,12 @@
                         </h1>
 
                         <!-- Subtitle -->
-                        <p class="text-slate-600 dark:text-slate-300 text-base sm:text-lg max-w-xl mx-auto lg:mx-0 font-normal leading-relaxed">
+                        <p class="hero-anim-fade-up hero-delay-300 text-slate-600 dark:text-slate-300 text-base sm:text-lg max-w-xl mx-auto lg:mx-0 font-normal leading-relaxed">
                             {{ __('Hero Description') }}
                         </p>
 
                         <!-- Search Bar Component (Floating Glass Console) -->
-                        <div class="glass-card p-2 sm:p-2.5 rounded-2xl sm:rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-slate-950/60 border border-slate-200/80 dark:border-slate-800/90 flex flex-col sm:flex-row items-center gap-2 max-w-2xl mx-auto lg:mx-0 transition-all duration-300 focus-within:ring-4 focus-within:ring-orange-500/20 focus-within:border-orange-400">
+                        <div class="hero-anim-fade-up hero-delay-400 glass-card p-2 sm:p-2.5 rounded-2xl sm:rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-slate-950/60 border border-slate-200/80 dark:border-slate-800/90 flex flex-col sm:flex-row items-center gap-2 max-w-2xl mx-auto lg:mx-0 transition-all duration-300 focus-within:ring-4 focus-within:ring-orange-500/20 focus-within:border-orange-400">
                             <div class="flex items-center gap-3 w-full px-3.5 py-2">
                                 <div class="w-8 h-8 rounded-xl bg-orange-500/10 dark:bg-orange-500/20 flex items-center justify-center shrink-0 text-orange-500">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -308,7 +308,7 @@
         </section>
 
         <!-- ================= CATEGORIES SECTION ================= -->
-        <section id="categories" class="py-10 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md border-y border-slate-200/60 dark:border-slate-800/80 transition-colors duration-300 scroll-mt-20">
+        <section id="categories" class="py-10 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md border-y border-slate-200/60 dark:border-slate-800/80 transition-colors duration-300 scroll-mt-20" data-reveal="fade-up">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
                 <div class="flex items-center justify-between gap-4 mb-6">
@@ -383,7 +383,7 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 
                 <!-- Section Header -->
-                <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+                <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4" data-reveal="fade-up">
                     <div>
                         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-orange-500/10 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 text-xs font-black tracking-widest uppercase mb-2">
                             <span>🔥</span>
@@ -426,6 +426,7 @@
                              x-transition:enter="transition ease-out duration-300"
                              x-transition:enter-start="opacity-0 transform scale-95"
                              x-transition:enter-end="opacity-100 transform scale-100"
+                             data-reveal="zoom-fade" data-reveal-delay="{{ ($loop->index % 4) * 80 }}"
                              class="group relative flex flex-col justify-between rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/90 shadow-sm hover:shadow-2xl hover:shadow-orange-500/10 hover:border-orange-300/80 dark:hover:border-orange-500/40 hover:-translate-y-1.5 transition-all duration-300 overflow-hidden">
                             
                             <div>
@@ -543,7 +544,7 @@
 
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 
-                <div class="text-center max-w-2xl mx-auto mb-14">
+                <div class="text-center max-w-2xl mx-auto mb-14" data-reveal="fade-up">
                     <h2 class="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
                         {{ __('Why FoodOrder?') }}
                     </h2>
@@ -552,7 +553,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
                     
                     <!-- Feature Card 1 -->
-                    <div class="group relative p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-2xl hover:shadow-orange-500/10 hover:border-orange-300 dark:hover:border-orange-700/60 hover:-translate-y-1.5 transition-all duration-300 text-center flex flex-col items-center">
+                    <div data-reveal="fade-up" data-reveal-delay="0" class="group relative p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-2xl hover:shadow-orange-500/10 hover:border-orange-300 dark:hover:border-orange-700/60 hover:-translate-y-1.5 transition-all duration-300 text-center flex flex-col items-center">
                         <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-400 text-white flex items-center justify-center text-3xl mb-6 shadow-lg shadow-orange-500/30 group-hover:scale-110 transition-transform duration-300">
                             📱
                         </div>
@@ -561,7 +562,7 @@
                     </div>
 
                     <!-- Feature Card 2 -->
-                    <div class="group relative p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-2xl hover:shadow-orange-500/10 hover:border-orange-300 dark:hover:border-orange-700/60 hover:-translate-y-1.5 transition-all duration-300 text-center flex flex-col items-center">
+                    <div data-reveal="fade-up" data-reveal-delay="130" class="group relative p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-2xl hover:shadow-orange-500/10 hover:border-orange-300 dark:hover:border-orange-700/60 hover:-translate-y-1.5 transition-all duration-300 text-center flex flex-col items-center">
                         <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white flex items-center justify-center text-3xl mb-6 shadow-lg shadow-amber-500/30 group-hover:scale-110 transition-transform duration-300">
                             🚚
                         </div>
@@ -570,7 +571,7 @@
                     </div>
 
                     <!-- Feature Card 3 -->
-                    <div class="group relative p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-2xl hover:shadow-orange-500/10 hover:border-orange-300 dark:hover:border-orange-700/60 hover:-translate-y-1.5 transition-all duration-300 text-center flex flex-col items-center">
+                    <div data-reveal="fade-up" data-reveal-delay="260" class="group relative p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-2xl hover:shadow-orange-500/10 hover:border-orange-300 dark:hover:border-orange-700/60 hover:-translate-y-1.5 transition-all duration-300 text-center flex flex-col items-center">
                         <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-rose-500 to-orange-500 text-white flex items-center justify-center text-3xl mb-6 shadow-lg shadow-rose-500/30 group-hover:scale-110 transition-transform duration-300">
                             💳
                         </div>
@@ -591,7 +592,7 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8 lg:gap-12 mb-12">
                 
                 <!-- Col 1: Brand -->
-                <div class="space-y-4">
+                <div class="space-y-4" data-reveal="fade-up" data-reveal-delay="0">
                     <a href="/" class="flex items-center gap-2.5 group">
                         <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-500 flex items-center justify-center text-white text-lg shadow-lg shadow-orange-500/30 group-hover:scale-105 transition-transform">
                             🍕

@@ -85,10 +85,7 @@
             @endforeach
         </nav>
 
-        <!-- Language Switcher in Admin Sidebar -->
-        <div class="pt-2">
-            <x-language-switcher variant="sidebar" />
-        </div>
+
     </div>
 
     <!-- Admin Profile Quick Footer -->
@@ -170,10 +167,7 @@
             @endforeach
         </nav>
 
-        <!-- Mobile Language Switcher -->
-        <div>
-            <x-language-switcher variant="sidebar" />
-        </div>
+
     </div>
 
     <div class="border-t border-slate-100 pt-4 flex items-center justify-between">
