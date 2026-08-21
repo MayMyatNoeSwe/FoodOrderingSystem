@@ -167,7 +167,15 @@ Route::middleware('auth')->group(function () {
             $order->load(['orderItems.menuItem', 'rider']);
             return view('user.orders.show', compact('order'));
         })->name('orders.show');
+
+        // Order Real-Time Chat Message Endpoints (Customer named route)
+        Route::get('/orders/{order}/messages', [\App\Http\Controllers\OrderMessageController::class, 'index'])->name('orders.messages.index');
+        Route::post('/orders/{order}/messages', [\App\Http\Controllers\OrderMessageController::class, 'store'])->name('orders.messages.store');
     });
+
+    // Global Order Chat Endpoints for Authenticated Riders, Customers, Admins
+    Route::get('/orders/{order}/messages', [\App\Http\Controllers\OrderMessageController::class, 'index'])->name('orders.messages.index');
+    Route::post('/orders/{order}/messages', [\App\Http\Controllers\OrderMessageController::class, 'store'])->name('orders.messages.store');
 
     // Legacy user.* aliases for backwards compatibility
     Route::prefix('user')->name('user.')->group(function () {

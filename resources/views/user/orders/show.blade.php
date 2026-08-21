@@ -19,7 +19,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <!-- Order Tracker JS -->
     <script>
-        window.initOrderTracker = function(initialStatus, initialPaymentStatus, initialNotes, initialRiderName, initialRiderPhone, initialDeliveryProofPhoto, jsonUrl) {
+        window.initOrderTracker = function(initialStatus, initialPaymentStatus, initialNotes, initialRiderName, initialRiderPhone, initialDeliveryProofPhoto, jsonUrl, messagesUrl) {
             return {
                 imgModal: false,
                 imgSrc: '',
@@ -32,6 +32,14 @@
                 currentDeliveryProofPhoto: initialDeliveryProofPhoto,
                 justApproved: false,
                 darkMode: localStorage.getItem('foodorder_theme') === 'dark',
+                
+                // Live Chat State
+                messages: [],
+                chatInput: '',
+                isSendingChat: false,
+                messagesUrl: messagesUrl,
+                lastMessageCount: 0,
+
                 toggleTheme: function() {
                     this.darkMode = !this.darkMode;
                     if (this.darkMode) {
@@ -42,10 +50,73 @@
                         localStorage.setItem('foodorder_theme', 'light');
                     }
                 },
+
+                scrollToChatBottom: function() {
+                    this.$nextTick(() => {
+                        const container = document.getElementById('chat-messages-container');
+                        if (container) {
+                            container.scrollTop = container.scrollHeight;
+                        }
+                    });
+                },
+
+                fetchMessages: function() {
+                    const self = this;
+                    fetch(this.messagesUrl)
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data && data.messages) {
+                                const hadNewMessages = data.messages.length > self.lastMessageCount;
+                                self.messages = data.messages;
+                                self.lastMessageCount = data.messages.length;
+                                if (hadNewMessages) {
+                                    self.scrollToChatBottom();
+                                }
+                            }
+                        })
+                        .catch(() => {});
+                },
+
+                sendChatMessage: function(presetText) {
+                    const text = presetText || this.chatInput;
+                    if (!text || text.trim() === '' || this.isSendingChat) return;
+
+                    this.isSendingChat = true;
+                    const self = this;
+
+                    fetch(this.messagesUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').getAttribute('content')
+                        },
+                        body: JSON.stringify({ message: text.trim() })
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data && data.success && data.message) {
+                            self.messages.push(data.message);
+                            self.lastMessageCount = self.messages.length;
+                            if (!presetText) {
+                                self.chatInput = '';
+                            }
+                            self.scrollToChatBottom();
+                        }
+                    })
+                    .catch(() => {})
+                    .finally(() => {
+                        self.isSendingChat = false;
+                    });
+                },
+
                 init: function() {
                     var self = this;
                     localStorage.removeItem('foodorder_cart');
+                    self.fetchMessages();
+
                     setInterval(function() {
+                        // Poll order status
                         fetch(jsonUrl)
                             .then(function(res) { return res.json(); })
                             .then(function(data) {
@@ -70,14 +141,17 @@
                                 }
                             })
                             .catch(function() {});
-                    }, 3000);
+
+                        // Poll chat messages
+                        self.fetchMessages();
+                    }, 2500);
                 }
             };
         };
     </script>
 </head>
 <body class="font-sans antialiased bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 selection:bg-orange-500 selection:text-white"
-    x-data="initOrderTracker({{ json_encode($order->status) }}, {{ json_encode($order->payment_status) }}, {{ json_encode($order->notes ?? '') }}, {{ json_encode($order->rider ? $order->rider->name : null) }}, {{ json_encode($order->rider ? ($order->rider->phone_number ?? $order->rider->phone ?? null) : null) }}, {{ json_encode($order->delivery_proof_photo ? asset($order->delivery_proof_photo) : null) }}, '{{ route('customer.orders.json_status', $order) }}')">
+    x-data="initOrderTracker({{ json_encode($order->status) }}, {{ json_encode($order->payment_status) }}, {{ json_encode($order->notes ?? '') }}, {{ json_encode($order->rider ? $order->rider->name : null) }}, {{ json_encode($order->rider ? ($order->rider->phone_number ?? $order->rider->phone ?? null) : null) }}, {{ json_encode($order->delivery_proof_photo ? asset($order->delivery_proof_photo) : null) }}, '{{ route('customer.orders.json_status', $order) }}', '{{ route('orders.messages.index', $order) }}')">
 
     <!-- ===== NAVBAR ===== -->
     <x-storefront-navbar />
@@ -130,11 +204,16 @@
                     <p class="text-xs text-orange-100 mt-0.5">Your rider has accepted this order and is heading to the kitchen for pickup!</p>
                 </div>
             </div>
-            <template x-if="currentRiderPhone">
-                <a :href="'tel:' + currentRiderPhone" class="shrink-0 px-4 py-2 bg-white text-orange-600 font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 hover:bg-orange-50 transition-colors">
-                    <span>📞 Call Rider</span>
-                </a>
-            </template>
+            <div class="flex items-center gap-2 shrink-0">
+                <button type="button" @click="document.getElementById('order-chat-section')?.scrollIntoView({behavior: 'smooth'})" class="px-4 py-2 bg-slate-900/25 hover:bg-slate-900/40 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 transition-colors cursor-pointer border border-white/20">
+                    <span>💬 Message Rider</span>
+                </button>
+                <template x-if="currentRiderPhone">
+                    <a :href="'tel:' + currentRiderPhone" class="px-4 py-2 bg-white text-orange-600 font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 hover:bg-orange-50 transition-colors">
+                        <span>📞 Call Rider</span>
+                    </a>
+                </template>
+            </div>
         </div>
 
         <!-- 4. DISPATCHED / DELIVERING BANNER -->
@@ -148,11 +227,16 @@
                     <p class="text-xs text-purple-100 mt-0.5" x-text="currentRiderName ? 'Rider ' + currentRiderName + ' is heading to your address.' : 'Our delivery rider is heading to your location.'"></p>
                 </div>
             </div>
-            <template x-if="currentRiderPhone">
-                <a :href="'tel:' + currentRiderPhone" class="shrink-0 px-4 py-2 bg-white text-purple-700 font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 hover:bg-purple-50 transition-colors">
-                    <span>📞 Call Rider</span>
-                </a>
-            </template>
+            <div class="flex items-center gap-2 shrink-0">
+                <button type="button" @click="document.getElementById('order-chat-section')?.scrollIntoView({behavior: 'smooth'})" class="px-4 py-2 bg-white/20 hover:bg-white/30 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 transition-colors cursor-pointer border border-white/30">
+                    <span>💬 Message Rider</span>
+                </button>
+                <template x-if="currentRiderPhone">
+                    <a :href="'tel:' + currentRiderPhone" class="px-4 py-2 bg-white text-purple-700 font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 hover:bg-purple-50 transition-colors">
+                        <span>📞 Call Rider</span>
+                    </a>
+                </template>
+            </div>
         </div>
 
         <!-- 5. COMPLETED BANNER -->
@@ -305,6 +389,126 @@
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- ===== LIVE ORDER CHAT WITH RIDER ===== -->
+        <div id="order-chat-section" class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 sm:p-8 mb-8 transition-colors">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5 mb-5">
+                <div class="flex items-center gap-3.5">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center text-2xl shadow-lg shadow-purple-500/20 shrink-0">
+                        💬
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h2 class="text-lg font-black text-slate-900 dark:text-white">Message Your Rider</h2>
+                            <span class="px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-700 text-emerald-600 dark:text-emerald-400 font-bold text-[10px] flex items-center gap-1.5 shadow-sm">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                <span>Live Chat</span>
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                            Direct communication with <strong class="text-slate-800 dark:text-slate-200" x-text="currentRiderName || 'Delivery Rider'"></strong> for special instructions & updates
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Call Button if phone is available -->
+                <template x-if="currentRiderPhone">
+                    <a :href="'tel:' + currentRiderPhone" 
+                       class="px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:hover:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 font-bold text-xs rounded-xl transition-all flex items-center gap-2 self-start sm:self-auto cursor-pointer">
+                        <span>📞</span>
+                        <span>Call <span x-text="currentRiderName || 'Rider'"></span></span>
+                    </a>
+                </template>
+            </div>
+
+            <!-- Quick Preset Reply Chips for Customer -->
+            <div class="mb-4">
+                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Quick Messages (1-Tap):</p>
+                <div class="flex flex-wrap gap-2">
+                    <button type="button" @click="sendChatMessage('👋 Hello, I am waiting for the delivery!')" class="px-3 py-1.5 bg-slate-100 hover:bg-orange-100 dark:bg-slate-800 dark:hover:bg-orange-950/50 text-slate-700 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 border border-slate-200 dark:border-slate-700 text-xs font-semibold rounded-xl transition-all cursor-pointer active:scale-95">
+                        👋 Waiting for delivery
+                    </button>
+                    <button type="button" @click="sendChatMessage('🚪 Please leave the package at my door / gate.')" class="px-3 py-1.5 bg-slate-100 hover:bg-orange-100 dark:bg-slate-800 dark:hover:bg-orange-950/50 text-slate-700 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 border border-slate-200 dark:border-slate-700 text-xs font-semibold rounded-xl transition-all cursor-pointer active:scale-95">
+                        🚪 Leave at door / gate
+                    </button>
+                    <button type="button" @click="sendChatMessage('⏳ Hi! How long until you arrive?')" class="px-3 py-1.5 bg-slate-100 hover:bg-orange-100 dark:bg-slate-800 dark:hover:bg-orange-950/50 text-slate-700 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 border border-slate-200 dark:border-slate-700 text-xs font-semibold rounded-xl transition-all cursor-pointer active:scale-95">
+                        ⏳ How long until arrival?
+                    </button>
+                    <button type="button" @click="sendChatMessage('📞 Please give me a call when you arrive downstairs.')" class="px-3 py-1.5 bg-slate-100 hover:bg-orange-100 dark:bg-slate-800 dark:hover:bg-orange-950/50 text-slate-700 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 border border-slate-200 dark:border-slate-700 text-xs font-semibold rounded-xl transition-all cursor-pointer active:scale-95">
+                        📞 Call when you arrive
+                    </button>
+                </div>
+            </div>
+
+            <!-- Scrollable Message Feed -->
+            <div id="chat-messages-container" 
+                 class="h-72 sm:h-80 overflow-y-auto p-4 sm:p-5 bg-slate-50/80 dark:bg-slate-950/70 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 space-y-3.5 flex flex-col mb-4">
+                
+                <!-- Welcome / Empty Banner -->
+                <template x-if="messages.length === 0">
+                    <div class="m-auto text-center py-8 px-4 space-y-2">
+                        <div class="w-12 h-12 rounded-2xl bg-orange-500/10 text-orange-500 flex items-center justify-center mx-auto text-2xl">
+                            💬
+                        </div>
+                        <h4 class="font-bold text-slate-800 dark:text-slate-200 text-sm">Direct Message Channel</h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+                            Send instructions, delivery tips, or questions directly to your assigned rider. Messages update in real time.
+                        </p>
+                    </div>
+                </template>
+
+                <!-- Message Bubbles -->
+                <template x-for="msg in messages" :key="msg.id">
+                    <div class="flex flex-col" :class="msg.is_me ? 'items-end' : 'items-start'">
+                        
+                        <!-- Sender Label & Role Badge -->
+                        <div class="flex items-center gap-1.5 mb-1 px-1 text-[11px] text-slate-400">
+                            <span class="font-bold text-slate-600 dark:text-slate-300" x-text="msg.is_me ? 'You' : msg.sender_name"></span>
+                            <span class="px-1.5 py-0.5 rounded text-[9px] font-black uppercase"
+                                  :class="{
+                                      'bg-purple-500/20 text-purple-600 dark:text-purple-300': msg.sender_role === 'rider',
+                                      'bg-orange-500/20 text-orange-600 dark:text-orange-300': msg.sender_role === 'customer',
+                                      'bg-blue-500/20 text-blue-600 dark:text-blue-300': msg.sender_role === 'admin'
+                                  }"
+                                  x-text="msg.sender_role">
+                            </span>
+                            <span class="text-[10px] text-slate-400" x-text="msg.time_formatted"></span>
+                        </div>
+
+                        <!-- Bubble Box -->
+                        <div class="max-w-[85%] sm:max-w-[75%] px-4 py-2.5 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-sm break-words"
+                             :class="msg.is_me 
+                                 ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-tr-sm font-medium shadow-orange-500/10' 
+                                 : (msg.sender_role === 'rider' 
+                                     ? 'bg-purple-600 text-white rounded-tl-sm font-medium shadow-purple-600/10' 
+                                     : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-tl-sm')">
+                            <p x-text="msg.message"></p>
+                        </div>
+
+                    </div>
+                </template>
+            </div>
+
+            <!-- Chat Input Bar -->
+            <form @submit.prevent="sendChatMessage()" class="flex items-center gap-2">
+                <input type="text" 
+                       x-model="chatInput" 
+                       placeholder="Write a message to your rider..."
+                       :disabled="isSendingChat"
+                       class="flex-1 px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs sm:text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all">
+                
+                <button type="submit" 
+                        :disabled="isSendingChat || !chatInput.trim()"
+                        class="px-5 py-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-xs sm:text-sm rounded-2xl shadow-lg shadow-orange-500/25 transition-all flex items-center gap-2 cursor-pointer shrink-0">
+                    <span x-show="!isSendingChat">Send</span>
+                    <span x-show="isSendingChat" class="animate-spin">⏳</span>
+                    <svg x-show="!isSendingChat" class="w-4 h-4 rotate-45 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                    </svg>
+                </button>
+            </form>
+
         </div>
 
         <!-- Items Table Card -->

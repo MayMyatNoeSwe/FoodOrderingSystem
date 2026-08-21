@@ -20,8 +20,99 @@
                 openOrdersCount: {{ $availableOrders->count() }},
                 proofModalOpen: false,
                 proofModalSrc: '',
+                
+                // Chat State
+                chatModalOpen: false,
+                activeChatOrderId: null,
+                activeChatOrderNumber: '',
+                activeChatCustomerName: '',
+                activeChatCustomerPhone: '',
+                activeChatDeliveryAddress: '',
+                chatMessages: [],
+                chatInput: '',
+                isSendingChat: false,
+                lastMessageCount: 0,
+
+                openChatModal: function(orderId, orderNum, customerName, customerPhone, deliveryAddress) {
+                    this.activeChatOrderId = orderId;
+                    this.activeChatOrderNumber = orderNum;
+                    this.activeChatCustomerName = customerName;
+                    this.activeChatCustomerPhone = customerPhone;
+                    this.activeChatDeliveryAddress = deliveryAddress;
+                    this.chatMessages = [];
+                    this.lastMessageCount = 0;
+                    this.chatInput = '';
+                    this.chatModalOpen = true;
+                    this.fetchChatMessages();
+                },
+
+                closeChatModal: function() {
+                    this.chatModalOpen = false;
+                    this.activeChatOrderId = null;
+                },
+
+                scrollChatToBottom: function() {
+                    this.$nextTick(() => {
+                        const container = document.getElementById('rider-chat-messages-container');
+                        if (container) {
+                            container.scrollTop = container.scrollHeight;
+                        }
+                    });
+                },
+
+                fetchChatMessages: function() {
+                    if (!this.activeChatOrderId) return;
+                    const self = this;
+                    fetch('/orders/' + this.activeChatOrderId + '/messages')
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data && data.messages) {
+                                const hadNewMessages = data.messages.length > self.lastMessageCount;
+                                self.chatMessages = data.messages;
+                                self.lastMessageCount = data.messages.length;
+                                if (hadNewMessages) {
+                                    self.scrollChatToBottom();
+                                }
+                            }
+                        })
+                        .catch(() => {});
+                },
+
+                sendChatMessage: function(presetText) {
+                    const text = presetText || this.chatInput;
+                    if (!text || text.trim() === '' || !this.activeChatOrderId || this.isSendingChat) return;
+
+                    this.isSendingChat = true;
+                    const self = this;
+
+                    fetch('/orders/' + this.activeChatOrderId + '/messages', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').getAttribute('content')
+                        },
+                        body: JSON.stringify({ message: text.trim() })
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data && data.success && data.message) {
+                            self.chatMessages.push(data.message);
+                            self.lastMessageCount = self.chatMessages.length;
+                            if (!presetText) {
+                                self.chatInput = '';
+                            }
+                            self.scrollChatToBottom();
+                        }
+                    })
+                    .catch(() => {})
+                    .finally(() => {
+                        self.isSendingChat = false;
+                    });
+                },
+
                 init: function() {
-                    // Auto-poll for new unassigned orders every 4 seconds
+                    // Auto-poll for new unassigned orders & chat messages
                     var self = this;
                     setInterval(function() {
                         fetch('{{ route('admin.orders.json_list') }}')
@@ -38,7 +129,11 @@
                                 }
                             })
                             .catch(function() {});
-                    }, 4000);
+
+                        if (self.chatModalOpen && self.activeChatOrderId) {
+                            self.fetchChatMessages();
+                        }
+                    }, 2500);
                 }
             };
         };
@@ -261,12 +356,19 @@
                             <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">👤 Customer Details</p>
                             <p class="font-bold text-white text-sm">{{ $order->user->name ?? 'Guest Customer' }}</p>
                             
-                            @if($order->delivery_phone)
-                                <a href="tel:{{ $order->delivery_phone }}" 
-                                   class="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-400 font-bold rounded-xl text-xs transition-colors cursor-pointer">
-                                    <span>📞 Call: {{ $order->delivery_phone }}</span>
-                                </a>
-                            @endif
+                            <div class="flex flex-wrap items-center gap-2 pt-1">
+                                <button type="button" 
+                                        @click="openChatModal({{ $order->id }}, '#{{ $order->order_number }}', '{{ addslashes($order->user->name ?? 'Customer') }}', '{{ addslashes($order->delivery_phone ?? '') }}', '{{ addslashes($order->delivery_address ?? '') }}')"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold rounded-xl text-xs shadow-md shadow-purple-500/20 transition-all cursor-pointer">
+                                    <span>💬 Chat</span>
+                                </button>
+                                @if($order->delivery_phone)
+                                    <a href="tel:{{ $order->delivery_phone }}" 
+                                       class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-400 font-bold rounded-xl text-xs transition-colors cursor-pointer">
+                                        <span>📞 Call</span>
+                                    </a>
+                                @endif
+                            </div>
                         </div>
 
                         <!-- Delivery Address -->
@@ -436,6 +538,142 @@
                 <button @click="proofModalOpen = false" class="w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white font-bold flex items-center justify-center cursor-pointer">✕</button>
             </div>
             <img :src="proofModalSrc" alt="Delivery Proof" class="w-full h-auto rounded-2xl border border-slate-800 max-h-[70vh] object-contain mx-auto">
+        </div>
+    </div>
+
+    <!-- Rider Live Chat Modal -->
+    <div x-show="chatModalOpen" 
+         x-cloak
+         class="fixed inset-0 z-50 overflow-y-auto"
+         aria-labelledby="modal-title" role="dialog" aria-modal="true" style="display: none;">
+        
+        <div class="flex items-center justify-center min-h-screen p-4 text-center sm:p-0">
+            <div x-show="chatModalOpen"
+                 x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity"
+                 @click="closeChatModal()"></div>
+
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div x-show="chatModalOpen"
+                 x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 class="align-bottom bg-slate-900 rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-slate-800 flex flex-col max-h-[85vh]">
+                
+                <!-- Chat Modal Header -->
+                <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between bg-slate-900/90 shrink-0">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white text-lg font-black shadow-md">
+                            💬
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-black text-white text-sm" x-text="activeChatCustomerName"></h3>
+                                <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-[10px]" x-text="activeChatOrderNumber"></span>
+                            </div>
+                            <p class="text-[11px] text-slate-400 truncate max-w-[240px]" x-text="activeChatDeliveryAddress"></p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <template x-if="activeChatCustomerPhone">
+                            <a :href="'tel:' + activeChatCustomerPhone" 
+                               class="p-2 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 rounded-xl transition-colors text-xs font-bold flex items-center gap-1">
+                                <span>📞</span>
+                            </a>
+                        </template>
+                        <button type="button" @click="closeChatModal()" class="w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white font-bold flex items-center justify-center cursor-pointer">
+                            ✕
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quick Presets for Rider on the move -->
+                <div class="px-4 py-2.5 bg-slate-950/70 border-b border-slate-800/80 overflow-x-auto shrink-0">
+                    <div class="flex items-center gap-1.5 min-w-max text-[11px]">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase mr-1">Quick:</span>
+                        <button type="button" @click="sendChatMessage('🛵 I have picked up your order and I am on the way!')" class="px-2.5 py-1 bg-slate-800 hover:bg-purple-900/40 text-slate-300 hover:text-purple-300 rounded-lg border border-slate-700 font-medium transition-all cursor-pointer">
+                            🛵 On the way!
+                        </button>
+                        <button type="button" @click="sendChatMessage('📍 I have arrived downstairs at your building / gate.')" class="px-2.5 py-1 bg-slate-800 hover:bg-purple-900/40 text-slate-300 hover:text-purple-300 rounded-lg border border-slate-700 font-medium transition-all cursor-pointer">
+                            📍 Arrived downstairs
+                        </button>
+                        <button type="button" @click="sendChatMessage('⏳ Slight traffic delay, arriving in approx 5 mins.')" class="px-2.5 py-1 bg-slate-800 hover:bg-purple-900/40 text-slate-300 hover:text-purple-300 rounded-lg border border-slate-700 font-medium transition-all cursor-pointer">
+                            ⏳ 5 mins away
+                        </button>
+                        <button type="button" @click="sendChatMessage('🚪 Order delivered. Thank you!')" class="px-2.5 py-1 bg-slate-800 hover:bg-purple-900/40 text-slate-300 hover:text-purple-300 rounded-lg border border-slate-700 font-medium transition-all cursor-pointer">
+                            🚪 Delivered!
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Scrollable Messages Container -->
+                <div id="rider-chat-messages-container" class="p-4 sm:p-5 flex-1 overflow-y-auto space-y-3 bg-slate-950/90 text-xs min-h-[220px]">
+                    <template x-if="chatMessages.length === 0">
+                        <div class="text-center py-10 text-slate-500 space-y-1">
+                            <p class="text-sm font-bold text-slate-400">No Messages Yet</p>
+                            <p class="text-[11px]">Send a quick update to the customer about their delivery status.</p>
+                        </div>
+                    </template>
+
+                    <template x-for="msg in chatMessages" :key="msg.id">
+                        <div class="flex flex-col" :class="msg.is_me ? 'items-end' : 'items-start'">
+                            
+                            <div class="flex items-center gap-1.5 mb-1 px-1 text-[10px] text-slate-500">
+                                <span class="font-bold text-slate-300" x-text="msg.is_me ? 'You (Rider)' : msg.sender_name"></span>
+                                <span class="px-1 py-0.2 rounded text-[8px] font-black uppercase"
+                                      :class="{
+                                          'bg-purple-500/20 text-purple-300': msg.sender_role === 'rider',
+                                          'bg-orange-500/20 text-orange-300': msg.sender_role === 'customer',
+                                          'bg-blue-500/20 text-blue-300': msg.sender_role === 'admin'
+                                      }"
+                                      x-text="msg.sender_role">
+                                </span>
+                                <span x-text="msg.time_formatted"></span>
+                            </div>
+
+                            <div class="max-w-[85%] px-3.5 py-2 rounded-2xl text-xs leading-relaxed shadow-sm break-words"
+                                 :class="msg.is_me 
+                                     ? 'bg-purple-600 text-white rounded-tr-sm font-medium' 
+                                     : (msg.sender_role === 'customer' 
+                                         ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-tl-sm font-medium' 
+                                         : 'bg-slate-800 text-slate-200 border border-slate-700 rounded-tl-sm')">
+                                <p x-text="msg.message"></p>
+                            </div>
+
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Input Footer -->
+                <form @submit.prevent="sendChatMessage()" class="p-3 bg-slate-900 border-t border-slate-800 flex items-center gap-2 shrink-0">
+                    <input type="text" 
+                           x-model="chatInput" 
+                           placeholder="Type a message to customer..."
+                           :disabled="isSendingChat"
+                           class="flex-1 px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                    
+                    <button type="submit" 
+                            :disabled="isSendingChat || !chatInput.trim()"
+                            class="px-4 py-2.5 bg-purple-600 hover:bg-purple-500 active:scale-95 disabled:opacity-50 text-white font-bold text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shrink-0">
+                        <span x-show="!isSendingChat">Send</span>
+                        <span x-show="isSendingChat" class="animate-spin">⏳</span>
+                        <svg x-show="!isSendingChat" class="w-3.5 h-3.5 rotate-45 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                        </svg>
+                    </button>
+                </form>
+
+            </div>
         </div>
     </div>
 
