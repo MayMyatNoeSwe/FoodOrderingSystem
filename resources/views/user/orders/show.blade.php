@@ -41,6 +41,7 @@
                 messagesUrl: messagesUrl,
                 lastMessageCount: 0,
                 isInitialLoad: true,
+                chatBoxOpen: false,
 
                 toggleTheme: function() {
                     this.darkMode = !this.darkMode;
@@ -50,6 +51,21 @@
                     } else {
                         document.documentElement.classList.remove('dark');
                         localStorage.setItem('foodorder_theme', 'light');
+                    }
+                },
+
+                toggleChatBox: function(forceState) {
+                    if (forceState !== undefined) {
+                        this.chatBoxOpen = forceState;
+                    } else {
+                        this.chatBoxOpen = !this.chatBoxOpen;
+                    }
+                    if (this.chatBoxOpen) {
+                        this.scrollToChatBottom();
+                        this.$nextTick(() => {
+                            document.getElementById('order-chat-section')?.scrollIntoView({behavior: 'smooth', block: 'nearest'});
+                            document.getElementById('customer-chat-input')?.focus();
+                        });
                     }
                 },
 
@@ -90,12 +106,15 @@
                                                     didOpen: (toast) => {
                                                         toast.onmouseenter = Swal.stopTimer;
                                                         toast.onmouseleave = Swal.resumeTimer;
+                                                        toast.addEventListener('click', () => {
+                                                            self.toggleChatBox(true);
+                                                        });
                                                     }
                                                 });
 
                                                 Toast.fire({
                                                     icon: 'info',
-                                                    title: `💬 New message from ${latest.sender_name}:`,
+                                                    title: `💬 New message from ${latest.sender_name} (Click to open):`,
                                                     text: latest.message,
                                                     background: self.darkMode ? '#0f172a' : '#ffffff',
                                                     color: self.darkMode ? '#f8fafc' : '#0f172a'
@@ -238,7 +257,7 @@
                 </div>
             </div>
             <div class="flex items-center gap-2 shrink-0">
-                <button type="button" @click="document.getElementById('order-chat-section')?.scrollIntoView({behavior: 'smooth'})" class="px-4 py-2 bg-slate-900/25 hover:bg-slate-900/40 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 transition-colors cursor-pointer border border-white/20">
+                <button type="button" @click="toggleChatBox(true)" class="px-4 py-2 bg-slate-900/25 hover:bg-slate-900/40 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 transition-colors cursor-pointer border border-white/20">
                     <span>💬 Message Rider</span>
                 </button>
                 <template x-if="currentRiderPhone">
@@ -261,7 +280,7 @@
                 </div>
             </div>
             <div class="flex items-center gap-2 shrink-0">
-                <button type="button" @click="document.getElementById('order-chat-section')?.scrollIntoView({behavior: 'smooth'})" class="px-4 py-2 bg-white/20 hover:bg-white/30 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 transition-colors cursor-pointer border border-white/30">
+                <button type="button" @click="toggleChatBox(true)" class="px-4 py-2 bg-white/20 hover:bg-white/30 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 transition-colors cursor-pointer border border-white/30">
                     <span>💬 Message Rider</span>
                 </button>
                 <template x-if="currentRiderPhone">
@@ -372,6 +391,18 @@
                     <div x-show="!currentRiderName">
                         <p class="text-xs text-slate-500 dark:text-slate-400 italic">Waiting for pickup...</p>
                     </div>
+
+                    <!-- Direct Chat Shortcut Button -->
+                    <div class="mt-2.5 flex items-center gap-2">
+                        <button type="button" @click="toggleChatBox(true)" 
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold rounded-xl text-xs shadow-sm transition-all cursor-pointer active:scale-95">
+                            <span>💬 View Rider Chat</span>
+                            <template x-if="messages.length > 0">
+                                <span class="px-1.5 py-0.2 rounded-full bg-white text-purple-700 text-[10px] font-black" x-text="messages.length"></span>
+                            </template>
+                        </button>
+                    </div>
+
                     <div class="mt-3 pt-2 border-t border-slate-200/60 dark:border-slate-700/60 text-xs text-slate-600 dark:text-slate-400">
                         <span class="font-bold text-slate-500">Notes: </span>
                         <span x-text="currentNotes && currentNotes.trim() !== '' ? currentNotes : 'None'"></span>
@@ -380,123 +411,178 @@
             </div>
         </div>
 
-        <!-- ===== LIVE ORDER CHAT WITH RIDER ===== -->
-        <div id="order-chat-section" class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 sm:p-8 mb-8 transition-colors">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5 mb-5">
+        <!-- ===== LIVE ORDER CHAT & HISTORY (Always accessible, read-only when completed) ===== -->
+        <div id="order-chat-section" 
+             class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm p-5 sm:p-7 mb-8 transition-colors">
+            
+            <!-- Interactive Header (Click to Open / Close) -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer select-none"
+                 :class="{ 'border-b border-slate-100 dark:border-slate-800 pb-5 mb-5': chatBoxOpen }"
+                 @click="toggleChatBox()">
+                
                 <div class="flex items-center gap-3.5">
                     <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center text-2xl shadow-lg shadow-purple-500/20 shrink-0">
                         💬
                     </div>
                     <div>
                         <div class="flex items-center gap-2">
-                            <h2 class="text-lg font-black text-slate-900 dark:text-white">Message Your Rider</h2>
-                            <span class="px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-700 text-emerald-600 dark:text-emerald-400 font-bold text-[10px] flex items-center gap-1.5 shadow-sm">
-                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                <span>Live Chat</span>
-                            </span>
+                            <h2 class="text-lg font-black text-slate-900 dark:text-white">
+                                <span x-show="currentStatus !== 'completed' && currentStatus !== 'cancelled'">Message Your Rider</span>
+                                <span x-show="currentStatus === 'completed' || currentStatus === 'cancelled'">Rider Chat History</span>
+                            </h2>
+                            
+                            <!-- Live status indicator vs Archived badge -->
+                            <template x-if="currentStatus !== 'completed' && currentStatus !== 'cancelled'">
+                                <span class="px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-700 text-emerald-600 dark:text-emerald-400 font-bold text-[10px] flex items-center gap-1.5 shadow-sm">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                    <span>Live Chat</span>
+                                </span>
+                            </template>
+                            <template x-if="currentStatus === 'completed'">
+                                <span class="px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-700 text-blue-600 dark:text-blue-400 font-bold text-[10px] flex items-center gap-1 shadow-sm">
+                                    <span>✓ Delivered (Chat Archived)</span>
+                                </span>
+                            </template>
+
+                            <template x-if="messages.length > 0">
+                                <span class="px-2 py-0.5 rounded-full bg-orange-100 dark:bg-orange-950/80 text-orange-600 dark:text-orange-400 font-bold text-[10px]" x-text="messages.length + ' msgs'"></span>
+                            </template>
                         </div>
                         <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                            Direct communication with <strong class="text-slate-800 dark:text-slate-200" x-text="currentRiderName || 'Delivery Rider'"></strong> for special instructions & updates
+                            Direct communication with <strong class="text-slate-800 dark:text-slate-200" x-text="currentRiderName || 'Delivery Rider'"></strong> • <span x-text="chatBoxOpen ? 'Tap to minimize' : 'Tap to open chat box'"></span>
                         </p>
                     </div>
                 </div>
 
-                <!-- Call Button if phone is available -->
-                <template x-if="currentRiderPhone">
-                    <a :href="'tel:' + currentRiderPhone" 
-                       class="px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:hover:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 font-bold text-xs rounded-xl transition-all flex items-center gap-2 self-start sm:self-auto cursor-pointer">
-                        <span>📞</span>
-                        <span>Call <span x-text="currentRiderName || 'Rider'"></span></span>
-                    </a>
-                </template>
-            </div>
+                <!-- Right Controls: Call Rider + Toggle Open/Close Button -->
+                <div class="flex items-center gap-2.5 self-start sm:self-auto" @click.stop>
+                    <template x-if="currentRiderPhone">
+                        <a :href="'tel:' + currentRiderPhone" 
+                           class="px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:hover:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 font-bold text-xs rounded-xl transition-all flex items-center gap-2 cursor-pointer">
+                            <span>📞</span>
+                            <span>Call <span x-text="currentRiderName || 'Rider'"></span></span>
+                        </a>
+                    </template>
 
-            <!-- Quick Preset Reply Chips for Customer -->
-            <div class="mb-4">
-                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Quick Messages (1-Tap):</p>
-                <div class="flex flex-wrap gap-2">
-                    <button type="button" @click="sendChatMessage('👋 Hello, I am waiting for the delivery!')" class="px-3 py-1.5 bg-slate-100 hover:bg-orange-100 dark:bg-slate-800 dark:hover:bg-orange-950/50 text-slate-700 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 border border-slate-200 dark:border-slate-700 text-xs font-semibold rounded-xl transition-all cursor-pointer active:scale-95">
-                        👋 Waiting for delivery
-                    </button>
-                    <button type="button" @click="sendChatMessage('🚪 Please leave the package at my door / gate.')" class="px-3 py-1.5 bg-slate-100 hover:bg-orange-100 dark:bg-slate-800 dark:hover:bg-orange-950/50 text-slate-700 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 border border-slate-200 dark:border-slate-700 text-xs font-semibold rounded-xl transition-all cursor-pointer active:scale-95">
-                        🚪 Leave at door / gate
-                    </button>
-                    <button type="button" @click="sendChatMessage('⏳ Hi! How long until you arrive?')" class="px-3 py-1.5 bg-slate-100 hover:bg-orange-100 dark:bg-slate-800 dark:hover:bg-orange-950/50 text-slate-700 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 border border-slate-200 dark:border-slate-700 text-xs font-semibold rounded-xl transition-all cursor-pointer active:scale-95">
-                        ⏳ How long until arrival?
-                    </button>
-                    <button type="button" @click="sendChatMessage('📞 Please give me a call when you arrive downstairs.')" class="px-3 py-1.5 bg-slate-100 hover:bg-orange-100 dark:bg-slate-800 dark:hover:bg-orange-950/50 text-slate-700 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 border border-slate-200 dark:border-slate-700 text-xs font-semibold rounded-xl transition-all cursor-pointer active:scale-95">
-                        📞 Call when you arrive
+                    <button type="button" 
+                            @click="toggleChatBox()" 
+                            class="px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
+                            :class="chatBoxOpen 
+                                ? 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700' 
+                                : 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-orange-500/25 hover:from-orange-600 hover:to-amber-600 active:scale-95'">
+                        <span x-text="chatBoxOpen ? '▲ Minimize' : '💬 Open Chat'"></span>
                     </button>
                 </div>
             </div>
 
-            <!-- Scrollable Message Feed -->
-            <div id="chat-messages-container" 
-                 class="h-72 sm:h-80 overflow-y-auto p-4 sm:p-5 bg-slate-50/80 dark:bg-slate-950/70 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 space-y-3.5 flex flex-col mb-4">
+            <!-- Collapsible Chat Box Body (Expands when clicked) -->
+            <div x-show="chatBoxOpen" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2" style="display: none;">
                 
-                <!-- Welcome / Empty Banner -->
-                <template x-if="messages.length === 0">
-                    <div class="m-auto text-center py-8 px-4 space-y-2">
-                        <div class="w-12 h-12 rounded-2xl bg-orange-500/10 text-orange-500 flex items-center justify-center mx-auto text-2xl">
-                            💬
-                        </div>
-                        <h4 class="font-bold text-slate-800 dark:text-slate-200 text-sm">Direct Message Channel</h4>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
-                            Send instructions, delivery tips, or questions directly to your assigned rider. Messages update in real time.
-                        </p>
+                <!-- Quick Preset Reply Chips (Active when delivery in progress) -->
+                <div x-show="currentStatus !== 'completed' && currentStatus !== 'cancelled'" class="mb-4">
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Quick Messages (1-Tap):</p>
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" @click="sendChatMessage('👋 Hello, I am waiting for the delivery!')" class="px-3 py-1.5 bg-slate-100 hover:bg-orange-100 dark:bg-slate-800 dark:hover:bg-orange-950/50 text-slate-700 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 border border-slate-200 dark:border-slate-700 text-xs font-semibold rounded-xl transition-all cursor-pointer active:scale-95">
+                            👋 Waiting for delivery
+                        </button>
+                        <button type="button" @click="sendChatMessage('🚪 Please leave the package at my door / gate.')" class="px-3 py-1.5 bg-slate-100 hover:bg-orange-100 dark:bg-slate-800 dark:hover:bg-orange-950/50 text-slate-700 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 border border-slate-200 dark:border-slate-700 text-xs font-semibold rounded-xl transition-all cursor-pointer active:scale-95">
+                            🚪 Leave at door / gate
+                        </button>
+                        <button type="button" @click="sendChatMessage('⏳ Hi! How long until you arrive?')" class="px-3 py-1.5 bg-slate-100 hover:bg-orange-100 dark:bg-slate-800 dark:hover:bg-orange-950/50 text-slate-700 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 border border-slate-200 dark:border-slate-700 text-xs font-semibold rounded-xl transition-all cursor-pointer active:scale-95">
+                            ⏳ How long until arrival?
+                        </button>
+                        <button type="button" @click="sendChatMessage('📞 Please give me a call when you arrive downstairs.')" class="px-3 py-1.5 bg-slate-100 hover:bg-orange-100 dark:bg-slate-800 dark:hover:bg-orange-950/50 text-slate-700 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 border border-slate-200 dark:border-slate-700 text-xs font-semibold rounded-xl transition-all cursor-pointer active:scale-95">
+                            📞 Call when you arrive
+                        </button>
                     </div>
-                </template>
+                </div>
 
-                <!-- Message Bubbles -->
-                <template x-for="msg in messages" :key="msg.id">
-                    <div class="flex flex-col" :class="msg.is_me ? 'items-end' : 'items-start'">
+                <!-- Scrollable Message Feed -->
+                <div id="chat-messages-container" 
+                     class="h-72 sm:h-80 overflow-y-auto p-4 sm:p-5 bg-slate-50/80 dark:bg-slate-950/70 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 space-y-3.5 flex flex-col mb-4">
+                    
+                    <!-- Welcome / Empty Banner -->
+                    <template x-if="messages.length === 0">
+                        <div class="m-auto text-center py-8 px-4 space-y-2">
+                            <div class="w-12 h-12 rounded-2xl bg-orange-500/10 text-orange-500 flex items-center justify-center mx-auto text-2xl">
+                                💬
+                            </div>
+                            <h4 class="font-bold text-slate-800 dark:text-slate-200 text-sm">
+                                <span x-show="currentStatus !== 'completed' && currentStatus !== 'cancelled'">Direct Message Channel</span>
+                                <span x-show="currentStatus === 'completed' || currentStatus === 'cancelled'">No Messages Recorded</span>
+                            </h4>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+                                <span x-show="currentStatus !== 'completed' && currentStatus !== 'cancelled'">Send instructions, delivery tips, or questions directly to your assigned rider. Messages update in real time.</span>
+                                <span x-show="currentStatus === 'completed' || currentStatus === 'cancelled'">No conversation was recorded for this order.</span>
+                            </p>
+                        </div>
+                    </template>
+
+                    <!-- Message Bubbles -->
+                    <template x-for="msg in messages" :key="msg.id">
+                        <div class="flex flex-col" :class="msg.is_me ? 'items-end' : 'items-start'">
+                            
+                            <!-- Sender Label & Role Badge -->
+                            <div class="flex items-center gap-1.5 mb-1 px-1 text-[11px] text-slate-400">
+                                <span class="font-bold text-slate-600 dark:text-slate-300" x-text="msg.is_me ? 'You' : msg.sender_name"></span>
+                                <span class="px-1.5 py-0.5 rounded text-[9px] font-black uppercase"
+                                      :class="{
+                                          'bg-purple-500/20 text-purple-600 dark:text-purple-300': msg.sender_role === 'rider',
+                                          'bg-orange-500/20 text-orange-600 dark:text-orange-300': msg.sender_role === 'customer',
+                                          'bg-blue-500/20 text-blue-600 dark:text-blue-300': msg.sender_role === 'admin'
+                                      }"
+                                      x-text="msg.sender_role">
+                                </span>
+                                <span class="text-[10px] text-slate-400" x-text="msg.time_formatted"></span>
+                            </div>
+
+                            <!-- Bubble Box -->
+                            <div class="max-w-[85%] sm:max-w-[75%] px-4 py-2.5 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-sm break-words"
+                                 :class="msg.is_me 
+                                     ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-tr-sm font-medium shadow-orange-500/10' 
+                                     : (msg.sender_role === 'rider' 
+                                         ? 'bg-purple-600 text-white rounded-tl-sm font-medium shadow-purple-600/10' 
+                                         : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-tl-sm')">
+                                <p x-text="msg.message"></p>
+                            </div>
+
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Chat Input Bar (Active during delivery) -->
+                <div x-show="currentStatus !== 'completed' && currentStatus !== 'cancelled'">
+                    <form @submit.prevent="sendChatMessage()" class="flex items-center gap-2">
+                        <input type="text" 
+                               id="customer-chat-input"
+                               x-model="chatInput" 
+                               placeholder="Write a message to your rider..."
+                               :disabled="isSendingChat"
+                               class="flex-1 px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs sm:text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all">
                         
-                        <!-- Sender Label & Role Badge -->
-                        <div class="flex items-center gap-1.5 mb-1 px-1 text-[11px] text-slate-400">
-                            <span class="font-bold text-slate-600 dark:text-slate-300" x-text="msg.is_me ? 'You' : msg.sender_name"></span>
-                            <span class="px-1.5 py-0.5 rounded text-[9px] font-black uppercase"
-                                  :class="{
-                                      'bg-purple-500/20 text-purple-600 dark:text-purple-300': msg.sender_role === 'rider',
-                                      'bg-orange-500/20 text-orange-600 dark:text-orange-300': msg.sender_role === 'customer',
-                                      'bg-blue-500/20 text-blue-600 dark:text-blue-300': msg.sender_role === 'admin'
-                                  }"
-                                  x-text="msg.sender_role">
-                            </span>
-                            <span class="text-[10px] text-slate-400" x-text="msg.time_formatted"></span>
-                        </div>
+                        <button type="submit" 
+                                :disabled="isSendingChat || !chatInput.trim()"
+                                class="px-5 py-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-xs sm:text-sm rounded-2xl shadow-lg shadow-orange-500/25 transition-all flex items-center gap-2 cursor-pointer shrink-0">
+                            <span x-show="!isSendingChat">Send</span>
+                            <span x-show="isSendingChat" class="animate-spin">⏳</span>
+                            <svg x-show="!isSendingChat" class="w-4 h-4 rotate-45 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
 
-                        <!-- Bubble Box -->
-                        <div class="max-w-[85%] sm:max-w-[75%] px-4 py-2.5 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-sm break-words"
-                             :class="msg.is_me 
-                                 ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-tr-sm font-medium shadow-orange-500/10' 
-                                 : (msg.sender_role === 'rider' 
-                                     ? 'bg-purple-600 text-white rounded-tl-sm font-medium shadow-purple-600/10' 
-                                     : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-tl-sm')">
-                            <p x-text="msg.message"></p>
-                        </div>
-
+                <!-- Completed / Archived Chat Notice -->
+                <div x-show="currentStatus === 'completed' || currentStatus === 'cancelled'" 
+                     class="p-4 bg-slate-100 dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-600 dark:text-slate-300">
+                    <div class="flex items-center gap-2 font-medium">
+                        <span class="text-base">🔒</span>
+                        <span>This order has been completed & delivered. Chat session is archived for your records.</span>
                     </div>
-                </template>
-            </div>
+                    <span class="font-bold text-emerald-600 dark:text-emerald-400 self-start sm:self-auto shrink-0">✓ Delivery Completed</span>
+                </div>
 
-            <!-- Chat Input Bar -->
-            <form @submit.prevent="sendChatMessage()" class="flex items-center gap-2">
-                <input type="text" 
-                       x-model="chatInput" 
-                       placeholder="Write a message to your rider..."
-                       :disabled="isSendingChat"
-                       class="flex-1 px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs sm:text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all">
-                
-                <button type="submit" 
-                        :disabled="isSendingChat || !chatInput.trim()"
-                        class="px-5 py-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-xs sm:text-sm rounded-2xl shadow-lg shadow-orange-500/25 transition-all flex items-center gap-2 cursor-pointer shrink-0">
-                    <span x-show="!isSendingChat">Send</span>
-                    <span x-show="isSendingChat" class="animate-spin">⏳</span>
-                    <svg x-show="!isSendingChat" class="w-4 h-4 rotate-45 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
-                    </svg>
-                </button>
-            </form>
+            </div>
 
         </div>
 
@@ -586,6 +672,21 @@
         </div>
 
     </main>
+
+    <!-- Floating Chat Launcher Button (Active during delivery) -->
+    <div x-show="currentStatus !== 'completed' && currentStatus !== 'cancelled'" 
+         x-transition 
+         class="fixed bottom-6 right-6 z-40">
+        <button type="button" 
+                @click="toggleChatBox(true)"
+                class="flex items-center gap-2.5 px-5 py-3.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 active:scale-95 text-white font-black text-xs sm:text-sm rounded-full shadow-2xl shadow-orange-500/40 hover:scale-105 transition-all cursor-pointer border-2 border-white/20">
+            <span class="text-base animate-bounce">💬</span>
+            <span>Message Rider</span>
+            <template x-if="messages.length > 0">
+                <span class="px-2 py-0.5 rounded-full bg-white text-orange-600 text-[10px] font-black" x-text="messages.length"></span>
+            </template>
+        </button>
+    </div>
 
     <!-- Screenshot & Proof Modal -->
     <div x-show="imgModal" x-transition class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4" style="display:none;">

@@ -99,6 +99,13 @@ class OrderMessageController extends Controller
             abort(403);
         }
 
+        if ($order->status === 'completed' || $order->status === 'cancelled') {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['error' => 'This order has been completed. Chat session is closed.'], 422);
+            }
+            return back()->with('error', 'This order has been completed. Chat session is closed.');
+        }
+
         $validated = $request->validate([
             'message' => 'required|string|max:1000',
         ]);
