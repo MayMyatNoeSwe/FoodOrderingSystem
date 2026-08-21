@@ -70,7 +70,7 @@ class MenuItemController extends Controller
             'name' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
             'price' => 'required|numeric|min:0',
-            'stock' => 'required|integer|min:0',
+            'stock' => 'nullable|integer|min:0',
             'description' => 'nullable|string',
             'image' => 'nullable|string|max:500',
             'image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
@@ -86,14 +86,14 @@ class MenuItemController extends Controller
             'name' => $validated['name'],
             'category_id' => $validated['category_id'],
             'price' => $validated['price'],
-            'stock' => $validated['stock'],
+            'stock' => $request->filled('stock') ? (int)$request->input('stock') : 999,
             'description' => $validated['description'] ?? null,
             'image' => $imagePath,
             'is_available' => $request->has('is_available') ? $request->boolean('is_available') : true,
         ]);
 
         $returnUrl = $request->input('return_url') ?: url()->previous(route('admin.menuItems.index'));
-        return redirect()->to($returnUrl)->with('success', 'Menu item created successfully!');
+        return redirect()->to($returnUrl)->with('success', 'Item created successfully!');
     }
 
     /**
@@ -105,7 +105,7 @@ class MenuItemController extends Controller
             'name' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
             'price' => 'required|numeric|min:0',
-            'stock' => 'required|integer|min:0',
+            'stock' => 'nullable|integer|min:0',
             'description' => 'nullable|string',
             'image' => 'nullable|string|max:500',
             'image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
@@ -126,14 +126,14 @@ class MenuItemController extends Controller
             'name' => $validated['name'],
             'category_id' => $validated['category_id'],
             'price' => $validated['price'],
-            'stock' => $validated['stock'],
+            'stock' => $request->filled('stock') ? (int)$request->input('stock') : ($menuItem->stock ?? 999),
             'description' => $validated['description'] ?? null,
             'image' => $imagePath,
             'is_available' => $request->has('is_available') ? $request->boolean('is_available') : false,
         ]);
 
         $returnUrl = $request->input('return_url') ?: url()->previous(route('admin.menuItems.index'));
-        return redirect()->to($returnUrl)->with('success', 'Menu item updated successfully!');
+        return redirect()->to($returnUrl)->with('success', 'Item updated successfully!');
     }
 
     /**
@@ -148,6 +148,6 @@ class MenuItemController extends Controller
         MenuItem::destroy($menuItem->id);
 
         $returnUrl = $request->input('return_url') ?: url()->previous(route('admin.menuItems.index'));
-        return redirect()->to($returnUrl)->with('success', 'Menu item deleted successfully!');
+        return redirect()->to($returnUrl)->with('success', 'Item deleted successfully!');
     }
 }

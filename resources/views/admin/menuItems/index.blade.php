@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>Menu Items - {{ config('app.name', 'Food Ordering System') }}</title>
+    <title>Items - {{ config('app.name', 'Food Ordering System') }}</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -118,12 +118,12 @@
 
                     <div>
                         <h1 class="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
-                            <span>Menu Items Catalog</span>
+                            <span>Items Catalog</span>
                             <span class="hidden sm:inline-flex bg-orange-50 text-orange-600 border border-orange-200 text-xs font-bold px-2.5 py-0.5 rounded-full">
                                 {{ $menuItems->total() }} Dishes & Drinks
                             </span>
                         </h1>
-                        <p class="text-xs text-slate-500 hidden sm:block">Manage menu offerings, prices, availability, and descriptions</p>
+                        <p class="text-xs text-slate-500 hidden sm:block">Manage items, prices, availability, and descriptions</p>
                     </div>
                 </div>
 
@@ -180,10 +180,10 @@
                 <!-- Overview Stat Metric Cards -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                     
-                    <!-- Metric Card 1: Total Menu Items -->
+                    <!-- Metric Card 1: Total Items -->
                     <a href="{{ route('admin.menuItems.index') }}" class="bg-white border border-slate-200/80 rounded-2xl p-5 relative overflow-hidden group hover:border-orange-300 hover:shadow-md transition-all shadow-sm block">
                         <div class="flex items-center justify-between">
-                            <span class="text-slate-500 text-xs font-bold uppercase tracking-wider">Total Menu Items</span>
+                            <span class="text-slate-500 text-xs font-bold uppercase tracking-wider">Total Items</span>
                             <div class="w-9 h-9 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center font-bold text-base border border-orange-100">
                                 🍕
                             </div>
@@ -295,18 +295,18 @@
                                 </div>
                             </form>
 
-                            <!-- Add Menu Item Trigger Button -->
+                            <!-- Add Item Trigger Button -->
                             <button @click="createModalOpen = true" 
                                     class="px-4 py-2.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-orange-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                                 </svg>
-                                <span>Add Menu Item</span>
+                                <span>Add Item</span>
                             </button>
                         </div>
                     </div>
 
-                    <!-- Menu Items Table -->
+                    <!-- Items Table -->
                     <div class="overflow-x-auto rounded-xl border border-slate-200">
                         <table class="w-full text-left text-xs">
                             <thead class="bg-slate-50 text-slate-600 font-bold uppercase tracking-wider border-b border-slate-200">
@@ -315,7 +315,6 @@
                                     <th class="px-4 py-3.5">Name & Description</th>
                                     <th class="px-4 py-3.5">Category</th>
                                     <th class="px-4 py-3.5">Price</th>
-                                    <th class="px-4 py-3.5">Stock</th>
                                     <th class="px-4 py-3.5">Status</th>
                                     <th class="px-4 py-3.5 text-right">Actions</th>
                                 </tr>
@@ -366,23 +365,6 @@
                                             {{ number_format($item->price) }} MMK
                                         </td>
 
-                                        <!-- Stock -->
-                                        <td class="px-4 py-4 font-bold text-xs whitespace-nowrap">
-                                            @if($item->stock > 10)
-                                                <span class="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg border border-slate-200 font-mono">
-                                                    📦 {{ number_format($item->stock) }} left
-                                                </span>
-                                            @elseif($item->stock > 0)
-                                                <span class="px-2.5 py-1 bg-amber-50 text-amber-700 rounded-lg border border-amber-200 font-mono font-bold">
-                                                    ⚠️ {{ number_format($item->stock) }} left
-                                                </span>
-                                            @else
-                                                <span class="px-2.5 py-1 bg-red-50 text-red-700 rounded-lg border border-red-200 font-mono font-bold">
-                                                    🚫 0 left
-                                                </span>
-                                            @endif
-                                        </td>
-
                                         <!-- Availability Status -->
                                         <td class="px-4 py-4 whitespace-nowrap">
                                             @if($item->is_available)
@@ -425,10 +407,10 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="px-4 py-12 text-center text-slate-500">
+                                        <td colspan="6" class="px-4 py-12 text-center text-slate-500">
                                             <div class="max-w-xs mx-auto space-y-3">
                                                 <div class="text-3xl">🍕</div>
-                                                <div class="font-bold text-slate-800 text-sm">No Menu Items Found</div>
+                                                <div class="font-bold text-slate-800 text-sm">No Items Found</div>
                                                 <p class="text-xs text-slate-500">
                                                     @if($search || $categoryId || $stockStatus)
                                                         No dish matching your current filter. Try clearing filters.
@@ -439,7 +421,7 @@
                                                 @if($search || $categoryId || $stockStatus)
                                                     <a href="{{ route('admin.menuItems.index') }}" class="inline-block px-4 py-2 bg-slate-100 text-slate-700 text-xs font-bold rounded-xl border border-slate-200 hover:bg-slate-200">Clear Filters</a>
                                                 @else
-                                                    <button @click="createModalOpen = true" class="inline-block px-4 py-2 bg-orange-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-orange-500/20">Add First Menu Item</button>
+                                                    <button @click="createModalOpen = true" class="inline-block px-4 py-2 bg-orange-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-orange-500/20">Add First Item</button>
                                                 @endif
                                             </div>
                                         </td>
@@ -484,7 +466,7 @@
                         ➕
                     </div>
                     <div>
-                        <h3 class="text-lg font-black text-slate-900">Add New Menu Item</h3>
+                        <h3 class="text-lg font-black text-slate-900">Add New Item</h3>
                         <p class="text-slate-500 text-xs">Create a new dish or drink offering</p>
                     </div>
                 </div>
@@ -508,8 +490,8 @@
                            class="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:bg-white text-slate-900 text-sm rounded-xl px-4 py-3 focus:ring-0 transition-all placeholder-slate-400">
                 </div>
 
-                <!-- Category, Price & Stock -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <!-- Category & Price -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
                             Category <span class="text-orange-500">*</span>
@@ -534,19 +516,6 @@
                                min="0" 
                                required 
                                placeholder="15000" 
-                               class="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:bg-white text-slate-900 text-sm rounded-xl px-4 py-3 focus:ring-0 transition-all placeholder-slate-400">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
-                            Stock Total <span class="text-orange-500">*</span>
-                        </label>
-                        <input type="number" 
-                               name="stock" 
-                               min="0" 
-                               value="50" 
-                               required 
-                               placeholder="50" 
                                class="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:bg-white text-slate-900 text-sm rounded-xl px-4 py-3 focus:ring-0 transition-all placeholder-slate-400">
                     </div>
                 </div>
@@ -622,7 +591,7 @@
         </div>
     </div>
 
-    <!-- ================= EDIT MENU ITEM MODAL ================= -->
+    <!-- ================= EDIT ITEM MODAL ================= -->
     <div x-show="editModalOpen" 
          x-cloak
          x-transition:enter="transition ease-out duration-200"
@@ -643,8 +612,8 @@
                         ✏️
                     </div>
                     <div>
-                        <h3 class="text-lg font-black text-slate-900">Edit Menu Item</h3>
-                        <p class="text-slate-500 text-xs">Update dish details, price, or stock status</p>
+                        <h3 class="text-lg font-black text-slate-900">Edit Item</h3>
+                        <p class="text-slate-500 text-xs">Update dish details, price, or availability</p>
                     </div>
                 </div>
                 <button @click="editModalOpen = false" class="text-slate-400 hover:text-slate-700 p-1 text-lg font-bold">✕</button>
@@ -671,8 +640,8 @@
                            class="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:bg-white text-slate-900 text-sm rounded-xl px-4 py-3 focus:ring-0 transition-all">
                 </div>
 
-                <!-- Category, Price & Stock -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <!-- Category & Price -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
                             Category <span class="text-orange-500">*</span>
@@ -697,18 +666,6 @@
                                step="1" 
                                min="0" 
                                x-model="editItemPrice" 
-                               required 
-                               class="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:bg-white text-slate-900 text-sm rounded-xl px-4 py-3 focus:ring-0 transition-all">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
-                            Stock Total <span class="text-orange-500">*</span>
-                        </label>
-                        <input type="number" 
-                               name="stock" 
-                               min="0" 
-                               x-model="editItemStock" 
                                required 
                                class="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:bg-white text-slate-900 text-sm rounded-xl px-4 py-3 focus:ring-0 transition-all">
                     </div>
