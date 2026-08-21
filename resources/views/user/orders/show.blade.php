@@ -662,12 +662,16 @@
         </div>
 
         <!-- Action Buttons -->
-        <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a href="/" class="w-full sm:w-auto px-8 py-3.5 bg-orange-500 hover:bg-orange-600 text-white font-black text-sm rounded-2xl shadow-lg shadow-orange-500/25 transition-all text-center">
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+            <a href="/" class="w-full sm:w-auto px-6 py-3.5 bg-orange-500 hover:bg-orange-600 text-white font-black text-sm rounded-2xl shadow-lg shadow-orange-500/25 transition-all text-center">
                 ← Back to Menu
             </a>
-            <a href="{{ route('customer.orders.index') }}" class="w-full sm:w-auto px-8 py-3.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-black text-sm rounded-2xl transition-all text-center">
+            <a href="{{ route('customer.orders.index') }}" class="w-full sm:w-auto px-6 py-3.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-black text-sm rounded-2xl transition-all text-center">
                 📦 View My Orders
+            </a>
+            <a href="{{ route('customer.complaints.create', ['order_id' => $order->id]) }}" class="w-full sm:w-auto px-6 py-3.5 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/40 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-800/80 font-black text-sm rounded-2xl transition-all text-center shadow-sm flex items-center justify-center gap-2">
+                <span>🚨</span>
+                <span>Report Issue to Admin</span>
             </a>
         </div>
 

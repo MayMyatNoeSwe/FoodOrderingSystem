@@ -55,6 +55,14 @@ class Order extends Model
     }
 
     /**
+     * Complaints filed for this order.
+     */
+    public function complaints(): HasMany
+    {
+        return $this->hasMany(Complaint::class);
+    }
+
+    /**
      * The "booted" method of the model.
      */
     protected static function booted(): void

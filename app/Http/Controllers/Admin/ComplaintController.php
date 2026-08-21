@@ -1,0 +1,125 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Complaint;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+
+class ComplaintController extends Controller
+{
+    /**
+     * Display a listing of all customer complaints with filtering.
+     */
+    public function index(Request $request)
+    {
+        $query = Complaint::with(['user', 'order', 'resolver'])->latest();
+
+        // Filter by Status
+        if ($request->filled('status') && $request->status !== 'all') {
+            $query->where('status', $request->status);
+        }
+
+        // Filter by Category
+        if ($request->filled('category') && $request->category !== 'all') {
+            $query->where('category', $request->category);
+        }
+
+        // Filter by Priority
+        if ($request->filled('priority') && $request->priority !== 'all') {
+            $query->where('priority', $request->priority);
+        }
+
+        // Search Query (Ticket #, subject, customer name, email, order #)
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $query->where(function ($q) use ($search) {
+                $q->where('ticket_number', 'like', "%{$search}%")
+                  ->orWhere('subject', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhereHas('user', function ($uq) use ($search) {
+                      $uq->where('name', 'like', "%{$search}%")
+                         ->orWhere('email', 'like', "%{$search}%")
+                         ->orWhere('phone', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('order', function ($oq) use ($search) {
+                      $oq->where('order_number', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $complaints = $query->paginate(15)->withQueryString();
+
+        $stats = [
+            'total'     => Complaint::count(),
+            'pending'   => Complaint::where('status', 'pending')->count(),
+            'in_review' => Complaint::where('status', 'in_review')->count(),
+            'resolved'  => Complaint::where('status', 'resolved')->count(),
+            'rejected'  => Complaint::where('status', 'rejected')->count(),
+        ];
+
+        return view('admin.complaints.index', compact('complaints', 'stats'));
+    }
+
+    /**
+     * Display investigation & resolution console for a complaint.
+     */
+    public function show(Complaint $complaint)
+    {
+        $complaint->load([
+            'user',
+            'order.orderItems.menuItem',
+            'order.rider',
+            'resolver'
+        ]);
+
+        return view('admin.complaints.show', compact('complaint'));
+    }
+
+    /**
+     * Update the status and admin resolution response.
+     */
+    public function update(Request $request, Complaint $complaint)
+    {
+        $validated = $request->validate([
+            'status'         => 'required|string|in:pending,in_review,resolved,rejected',
+            'admin_response' => 'nullable|string|max:4000',
+        ]);
+
+        $statusChanged = $complaint->status !== $validated['status'];
+
+        $complaint->status = $validated['status'];
+        $complaint->admin_response = $validated['admin_response'] ? trim($validated['admin_response']) : null;
+
+        if (in_array($validated['status'], ['resolved', 'rejected'])) {
+            $complaint->resolved_by = Auth::id();
+            $complaint->resolved_at = now();
+        } elseif ($validated['status'] === 'pending') {
+            $complaint->resolved_by = null;
+            $complaint->resolved_at = null;
+        }
+
+        $complaint->save();
+
+        return redirect()->route('admin.complaints.show', $complaint)
+            ->with('success', "Complaint #{$complaint->ticket_number} has been updated successfully.");
+    }
+
+    /**
+     * Remove the specified complaint from storage.
+     */
+    public function destroy(Complaint $complaint)
+    {
+        if ($complaint->attachment_photo && Storage::disk('public')->exists($complaint->attachment_photo)) {
+            Storage::disk('public')->delete($complaint->attachment_photo);
+        }
+
+        $ticket = $complaint->ticket_number;
+        $complaint->delete();
+
+        return redirect()->route('admin.complaints.index')
+            ->with('success', "Complaint ticket #{$ticket} has been deleted.");
+    }
+}

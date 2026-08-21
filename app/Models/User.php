@@ -100,4 +100,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(Order::class, 'rider_id');
     }
+
+    /**
+     * Get complaints submitted by the user.
+     */
+    public function complaints(): HasMany
+    {
+        return $this->hasMany(Complaint::class);
+    }
 }

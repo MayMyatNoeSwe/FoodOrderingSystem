@@ -127,6 +127,10 @@ class="sticky top-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md borde
                                     ⚙️ {{ __('Profile Settings') }}
                                 </a>
 
+                                <a href="{{ route('customer.help') }}" class="block px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-orange-50 dark:hover:bg-slate-800 hover:text-orange-600 transition-colors">
+                                    🆘 {{ __('Help & Complaints') }}
+                                </a>
+
                                 @if(Auth::user()->isRider())
                                     <a href="{{ route('rider.dashboard') }}" class="block px-4 py-2 text-xs font-semibold text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-slate-800 transition-colors">
                                         🛵 {{ __('Rider Delivery Portal') }}

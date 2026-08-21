@@ -171,7 +171,16 @@ Route::middleware('auth')->group(function () {
         // Order Real-Time Chat Message Endpoints (Customer named route)
         Route::get('/orders/{order}/messages', [\App\Http\Controllers\OrderMessageController::class, 'index'])->name('orders.messages.index');
         Route::post('/orders/{order}/messages', [\App\Http\Controllers\OrderMessageController::class, 'store'])->name('orders.messages.store');
+
+        // Customer Help & Complaints System
+        Route::get('/help', [\App\Http\Controllers\Customer\ComplaintController::class, 'index'])->name('help');
+        Route::resource('complaints', \App\Http\Controllers\Customer\ComplaintController::class)->only(['index', 'create', 'store', 'show']);
     });
+
+    // Public Help redirect for authenticated users
+    Route::get('/help', function () {
+        return redirect()->route('customer.help');
+    })->name('help');
 
     // Global Order Chat Endpoints for Authenticated Riders, Customers, Admins
     Route::get('/orders/{order}/messages', [\App\Http\Controllers\OrderMessageController::class, 'index'])->name('orders.messages.index');
@@ -290,6 +299,9 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/users', function () {
         return redirect()->route('admin.customers.index');
     })->name('users.index');
+
+    // Admin Customer Complaints Management Routes
+    Route::resource('complaints', \App\Http\Controllers\Admin\ComplaintController::class)->only(['index', 'show', 'update', 'destroy']);
 });
 
 /*
