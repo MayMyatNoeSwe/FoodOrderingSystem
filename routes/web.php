@@ -212,7 +212,6 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         $pendingOrdersCount = Order::whereIn('status', ['pending', 'preparing'])->count();
         $activeOrdersCount = Order::whereIn('status', ['pending', 'preparing', 'delivering', 'confirmed'])->count();
         $recentOrders = Order::with(['user', 'orderItems.menuItem'])->latest()->take(20)->get();
-        $menuItemsQuickControl = MenuItem::with('category')->orderBy('name', 'asc')->get();
 
         return view('admin.dashboard.index', compact(
             'todaysRevenue',
@@ -220,8 +219,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             'pendingOrdersCount',
             'cancellationRate',
             'activeOrdersCount',
-            'recentOrders',
-            'menuItemsQuickControl'
+            'recentOrders'
         ));
     })->name('dashboard');
 
@@ -248,12 +246,14 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         return back()->with('success', "Order #{$order->order_number} Rejected ({$reason}) ❌");
     })->name('orders.reject');
 
-    // Quick Action Endpoint: Toggle Stock Availability Switch
-    Route::post('/menuItems/{menuItem}/toggle-stock', function (MenuItem $menuItem) {
-        $menuItem->update(['is_available' => !$menuItem->is_available]);
-        $statusText = $menuItem->is_available ? 'Available (In-Stock) ✅' : 'Out of Stock (Disabled) 🚫';
-        return back()->with('success', "Dish '{$menuItem->name}' is now marked as {$statusText}");
-    })->name('menuItems.toggle-stock');
+    // Admin Inventory Management Routes
+    Route::get('/inventory', [\App\Http\Controllers\Admin\InventoryController::class, 'index'])->name('inventory.index');
+    Route::post('/inventory/{menuItem}/toggle-stock', [\App\Http\Controllers\Admin\InventoryController::class, 'toggleStock'])->name('inventory.toggle-stock');
+    Route::post('/inventory/{menuItem}/update-stock', [\App\Http\Controllers\Admin\InventoryController::class, 'updateStock'])->name('inventory.update-stock');
+    Route::post('/inventory/bulk-restock', [\App\Http\Controllers\Admin\InventoryController::class, 'bulkRestock'])->name('inventory.bulk-restock');
+
+    // Quick Action Endpoint: Toggle Stock Availability Switch (kept for backwards compatibility)
+    Route::post('/menuItems/{menuItem}/toggle-stock', [\App\Http\Controllers\Admin\InventoryController::class, 'toggleStock'])->name('menuItems.toggle-stock');
 
     // Admin Rider Management Routes
     Route::get('/riders', [\App\Http\Controllers\Admin\RiderController::class, 'index'])->name('riders.index');

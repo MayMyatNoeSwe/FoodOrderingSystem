@@ -29,6 +29,8 @@ class AppServiceProvider extends ServiceProvider
             $view->with([
                 'navCategoryCount'  => Category::count(),
                 'navMenuItemCount'  => MenuItem::count(),
+                'navInventoryCount' => MenuItem::count(),
+                'navInventoryOutOfStockCount' => MenuItem::where('is_available', false)->orWhere('stock', '<=', 0)->count(),
                 'navOrderCount'     => Order::count(),
                 'navOrderItemCount' => OrderItem::count(),
                 'navRiderCount'     => User::where('role', 'rider')->count(),
