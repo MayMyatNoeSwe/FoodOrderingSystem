@@ -13,6 +13,7 @@
 
     <!-- Scripts & Styles -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         window.riderPortalApp = function(initialTab) {
             return {
@@ -68,10 +69,40 @@
                         .then(data => {
                             if (data && data.messages) {
                                 const hadNewMessages = data.messages.length > self.lastMessageCount;
+                                const prevCount = self.lastMessageCount;
                                 self.chatMessages = data.messages;
                                 self.lastMessageCount = data.messages.length;
                                 if (hadNewMessages) {
                                     self.scrollChatToBottom();
+
+                                    // SweetAlert Toast Alert for Rider
+                                    if (prevCount > 0) {
+                                        const newIncoming = data.messages.slice(prevCount).filter(m => !m.is_me);
+                                        if (newIncoming.length > 0) {
+                                            const latest = newIncoming[newIncoming.length - 1];
+                                            if (typeof Swal !== 'undefined') {
+                                                const Toast = Swal.mixin({
+                                                    toast: true,
+                                                    position: 'top-end',
+                                                    showConfirmButton: false,
+                                                    timer: 5000,
+                                                    timerProgressBar: true,
+                                                    didOpen: (toast) => {
+                                                        toast.onmouseenter = Swal.stopTimer;
+                                                        toast.onmouseleave = Swal.resumeTimer;
+                                                    }
+                                                });
+
+                                                Toast.fire({
+                                                    icon: 'info',
+                                                    title: `💬 ${latest.sender_name} (${self.activeChatOrderNumber}):`,
+                                                    text: latest.message,
+                                                    background: '#0f172a',
+                                                    color: '#f8fafc'
+                                                });
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         })
@@ -111,9 +142,89 @@
                     });
                 },
 
+                // Notification State
+                lastNotificationId: 0,
+                isInitialNotifLoaded: false,
+                notifiedMessageIds: [],
+
+                checkIncomingCustomerMessages: function() {
+                    const self = this;
+                    const url = '{{ route('rider.messages.notifications') }}' + (self.lastNotificationId > 0 ? '?since_id=' + self.lastNotificationId : '');
+
+                    fetch(url)
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data && data.success) {
+                                if (!self.isInitialNotifLoaded) {
+                                    self.lastNotificationId = data.latest_id || 0;
+                                    self.isInitialNotifLoaded = true;
+                                    return;
+                                }
+
+                                if (data.notifications && data.notifications.length > 0) {
+                                    data.notifications.forEach(notif => {
+                                        if (self.notifiedMessageIds.includes(notif.id)) return;
+                                        self.notifiedMessageIds.push(notif.id);
+
+                                        // If chat modal is already open for this order, just update messages
+                                        if (self.chatModalOpen && self.activeChatOrderId === notif.order_id) {
+                                            self.fetchChatMessages();
+                                            return;
+                                        }
+
+                                        // Trigger rich SweetAlert Box popup!
+                                        if (typeof Swal !== 'undefined') {
+                                            Swal.fire({
+                                                title: '💬 New Message from Customer!',
+                                                html: `
+                                                    <div style="text-align:left; background:#020617; padding:16px; border-radius:16px; border:1px solid #1e293b; margin:12px 0;">
+                                                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:12px;">
+                                                            <span style="font-weight:900; color:#f97316;">${notif.order_number}</span>
+                                                            <span style="color:#94a3b8; font-size:11px;">${notif.time_formatted}</span>
+                                                        </div>
+                                                        <div style="font-weight:bold; color:#f8fafc; font-size:14px; margin-bottom:6px;">
+                                                            👤 ${notif.customer_name}
+                                                        </div>
+                                                        <div style="background:#0f172a; padding:12px; border-radius:12px; border:1px solid #334155; color:#e2e8f0; font-size:13px; line-height:1.5;">
+                                                            "${notif.message}"
+                                                        </div>
+                                                        ${notif.customer_phone ? `<div style="margin-top:8px; font-size:11px; color:#94a3b8;">📞 Phone: <span style="color:#38bdf8; font-weight:bold;">${notif.customer_phone}</span></div>` : ''}
+                                                    </div>
+                                                `,
+                                                icon: 'info',
+                                                showCancelButton: true,
+                                                confirmButtonText: '💬 Open Chat & Reply',
+                                                cancelButtonText: 'Dismiss',
+                                                confirmButtonColor: '#9333ea',
+                                                cancelButtonColor: '#334155',
+                                                background: '#0f172a',
+                                                color: '#f8fafc',
+                                                customClass: {
+                                                    popup: 'rounded-3xl border border-slate-800 shadow-2xl'
+                                                }
+                                            }).then((result) => {
+                                                if (result.isConfirmed) {
+                                                    self.openChatModal(notif.order_id, notif.order_number, notif.customer_name, notif.customer_phone, notif.delivery_address);
+                                                }
+                                            });
+                                        }
+                                    });
+
+                                    if (data.latest_id > self.lastNotificationId) {
+                                        self.lastNotificationId = data.latest_id;
+                                    }
+                                }
+                            }
+                        })
+                        .catch(() => {});
+                },
+
                 init: function() {
-                    // Auto-poll for new unassigned orders & chat messages
                     var self = this;
+                    // Initial fetch to get baseline message ID
+                    self.checkIncomingCustomerMessages();
+
+                    // Auto-poll for new unassigned orders & chat messages
                     setInterval(function() {
                         fetch('{{ route('admin.orders.json_list') }}')
                             .then(function(r) { return r.json(); })
@@ -130,6 +241,10 @@
                             })
                             .catch(function() {});
 
+                        // Check incoming customer chat messages across all active deliveries
+                        self.checkIncomingCustomerMessages();
+
+                        // If modal is open, keep message feed refreshed
                         if (self.chatModalOpen && self.activeChatOrderId) {
                             self.fetchChatMessages();
                         }

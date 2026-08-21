@@ -139,4 +139,62 @@ class OrderMessageController extends Controller
 
         return back()->with('success', 'Message sent!');
     }
+
+    /**
+     * Get real-time notifications for rider across all active orders.
+     */
+    public function riderNotifications(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        // Active orders assigned to this rider
+        $activeOrders = Order::where('rider_id', $user->id)
+            ->whereIn('status', ['confirmed', 'preparing', 'delivering'])
+            ->with('user:id,name')
+            ->get();
+
+        if ($activeOrders->isEmpty()) {
+            return response()->json(['success' => true, 'notifications' => [], 'latest_id' => 0]);
+        }
+
+        $activeOrderIds = $activeOrders->pluck('id');
+
+        $sinceId = $request->query('since_id');
+        $query = OrderMessage::whereIn('order_id', $activeOrderIds)
+            ->where('sender_id', '!=', $user->id)
+            ->with(['order.user', 'sender:id,name,role'])
+            ->orderBy('id', 'asc');
+
+        if ($sinceId && is_numeric($sinceId) && $sinceId > 0) {
+            $query->where('id', '>', (int)$sinceId);
+        } else {
+            // First load: fetch unread or recent in last 30 minutes
+            $query->where('is_read', false);
+        }
+
+        $messages = $query->limit(20)->get()->map(function ($msg) {
+            return [
+                'id' => $msg->id,
+                'order_id' => $msg->order_id,
+                'order_number' => '#' . $msg->order->order_number,
+                'customer_name' => $msg->order->user->name ?? $msg->sender->name ?? 'Customer',
+                'customer_phone' => $msg->order->delivery_phone ?? null,
+                'delivery_address' => ($msg->order->delivery_township ? $msg->order->delivery_township . ' - ' : '') . $msg->order->delivery_address,
+                'sender_name' => $msg->sender->name ?? 'Customer',
+                'sender_role' => $msg->sender_role,
+                'message' => $msg->message,
+                'time_formatted' => $msg->created_at->format('h:i A'),
+                'created_at' => $msg->created_at->toISOString(),
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'notifications' => $messages,
+            'latest_id' => $messages->max('id') ?? (int)$sinceId,
+        ]);
+    }
 }

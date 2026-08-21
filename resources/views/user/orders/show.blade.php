@@ -17,6 +17,7 @@
     </script>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Order Tracker JS -->
     <script>
         window.initOrderTracker = function(initialStatus, initialPaymentStatus, initialNotes, initialRiderName, initialRiderPhone, initialDeliveryProofPhoto, jsonUrl, messagesUrl) {
@@ -39,6 +40,7 @@
                 isSendingChat: false,
                 messagesUrl: messagesUrl,
                 lastMessageCount: 0,
+                isInitialLoad: true,
 
                 toggleTheme: function() {
                     this.darkMode = !this.darkMode;
@@ -67,11 +69,42 @@
                         .then(data => {
                             if (data && data.messages) {
                                 const hadNewMessages = data.messages.length > self.lastMessageCount;
+                                const prevCount = self.lastMessageCount;
                                 self.messages = data.messages;
                                 self.lastMessageCount = data.messages.length;
                                 if (hadNewMessages) {
                                     self.scrollToChatBottom();
+
+                                    // SweetAlert Toast Alert on new incoming message
+                                    if (!self.isInitialLoad && prevCount > 0) {
+                                        const newIncoming = data.messages.slice(prevCount).filter(m => !m.is_me);
+                                        if (newIncoming.length > 0) {
+                                            const latest = newIncoming[newIncoming.length - 1];
+                                            if (typeof Swal !== 'undefined') {
+                                                const Toast = Swal.mixin({
+                                                    toast: true,
+                                                    position: 'top-end',
+                                                    showConfirmButton: false,
+                                                    timer: 5000,
+                                                    timerProgressBar: true,
+                                                    didOpen: (toast) => {
+                                                        toast.onmouseenter = Swal.stopTimer;
+                                                        toast.onmouseleave = Swal.resumeTimer;
+                                                    }
+                                                });
+
+                                                Toast.fire({
+                                                    icon: 'info',
+                                                    title: `💬 New message from ${latest.sender_name}:`,
+                                                    text: latest.message,
+                                                    background: self.darkMode ? '#0f172a' : '#ffffff',
+                                                    color: self.darkMode ? '#f8fafc' : '#0f172a'
+                                                });
+                                            }
+                                        }
+                                    }
                                 }
+                                self.isInitialLoad = false;
                             }
                         })
                         .catch(() => {});
@@ -258,50 +291,6 @@
             <div>
                 <h3 class="font-black text-lg">Order Cancelled</h3>
                 <p class="text-xs text-red-100 mt-0.5" x-text="currentNotes && currentNotes.trim() !== '' ? currentNotes : 'The order was cancelled by the administrator.'"></p>
-            </div>
-        </div>
-
-        <!-- ===== PROOF OF DELIVERY PHOTO CARD (DISPLAYED WHEN ORDER IS COMPLETED) ===== -->
-        <div x-show="currentStatus === 'completed' && currentDeliveryProofPhoto" x-transition class="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-slate-900 rounded-3xl border-2 border-emerald-400 dark:border-emerald-700/80 p-6 sm:p-7 mb-8 shadow-xl">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div class="flex items-center gap-3.5">
-                    <div class="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center text-2xl shadow-lg shadow-emerald-500/30 shrink-0">
-                        📸
-                    </div>
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <h3 class="font-black text-slate-900 dark:text-white text-base">Delivery Proof Photo (ရောက်ရှိမှု အတည်ပြု ဓာတ်ပုံ)</h3>
-                            <span class="px-2.5 py-0.5 rounded-full bg-emerald-600 text-white font-black text-[10px] shadow-sm">✓ Photo Verified</span>
-                        </div>
-                        <p class="text-xs text-emerald-800 dark:text-emerald-300 font-medium mt-0.5">
-                            သုံးစွဲသူထံ အစားအသောက် ရောက်ရှိပြီး ရိုက်ကူးအတည်ပြုထားသော သက်သေဓာတ်ပုံ
-                        </p>
-                    </div>
-                </div>
-
-                <button type="button" @click="imgTitle = 'Delivery Proof Photo (သုံးစွဲသူထံ ရောက်ရှိမှု အတည်ပြု ဓာတ်ပုံ)'; imgSrc = currentDeliveryProofPhoto; imgModal = true;"
-                        class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-xs rounded-xl shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0">
-                    <span>🔍</span>
-                    <span>View Full Photo</span>
-                </button>
-            </div>
-
-            <div class="mt-4 pt-4 border-t border-emerald-200/60 dark:border-slate-800 flex items-center gap-4">
-                <div @click="imgTitle = 'Delivery Proof Photo (သုံးစွဲသူထံ ရောက်ရှိမှု အတည်ပြု ဓာတ်ပုံ)'; imgSrc = currentDeliveryProofPhoto; imgModal = true;"
-                     class="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden border-2 border-emerald-500 shrink-0 cursor-pointer group relative shadow-md bg-slate-900">
-                    <img :src="currentDeliveryProofPhoto" alt="Proof of delivery photo" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
-                    <div class="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors flex items-center justify-center text-white text-xs font-black">
-                        🔍 Tap
-                    </div>
-                </div>
-                <div class="text-xs text-slate-700 dark:text-slate-300 space-y-1.5">
-                    <p class="font-bold text-slate-900 dark:text-white">
-                        🛵 Delivered by Rider: <span class="text-orange-500" x-text="currentRiderName || 'Assigned Rider'"></span>
-                    </p>
-                    <p class="text-emerald-700 dark:text-emerald-400 font-semibold leading-relaxed">
-                        ✓ အစားအသောက်များ သင့်လိပ်စာသို့ စနစ်တကျ အရောက်ပို့ဆောင်ပြီးစီးကြောင်း ဓာတ်ပုံဖြင့် အတည်ပြုပြီးပါပြီ။
-                    </p>
-                </div>
             </div>
         </div>
 

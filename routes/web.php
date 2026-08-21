@@ -302,6 +302,7 @@ Route::middleware(['auth'])->prefix('rider')->as('rider.')->group(function () {
     Route::post('/orders/{order}/pickup', [\App\Http\Controllers\Rider\RiderDashboardController::class, 'pickup'])->name('orders.pickup');
     Route::post('/orders/{order}/start-delivery', [\App\Http\Controllers\Rider\RiderDashboardController::class, 'startDelivery'])->name('orders.start');
     Route::post('/orders/{order}/complete-delivery', [\App\Http\Controllers\Rider\RiderDashboardController::class, 'completeDelivery'])->name('orders.complete');
+    Route::get('/messages/notifications', [\App\Http\Controllers\OrderMessageController::class, 'riderNotifications'])->name('messages.notifications');
 });
 
 // Dashboard Redirect Handler (Breeze Default Route)
