@@ -40,8 +40,42 @@
                 selectedTownship: @json(Auth::check() ? (string)(Auth::user()->city ?? '') : ''),
                 deliveryFee: 0,
                 paymentMethod: 'cod',
+                slipPreview: null,
+                slipFileName: '',
+                copiedAccount: false,
                 isSubmitting: false,
                 darkMode: localStorage.getItem('foodorder_theme') === 'dark',
+
+                copyAccountNumber(num) {
+                    if (navigator.clipboard) {
+                        navigator.clipboard.writeText(num);
+                        this.copiedAccount = true;
+                        setTimeout(() => { this.copiedAccount = false; }, 2000);
+                    }
+                },
+
+                handleSlipUpload(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert('File size exceeds 5MB limit. Please choose a smaller image.');
+                        event.target.value = '';
+                        return;
+                    }
+                    this.slipFileName = file.name;
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        this.slipPreview = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                },
+
+                removeSlip() {
+                    this.slipPreview = null;
+                    this.slipFileName = '';
+                    const input = document.getElementById('payment_screenshot_input');
+                    if (input) input.value = '';
+                },
 
                 toggleTheme() {
                     this.darkMode = !this.darkMode;
@@ -429,20 +463,164 @@
                             class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none transition-all placeholder-slate-400 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
                     </div>
 
-                    {{-- Payment Method (COD ONLY) --}}
+                    {{-- Payment Method Selector --}}
                     <div>
                         <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-2">
                             {{ __('Payment Method') }} <span class="text-red-400">*</span>
                         </label>
-                        <input type="hidden" name="payment_method" value="cod">
+                        <input type="hidden" name="payment_method" :value="paymentMethod">
 
-                        <div class="bg-green-50 dark:bg-green-950/30 border-2 border-green-500 rounded-xl p-4 flex items-center gap-4">
-                            <div class="w-12 h-12 rounded-xl bg-green-500 text-white flex items-center justify-center text-2xl shadow-md shrink-0">
-                                💵
-                            </div>
+                        <!-- Payment Method Option Cards -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-3">
+                            <!-- COD Option -->
+                            <button type="button" 
+                                    @click="paymentMethod = 'cod'"
+                                    class="p-3 rounded-2xl border-2 text-left transition-all flex flex-col justify-between gap-2 cursor-pointer"
+                                    :class="paymentMethod === 'cod' 
+                                        ? 'border-green-500 bg-green-50/70 dark:bg-green-950/40 text-green-900 dark:text-green-200 shadow-sm' 
+                                        : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300'">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xl">💵</span>
+                                    <span x-show="paymentMethod === 'cod'" class="w-4 h-4 rounded-full bg-green-500 text-white flex items-center justify-center text-[10px] font-black">✓</span>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-black">Cash on Delivery</p>
+                                    <p class="text-[10px] text-slate-500 dark:text-slate-400">Pay cash upon arrival</p>
+                                </div>
+                            </button>
+
+                            <!-- KBZPay Option -->
+                            <button type="button" 
+                                    @click="paymentMethod = 'kbzpay'"
+                                    class="p-3 rounded-2xl border-2 text-left transition-all flex flex-col justify-between gap-2 cursor-pointer"
+                                    :class="paymentMethod === 'kbzpay' 
+                                        ? 'border-blue-500 bg-blue-50/70 dark:bg-blue-950/40 text-blue-900 dark:text-blue-200 shadow-sm' 
+                                        : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300'">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xl">📱</span>
+                                    <span x-show="paymentMethod === 'kbzpay'" class="w-4 h-4 rounded-full bg-blue-500 text-white flex items-center justify-center text-[10px] font-black">✓</span>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-black">KBZPay (KPay)</p>
+                                    <p class="text-[10px] text-slate-500 dark:text-slate-400">Direct Wallet / Payslip</p>
+                                </div>
+                            </button>
+
+                            <!-- WavePay Option -->
+                            <button type="button" 
+                                    @click="paymentMethod = 'wavepay'"
+                                    class="p-3 rounded-2xl border-2 text-left transition-all flex flex-col justify-between gap-2 cursor-pointer"
+                                    :class="paymentMethod === 'wavepay' 
+                                        ? 'border-amber-500 bg-amber-50/70 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 shadow-sm' 
+                                        : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300'">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xl">🌊</span>
+                                    <span x-show="paymentMethod === 'wavepay'" class="w-4 h-4 rounded-full bg-amber-500 text-white flex items-center justify-center text-[10px] font-black">✓</span>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-black">WavePay</p>
+                                    <p class="text-[10px] text-slate-500 dark:text-slate-400">Wave Money / Payslip</p>
+                                </div>
+                            </button>
+                        </div>
+
+                        <!-- COD Detailed Info -->
+                        <div x-show="paymentMethod === 'cod'" x-transition class="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800/60 rounded-2xl p-3.5 flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-green-500 text-white flex items-center justify-center text-xl shadow-sm shrink-0">💵</div>
                             <div>
-                                <h4 class="font-black text-slate-900 dark:text-white text-sm">{{ __('Cash on Delivery') }}</h4>
-                                <p class="text-xs text-green-700 dark:text-green-400 font-semibold mt-0.5">{{ __('Pay in cash when your food arrives') }}</p>
+                                <h4 class="font-bold text-slate-900 dark:text-white text-xs">{{ __('Cash on Delivery') }}</h4>
+                                <p class="text-[11px] text-green-700 dark:text-green-400 font-medium">{{ __('Pay in cash directly to our rider upon receiving your meal.') }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Digital Wallet Transfer & Payslip Upload Box -->
+                        <div x-show="paymentMethod === 'kbzpay' || paymentMethod === 'wavepay'" x-transition class="space-y-3">
+                            <!-- Merchant Details Card -->
+                            <div class="p-4 rounded-2xl border text-xs"
+                                 :class="paymentMethod === 'kbzpay' 
+                                    ? 'bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/40 border-blue-200 dark:border-blue-800/60 text-blue-950 dark:text-blue-200' 
+                                    : 'bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-950/40 dark:to-yellow-950/40 border-amber-200 dark:border-amber-800/60 text-amber-950 dark:text-amber-200'">
+                                <div class="flex items-center justify-between pb-2 border-b"
+                                     :class="paymentMethod === 'kbzpay' ? 'border-blue-200/60 dark:border-blue-800/40' : 'border-amber-200/60 dark:border-amber-800/40'">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-base" x-text="paymentMethod === 'kbzpay' ? '📱' : '🌊'"></span>
+                                        <span class="font-black" x-text="paymentMethod === 'kbzpay' ? 'KBZPay Transfer Details' : 'WavePay Transfer Details'"></span>
+                                    </div>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase"
+                                          :class="paymentMethod === 'kbzpay' ? 'bg-blue-200 text-blue-800 dark:bg-blue-900 dark:text-blue-300' : 'bg-amber-200 text-amber-800 dark:bg-amber-900 dark:text-amber-300'">
+                                        Merchant Pay
+                                    </span>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-2 pt-2.5">
+                                    <div>
+                                        <p class="text-[10px] opacity-70 font-semibold uppercase">Account Name</p>
+                                        <p class="font-black text-slate-900 dark:text-white">Food Express MM</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-[10px] opacity-70 font-semibold uppercase">Account Phone</p>
+                                        <div class="flex items-center gap-1.5 font-black text-slate-900 dark:text-white font-mono">
+                                            <span>09-987654321</span>
+                                            <button type="button" @click="copyAccountNumber('09987654321')" class="text-[10px] px-1.5 py-0.5 bg-white dark:bg-slate-800 rounded-md border shadow-xs hover:scale-105 transition-transform cursor-pointer">
+                                                <span x-text="copiedAccount ? 'Copied! ✓' : 'Copy 📋'"></span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-2.5 pt-2 border-t flex items-center justify-between text-[11px] font-bold"
+                                     :class="paymentMethod === 'kbzpay' ? 'border-blue-200/60 dark:border-blue-800/40' : 'border-amber-200/60 dark:border-amber-800/40'">
+                                    <span>Exact Amount to Transfer:</span>
+                                    <span class="text-sm font-black text-orange-600 dark:text-orange-400"><span x-text="formatPrice(total())"></span> MMK</span>
+                                </div>
+                            </div>
+
+                            <!-- Payslip Upload Field -->
+                            <div class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-2xl p-4 space-y-2.5">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-xs font-black text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                                        <span>🧾</span>
+                                        <span>Upload Payslip / Transfer Screenshot (ငွေလွှဲပြေစာ)</span>
+                                    </label>
+                                    <span class="text-[10px] text-slate-400">Max 5MB (JPG/PNG)</span>
+                                </div>
+
+                                <!-- Custom File Input / Drop Box -->
+                                <div class="relative">
+                                    <input type="file" 
+                                           id="payment_screenshot_input" 
+                                           name="payment_screenshot" 
+                                           accept="image/*"
+                                           @change="handleSlipUpload($event)"
+                                           class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+
+                                    <!-- Upload Placeholder when no image is selected -->
+                                    <div x-show="!slipPreview" 
+                                         class="border-2 border-dashed border-slate-300 dark:border-slate-600 hover:border-orange-400 dark:hover:border-orange-400 rounded-xl p-4 text-center transition-colors bg-white dark:bg-slate-800/50">
+                                        <div class="text-2xl mb-1">📸</div>
+                                        <p class="text-xs font-bold text-slate-700 dark:text-slate-200">Click or Drag &amp; Drop Payslip Screenshot</p>
+                                        <p class="text-[10px] text-slate-400 mt-0.5">Attach the successful transaction receipt from your wallet</p>
+                                    </div>
+                                </div>
+
+                                <!-- Payslip Preview Container -->
+                                <template x-if="slipPreview">
+                                    <div class="flex items-center justify-between gap-3 p-2.5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs">
+                                        <div class="flex items-center gap-3 min-w-0">
+                                            <div class="w-12 h-12 rounded-lg overflow-hidden border border-slate-200 shrink-0 bg-slate-100">
+                                                <img :src="slipPreview" alt="Payslip Preview" class="w-full h-full object-cover">
+                                            </div>
+                                            <div class="min-w-0">
+                                                <p class="text-xs font-bold text-slate-900 dark:text-white truncate" x-text="slipFileName || 'Payment Screenshot'"></p>
+                                                <p class="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
+                                                    <span>✓ Ready to attach</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <button type="button" @click="removeSlip()" class="px-2.5 py-1 text-[11px] font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition-colors cursor-pointer shrink-0">
+                                            Remove ✕
+                                        </button>
+                                    </div>
+                                </template>
                             </div>
                         </div>
                     </div>
@@ -475,7 +653,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                                 </svg>
                             </template>
-                            <span x-text="isSubmitting ? '{{ __('Placing Order...') }}' : '{{ __('Proceed to Checkout') }}'"></span>
+                            <span x-text="isSubmitting ? '{{ __('Placing Order...') }}' : (paymentMethod === 'cod' ? '{{ __('Proceed to Checkout') }}' : '{{ __('Upload Payslip & Place Order') }}')"></span>
                             <span x-show="!isSubmitting">&mdash; <span x-text="formatPrice(total())"></span> MMK</span>
                         </button>
                     @else
@@ -490,6 +668,7 @@
 
                     <p class="text-xs text-center text-slate-400 leading-relaxed">
                         <span x-show="paymentMethod === 'cod'">{{ __('Pay in cash when your food arrives') }}</span>
+                        <span x-show="paymentMethod === 'kbzpay' || paymentMethod === 'wavepay'">{{ __('Verification takes 1-3 minutes after placing order') }}</span>
                     </p>
                 </form>
 

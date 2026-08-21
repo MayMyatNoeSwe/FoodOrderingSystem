@@ -614,6 +614,7 @@
                                                             'total_amount' => number_format($order->total_amount),
                                                             'payment_method' => $order->payment_method,
                                                             'payment_status' => $order->payment_status,
+                                                            'payment_screenshot' => $order->payment_screenshot ? asset($order->payment_screenshot) : null,
                                                             'delivery_proof_photo' => $order->delivery_proof_photo ? asset($order->delivery_proof_photo) : null,
                                                             'status' => $order->status,
                                                             'notes' => $order->notes ?? 'No notes provided',
@@ -794,6 +795,98 @@
                             <div class="text-lg font-black text-orange-600" x-text="activeOrder.total_amount + ' MMK'"></div>
                         </div>
                     </div>
+
+                    <!-- Customer Payment Payslip Verification Card -->
+                    <template x-if="activeOrder.payment_screenshot || (activeOrder.payment_method === 'kbzpay' || activeOrder.payment_method === 'wavepay')">
+                        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-2xl p-4 sm:p-5 space-y-3 shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2.5 text-blue-950 font-black text-sm">
+                                    <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center text-base shadow-sm">
+                                        🧾
+                                    </div>
+                                    <div>
+                                        <div class="flex items-center gap-2">
+                                            <span>Customer Payslip Verification (ငွေလွှဲပြေစာ စစ်ဆေးခြင်း)</span>
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase"
+                                                  :class="activeOrder.payment_status === 'paid' ? 'bg-emerald-600 text-white' : (activeOrder.payment_status === 'pending_verification' ? 'bg-purple-600 text-white' : 'bg-amber-500 text-white')"
+                                                  x-text="activeOrder.payment_status.replace('_', ' ').toUpperCase()"></span>
+                                        </div>
+                                        <p class="text-[11px] text-blue-700 font-medium">Channel: <strong class="uppercase" x-text="activeOrder.payment_method"></strong> &bull; Payable: <span class="font-bold font-mono text-orange-600" x-text="activeOrder.total_amount + ' MMK'"></span></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <template x-if="activeOrder.payment_screenshot">
+                                <div class="flex flex-col sm:flex-row items-center gap-4 pt-1">
+                                    <div @click="openProofPhoto(activeOrder.payment_screenshot, 'Order #' + activeOrder.order_number + ' - Payment Payslip (ငွေလွှဲပြေစာ)')"
+                                         class="w-full sm:w-24 h-24 rounded-xl overflow-hidden border-2 border-blue-400 shrink-0 bg-slate-900 group relative cursor-pointer shadow-md">
+                                        <img :src="activeOrder.payment_screenshot" alt="Payment Payslip" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                                        <div class="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors flex items-center justify-center text-white text-xs font-bold gap-1">
+                                            <span>🔍</span>
+                                            <span>Zoom</span>
+                                        </div>
+                                    </div>
+                                    <div class="text-xs text-slate-700 space-y-2 flex-1 w-full">
+                                        <p class="text-blue-950 font-bold leading-relaxed">
+                                            သုံးစွဲသူမှ ပေးပို့ထားသော မိုဘိုင်းဘဏ်ငွေလွှဲပြေစာ ဖြစ်ပါသည်။ ငွေပမာဏ နှင့် Transaction ID မှန်ကန်မှု ရှိမရှိ စစ်ဆေးပြီး အတည်ပြုပေးပါ။
+                                        </p>
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <button type="button" 
+                                                    @click="openProofPhoto(activeOrder.payment_screenshot, 'Order #' + activeOrder.order_number + ' - Payment Payslip (ငွေလွှဲပြေစာ)')"
+                                                    class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs rounded-xl shadow-sm transition-all inline-flex items-center gap-1.5 cursor-pointer">
+                                                <span>🔍</span>
+                                                <span>View Full-Screen (ပြေစာအပြည့်ကြည့်ရန်)</span>
+                                            </button>
+
+                                            <!-- Form to Mark Paid & Confirm Order -->
+                                            <template x-if="activeOrder.payment_status !== 'paid'">
+                                                <form method="POST" :action="'/admin/orders/' + activeOrder.id">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <input type="hidden" name="payment_status" value="paid">
+                                                    <input type="hidden" name="status" value="confirmed">
+                                                    <button type="submit" 
+                                                            class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs rounded-xl shadow-sm transition-all inline-flex items-center gap-1 cursor-pointer">
+                                                        <span>✓ Approve &amp; Mark Paid</span>
+                                                    </button>
+                                                </form>
+                                            </template>
+
+                                            <!-- Form to Mark Unpaid / Reject -->
+                                            <template x-if="activeOrder.payment_status === 'paid'">
+                                                <form method="POST" :action="'/admin/orders/' + activeOrder.id">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <input type="hidden" name="payment_status" value="unpaid">
+                                                    <button type="submit" 
+                                                            class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs rounded-xl transition-all cursor-pointer">
+                                                        <span>Mark as Unpaid</span>
+                                                    </button>
+                                                </form>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <template x-if="!activeOrder.payment_screenshot">
+                                <div class="p-3 bg-amber-100/70 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <span>⚠️</span>
+                                        <span>Customer has not attached a payment payslip screenshot yet.</span>
+                                    </div>
+                                    <form method="POST" :action="'/admin/orders/' + activeOrder.id">
+                                        @csrf
+                                        @method('PATCH')
+                                        <input type="hidden" name="payment_status" value="paid">
+                                        <button type="submit" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg cursor-pointer">
+                                            Force Mark Paid
+                                        </button>
+                                    </form>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
 
                     <!-- Proof of Delivery Photo Card with Full-Screen Preview -->
                     <template x-if="activeOrder.delivery_proof_photo">

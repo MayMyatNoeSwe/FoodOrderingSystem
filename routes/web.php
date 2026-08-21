@@ -168,6 +168,32 @@ Route::middleware('auth')->group(function () {
             return view('user.orders.show', compact('order'));
         })->name('orders.show');
 
+        // Customer upload or update payslip on existing order
+        Route::post('/orders/{order}/upload-payslip', function (\Illuminate\Http\Request $request, Order $order) {
+            if ($order->user_id !== Auth::id() && (!Auth::user()->isAdmin())) {
+                abort(403);
+            }
+
+            $request->validate([
+                'payment_screenshot' => 'required|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
+            ]);
+
+            if ($request->hasFile('payment_screenshot')) {
+                $file = $request->file('payment_screenshot');
+                $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                $file->move(public_path('uploads/payments'), $fileName);
+                $screenshotPath = 'uploads/payments/' . $fileName;
+
+                $order->update([
+                    'payment_screenshot' => $screenshotPath,
+                    'payment_status'     => 'pending_verification',
+                ]);
+            }
+
+            return redirect()->route('customer.orders.show', $order)
+                ->with('success', 'Payment payslip uploaded successfully! Our team will verify it shortly. 🎉');
+        })->name('orders.upload_payslip');
+
         // Order Real-Time Chat Message Endpoints (Customer named route)
         Route::get('/orders/{order}/messages', [\App\Http\Controllers\OrderMessageController::class, 'index'])->name('orders.messages.index');
         Route::post('/orders/{order}/messages', [\App\Http\Controllers\OrderMessageController::class, 'store'])->name('orders.messages.store');

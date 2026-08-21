@@ -25,6 +25,7 @@
                 imgModal: false,
                 imgSrc: '',
                 imgTitle: 'Payment Screenshot',
+                uploadSlipModal: false,
                 currentStatus: initialStatus,
                 currentPaymentStatus: initialPaymentStatus,
                 currentNotes: initialNotes,
@@ -359,25 +360,42 @@
                     <p class="text-xs font-bold text-slate-800 dark:text-slate-200 mt-2">📞 {{ $order->delivery_phone }}</p>
                 </div>
 
-                <!-- Payment Method Info -->
-                <div class="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">💳 Payment Method</p>
-                    <p class="font-black text-slate-900 dark:text-white uppercase text-base mb-1">
-                        @if($order->payment_method === 'cod') 💵 Cash on Delivery
-                        @elseif($order->payment_method === 'kbzpay') 📱 KBZPay
-                        @elseif($order->payment_method === 'wavepay') 🌊 WavePay
-                        @else {{ $order->payment_method }} @endif
-                    </p>
-                    @if($order->payment_screenshot)
-                        <div class="mt-2 flex items-center gap-2">
-                            <span class="text-xs text-slate-500 font-medium">Screenshot:</span>
-                            <button @click="imgTitle = 'Payment Screenshot'; imgModal = true; imgSrc = '{{ asset($order->payment_screenshot) }}'"
-                                    class="text-xs font-bold text-orange-500 underline hover:text-orange-600 cursor-pointer">
-                                View 🔍
+                <!-- Payment Method & Payslip Info -->
+                <div class="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 flex flex-col justify-between">
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">💳 Payment Method</p>
+                        <p class="font-black text-slate-900 dark:text-white uppercase text-base mb-1">
+                            @if($order->payment_method === 'cod') 💵 Cash on Delivery
+                            @elseif($order->payment_method === 'kbzpay') 📱 KBZPay
+                            @elseif($order->payment_method === 'wavepay') 🌊 WavePay
+                            @else {{ $order->payment_method }} @endif
+                        </p>
+                        
+                        @if(in_array($order->payment_method, ['kbzpay', 'wavepay']))
+                            @if($order->payment_screenshot)
+                                <div class="mt-2.5 flex items-center gap-2">
+                                    <button type="button" @click="imgTitle = 'Payment Payslip / Transfer Screenshot'; imgModal = true; imgSrc = '{{ asset($order->payment_screenshot) }}'"
+                                            class="inline-flex items-center gap-1 px-2.5 py-1 bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-800/60 rounded-lg text-xs font-bold hover:bg-orange-100 transition-colors cursor-pointer">
+                                        <span>🧾 View Payslip</span>
+                                        <span>🔍</span>
+                                    </button>
+                                </div>
+                            @else
+                                <p class="text-xs text-amber-600 dark:text-amber-400 font-bold mt-1">⚠️ No payslip uploaded yet</p>
+                            @endif
+                        @else
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Pay cash upon delivery (COD)</p>
+                        @endif
+                    </div>
+
+                    @if(in_array($order->payment_method, ['kbzpay', 'wavepay']))
+                        <div class="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-700/60">
+                            <button type="button" @click="uploadSlipModal = true" 
+                                    class="w-full py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl text-xs shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95">
+                                <span>📸</span>
+                                <span>{{ $order->payment_screenshot ? 'Update Payslip' : 'Upload Payslip' }}</span>
                             </button>
                         </div>
-                    @else
-                        <p class="text-xs text-slate-500 dark:text-slate-400">Pay on delivery (COD)</p>
                     @endif
                 </div>
 
@@ -700,6 +718,59 @@
                 <button @click="imgModal = false" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center cursor-pointer">✕</button>
             </div>
             <img :src="imgSrc" :alt="imgTitle" class="w-full h-auto rounded-2xl border border-slate-100 dark:border-slate-800 max-h-[70vh] object-contain mx-auto">
+        </div>
+    </div>
+
+    <!-- Upload / Replace Payslip Modal for Customer -->
+    <div x-show="uploadSlipModal" 
+         x-cloak 
+         x-transition 
+         class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4" 
+         style="display:none;">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 max-w-md w-full relative shadow-2xl space-y-4" @click.outside="uploadSlipModal = false">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-sm">
+                        🧾
+                    </div>
+                    <div>
+                        <h3 class="font-black text-slate-900 dark:text-white text-sm">Upload Payment Payslip</h3>
+                        <p class="text-[11px] text-slate-400">Order #{{ $order->order_number }}</p>
+                    </div>
+                </div>
+                <button @click="uploadSlipModal = false" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-white font-bold flex items-center justify-center transition-colors cursor-pointer">✕</button>
+            </div>
+
+            <!-- Merchant Transfer Details Box -->
+            <div class="p-3.5 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 rounded-xl text-xs text-blue-950 dark:text-blue-200 space-y-1.5">
+                <div class="flex items-center justify-between font-black">
+                    <span>Payable: {{ number_format($order->total_amount) }} MMK</span>
+                    <span class="uppercase text-[10px] px-2 py-0.5 bg-blue-200 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full font-black">{{ strtoupper($order->payment_method) }}</span>
+                </div>
+                <p class="text-[11px] opacity-80">Food Express Account: <strong class="font-mono">09-987654321</strong> (Food Express MM)</p>
+            </div>
+
+            <form method="POST" action="{{ route('customer.orders.upload_payslip', $order) }}" enctype="multipart/form-data" class="space-y-4">
+                @csrf
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                        Select Payslip / Transfer Screenshot <span class="text-red-500">*</span>
+                    </label>
+                    <input type="file" name="payment_screenshot" required accept="image/*"
+                           class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-orange-500 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-orange-500 file:text-white cursor-pointer">
+                    <p class="text-[10px] text-slate-400 mt-1">Supported formats: JPG, PNG, WEBP, GIF (Max 5MB)</p>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <button type="button" @click="uploadSlipModal = false" class="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-5 py-2 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-orange-500/25 transition-all cursor-pointer">
+                        Upload &amp; Submit 🚀
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
