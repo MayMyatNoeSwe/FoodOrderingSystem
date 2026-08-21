@@ -5,32 +5,54 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+
 class MenuItem extends Model
 {
     /** @use HasFactory<\Database\Factories\MenuItemFactory> */
     use HasFactory;
-    protected $fillable = ['category_id','name','description','price','image','is_available','stock'];
 
-    protected $appends = ['image_url'];
+    protected $fillable = [
+        'category_id',
+        'name',
+        'description',
+        'price',
+        'image',
+        'images',
+        'is_available',
+        'stock',
+        'min_stock_level',
+    ];
 
-    public function category(){
+    protected $casts = [
+        'images'          => 'array',
+        'is_available'    => 'boolean',
+        'stock'           => 'integer',
+        'min_stock_level' => 'integer',
+        'price'           => 'float',
+    ];
+
+    protected $appends = ['image_url', 'all_images'];
+
+    public function category()
+    {
         return $this->belongsTo(Category::class);
     }
+
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
     }
 
     /**
-     * Get full accessor URL for dish image.
+     * Resolve any image path/URL to a fully qualified URL.
      */
-    public function getImageUrlAttribute(): string
+    public static function resolveImageUrl(?string $img): string
     {
-        if (empty($this->image)) {
+        if (empty($img)) {
             return asset('images/hero_food.png');
         }
 
-        $img = trim($this->image);
+        $img = trim($img);
 
         if (str_starts_with($img, 'http://') || str_starts_with($img, 'https://')) {
             return $img;
@@ -45,5 +67,56 @@ class MenuItem extends Model
         }
 
         return asset('storage/' . $img);
+    }
+
+    /**
+     * Get primary image URL.
+     */
+    public function getImageUrlAttribute(): string
+    {
+        if (!empty($this->image)) {
+            return self::resolveImageUrl($this->image);
+        }
+
+        if (!empty($this->images) && is_array($this->images) && count($this->images) > 0) {
+            return self::resolveImageUrl($this->images[0]);
+        }
+
+        return asset('images/hero_food.png');
+    }
+
+    /**
+     * Get all image URLs as an array.
+     */
+    public function getAllImagesAttribute(): array
+    {
+        $urls = [];
+
+        if (!empty($this->images) && is_array($this->images)) {
+            foreach ($this->images as $img) {
+                if (!empty($img)) {
+                    $urls[] = self::resolveImageUrl($img);
+                }
+            }
+        }
+
+        if (empty($urls) && !empty($this->image)) {
+            $urls[] = self::resolveImageUrl($this->image);
+        }
+
+        if (empty($urls)) {
+            $urls[] = asset('images/hero_food.png');
+        }
+
+        return array_values(array_unique($urls));
+    }
+
+    /**
+     * Check if item is in low stock condition.
+     */
+    public function isLowStock(): bool
+    {
+        $threshold = $this->min_stock_level ?? 10;
+        return $this->stock > 0 && $this->stock <= $threshold;
     }
 }

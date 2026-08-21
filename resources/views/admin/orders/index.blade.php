@@ -47,6 +47,17 @@
                 detailsModalOpen: false,
                 rejectModalOpen: false,
                 proofModalOpen: false,
+                columnDropdownOpen: false,
+                moreFiltersOpen: false,
+                cols: {
+                    order_date: true,
+                    customer: true,
+                    items: true,
+                    payment: true,
+                    status: true,
+                    quick_action: true,
+                    actions: true
+                },
                 proofModalSrc: '',
                 proofModalTitle: '',
                 activeOrder: null,
@@ -55,6 +66,53 @@
                 audioEnabled: true,
                 statusStateMap: {},
                 now: Date.now(),
+
+                toggleCol: function(key) {
+                    this.cols[key] = !this.cols[key];
+                    this.saveColPrefs();
+                },
+                setAllCols: function(val) {
+                    for (var k in this.cols) {
+                        this.cols[k] = val;
+                    }
+                    this.saveColPrefs();
+                },
+                resetCols: function() {
+                    this.cols = {
+                        order_date: true,
+                        customer: true,
+                        items: true,
+                        payment: true,
+                        status: true,
+                        quick_action: true,
+                        actions: true
+                    };
+                    this.saveColPrefs();
+                },
+                saveColPrefs: function() {
+                    try {
+                        localStorage.setItem('admin_order_table_cols_v1', JSON.stringify(this.cols));
+                    } catch(e) {}
+                },
+                loadColPrefs: function() {
+                    try {
+                        var s = localStorage.getItem('admin_order_table_cols_v1');
+                        if (s) {
+                            var parsed = JSON.parse(s);
+                            this.cols = Object.assign(this.cols, parsed);
+                        }
+                    } catch(e) {}
+                },
+                getActiveColCount: function() {
+                    var c = 0;
+                    for (var k in this.cols) {
+                        if (this.cols[k]) c++;
+                    }
+                    return Math.max(1, c);
+                },
+                getTotalColCount: function() {
+                    return Object.keys(this.cols).length;
+                },
 
                 getRemainingSeconds: function(isoDate) {
                     if (!isoDate) return 0;
@@ -65,6 +123,7 @@
 
                 init: function() {
                     var self = this;
+                    this.loadColPrefs();
                     setInterval(function() {
                         self.now = Date.now();
                     }, 1000);
@@ -263,67 +322,213 @@
                 <!-- Orders Management Table Container -->
                 <div class="bg-white border border-slate-200/80 rounded-2xl p-5 sm:p-6 shadow-sm space-y-6">
                     
-                    <!-- Search & Filter Controls -->
-                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                        <div>
-                            <h3 class="text-lg font-black text-slate-900 tracking-tight">Real-Time Dispatch Queue</h3>
-                            <p class="text-slate-500 text-xs mt-0.5">One-click Accept, Reject with reasons, or update order dispatch status</p>
-                        </div>
-
-                        <form method="GET" action="{{ route('admin.orders.index') }}" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                            
-                            <!-- Search Field -->
-                            <div class="relative min-w-[220px]">
-                                <input type="text" 
-                                       name="search" 
-                                       value="{{ $search }}" 
-                                       placeholder="Search order #, customer, phone..." 
-                                       class="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:bg-white text-slate-800 text-xs rounded-xl px-3.5 py-2.5 pl-9 focus:ring-0 transition-all placeholder-slate-400">
-                                
-                                <svg class="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                                </svg>
+                    <!-- Search & Filter Controls Toolbar -->
+                    <div class="space-y-4">
+                        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                            <div>
+                                <h3 class="text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
+                                    <span>Real-Time Dispatch Queue</span>
+                                    <span class="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-bold">
+                                        {{ $orders->total() }} Orders
+                                    </span>
+                                </h3>
+                                <p class="text-slate-500 text-xs mt-0.5">Filter by column values, toggle visible table columns, and manage orders</p>
                             </div>
 
-                            <!-- Status Filter Dropdown -->
-                            <select name="status" onchange="this.form.submit()" class="bg-slate-50 border border-slate-200 focus:border-orange-500 focus:bg-white text-slate-800 text-xs rounded-xl px-3.5 py-2.5 focus:ring-0 transition-all cursor-pointer">
-                                <option value="">All Statuses</option>
-                                <option value="pending" {{ $status === 'pending' ? 'selected' : '' }}>⏳ Pending</option>
-                                <option value="preparing" {{ $status === 'preparing' ? 'selected' : '' }}>👨‍🍳 Preparing</option>
-                                <option value="delivering" {{ $status === 'delivering' ? 'selected' : '' }}>🛵 Delivering</option>
-                                <option value="completed" {{ $status === 'completed' ? 'selected' : '' }}>✅ Completed</option>
-                                <option value="cancelled" {{ $status === 'cancelled' ? 'selected' : '' }}>❌ Cancelled</option>
-                            </select>
+                            <!-- Right Controls: Column Filter Dropdown & Quick Search -->
+                            <div class="flex items-center flex-wrap gap-2.5">
+                                
+                                <!-- ================= COLUMN VISIBILITY FILTER DROPDOWN ================= -->
+                                <div class="relative" @click.outside="columnDropdownOpen = false">
+                                    <button type="button" @click="columnDropdownOpen = !columnDropdownOpen"
+                                            class="px-3.5 py-2.5 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl border border-slate-200 shadow-sm transition-all flex items-center gap-2 cursor-pointer active:scale-95">
+                                        <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"></path>
+                                        </svg>
+                                        <span>Columns Filter</span>
+                                        <span class="px-1.5 py-0.2 rounded-full bg-orange-50 text-orange-600 font-mono text-[10px] font-black border border-orange-200" x-text="getActiveColCount() + '/' + getTotalColCount()"></span>
+                                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </button>
 
-                            <!-- Payment Method Filter -->
-                            <select name="payment_method" onchange="this.form.submit()" class="bg-slate-50 border border-slate-200 focus:border-orange-500 focus:bg-white text-slate-800 text-xs rounded-xl px-3.5 py-2.5 focus:ring-0 transition-all cursor-pointer">
-                                <option value="">All Payment Methods</option>
-                                <option value="cod" {{ $paymentMethod === 'cod' ? 'selected' : '' }}>💵 Cash on Delivery</option>
-                                <option value="kbzpay" {{ $paymentMethod === 'kbzpay' ? 'selected' : '' }}>📱 KBZPay</option>
-                                <option value="wavepay" {{ $paymentMethod === 'wavepay' ? 'selected' : '' }}>🌊 WavePay</option>
-                            </select>
+                                    <!-- Dropdown Popover -->
+                                    <div x-show="columnDropdownOpen" x-cloak
+                                         x-transition:enter="transition ease-out duration-150"
+                                         x-transition:enter-start="opacity-0 scale-95"
+                                         x-transition:enter-end="opacity-100 scale-100"
+                                         x-transition:leave="transition ease-in duration-100"
+                                         x-transition:leave-start="opacity-100 scale-100"
+                                         x-transition:leave-end="opacity-0 scale-95"
+                                         class="absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded-2xl shadow-2xl p-3.5 z-40 space-y-2.5">
+                                        
+                                        <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                                            <span class="text-xs font-black text-slate-900 flex items-center gap-1.5">
+                                                <span>👁️</span>
+                                                <span>Visible Columns</span>
+                                            </span>
+                                            <div class="flex items-center gap-1.5 text-[10px] font-bold">
+                                                <button type="button" @click="setAllCols(true)" class="text-orange-600 hover:underline cursor-pointer">All</button>
+                                                <span class="text-slate-300">|</span>
+                                                <button type="button" @click="resetCols()" class="text-slate-500 hover:underline cursor-pointer">Reset</button>
+                                            </div>
+                                        </div>
 
-                            @if($search || $status || $paymentMethod)
-                                <a href="{{ route('admin.orders.index') }}" class="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl border border-slate-200 flex items-center justify-center gap-1">
-                                    <span>✕</span>
-                                    <span>Reset</span>
-                                </a>
-                            @endif
+                                        <div class="space-y-1.5 text-xs">
+                                            <label class="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 cursor-pointer select-none">
+                                                <input type="checkbox" :checked="cols.order_date" @change="toggleCol('order_date')" class="rounded border-slate-300 text-orange-600 focus:ring-0">
+                                                <span class="font-semibold text-slate-700">🔖 Order # / Date</span>
+                                            </label>
+                                            <label class="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 cursor-pointer select-none">
+                                                <input type="checkbox" :checked="cols.customer" @change="toggleCol('customer')" class="rounded border-slate-300 text-orange-600 focus:ring-0">
+                                                <span class="font-semibold text-slate-700">👤 Customer Info</span>
+                                            </label>
+                                            <label class="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 cursor-pointer select-none">
+                                                <input type="checkbox" :checked="cols.items" @change="toggleCol('items')" class="rounded border-slate-300 text-orange-600 focus:ring-0">
+                                                <span class="font-semibold text-slate-700">🍽️ Items Ordered</span>
+                                            </label>
+                                            <label class="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 cursor-pointer select-none">
+                                                <input type="checkbox" :checked="cols.payment" @change="toggleCol('payment')" class="rounded border-slate-300 text-orange-600 focus:ring-0">
+                                                <span class="font-semibold text-slate-700">💰 Total &amp; Payment</span>
+                                            </label>
+                                            <label class="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 cursor-pointer select-none">
+                                                <input type="checkbox" :checked="cols.status" @change="toggleCol('status')" class="rounded border-slate-300 text-orange-600 focus:ring-0">
+                                                <span class="font-semibold text-slate-700">📊 Order Status &amp; Dispatch</span>
+                                            </label>
+                                            <label class="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 cursor-pointer select-none">
+                                                <input type="checkbox" :checked="cols.quick_action" @change="toggleCol('quick_action')" class="rounded border-slate-300 text-orange-600 focus:ring-0">
+                                                <span class="font-semibold text-slate-700">⚡ Quick Action (1-Click)</span>
+                                            </label>
+                                            <label class="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 cursor-pointer select-none">
+                                                <input type="checkbox" :checked="cols.actions" @change="toggleCol('actions')" class="rounded border-slate-300 text-orange-600 focus:ring-0">
+                                                <span class="font-semibold text-slate-700">🛠️ Actions &amp; Payslip</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Toggle More Filters Expand Button -->
+                                <button type="button" @click="moreFiltersOpen = !moreFiltersOpen"
+                                        class="px-3.5 py-2.5 text-xs font-bold rounded-xl border transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
+                                        :class="moreFiltersOpen ? 'bg-orange-50 text-orange-700 border-orange-200' : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                                    </svg>
+                                    <span x-text="moreFiltersOpen ? 'Hide Filter Bar' : 'Filter By Columns'"></span>
+                                </button>
+
+                            </div>
+                        </div>
+
+                        <!-- ================= COMPREHENSIVE COLUMN FILTER FORM ================= -->
+                        <form method="GET" action="{{ route('admin.orders.index') }}" class="space-y-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-2.5">
+                                
+                                <!-- Search Column Filter (Order #, Customer, Phone, Address) -->
+                                <div class="relative xl:col-span-2">
+                                    <input type="text" 
+                                           name="search" 
+                                           value="{{ $search }}" 
+                                           placeholder="Search Order #, customer, phone..." 
+                                           class="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:bg-white text-slate-800 text-xs rounded-xl px-3.5 py-2.5 pl-9 focus:ring-0 transition-all placeholder-slate-400 shadow-sm">
+                                    <svg class="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
+                                </div>
+
+                                <!-- Status Column Filter -->
+                                <select name="status" onchange="this.form.submit()" class="bg-slate-50 border border-slate-200 focus:border-orange-500 focus:bg-white text-slate-800 text-xs rounded-xl px-3 py-2.5 focus:ring-0 transition-all cursor-pointer shadow-sm">
+                                    <option value="">Status: All</option>
+                                    <option value="pending" {{ $status === 'pending' ? 'selected' : '' }}>⏳ Pending</option>
+                                    <option value="preparing" {{ $status === 'preparing' ? 'selected' : '' }}>👨‍🍳 Preparing</option>
+                                    <option value="delivering" {{ $status === 'delivering' ? 'selected' : '' }}>🛵 Delivering</option>
+                                    <option value="completed" {{ $status === 'completed' ? 'selected' : '' }}>✅ Completed</option>
+                                    <option value="cancelled" {{ $status === 'cancelled' ? 'selected' : '' }}>❌ Cancelled</option>
+                                </select>
+
+                                <!-- Payment Method Column Filter -->
+                                <select name="payment_method" onchange="this.form.submit()" class="bg-slate-50 border border-slate-200 focus:border-orange-500 focus:bg-white text-slate-800 text-xs rounded-xl px-3 py-2.5 focus:ring-0 transition-all cursor-pointer shadow-sm">
+                                    <option value="">Method: All</option>
+                                    <option value="cod" {{ $paymentMethod === 'cod' ? 'selected' : '' }}>💵 Cash on Delivery</option>
+                                    <option value="kbzpay" {{ $paymentMethod === 'kbzpay' ? 'selected' : '' }}>📱 KBZPay</option>
+                                    <option value="wavepay" {{ $paymentMethod === 'wavepay' ? 'selected' : '' }}>🌊 WavePay</option>
+                                </select>
+
+                                <!-- Payment Status Column Filter -->
+                                <select name="payment_status" onchange="this.form.submit()" class="bg-slate-50 border border-slate-200 focus:border-orange-500 focus:bg-white text-slate-800 text-xs rounded-xl px-3 py-2.5 focus:ring-0 transition-all cursor-pointer shadow-sm">
+                                    <option value="">Payment: All</option>
+                                    <option value="paid" {{ ($paymentStatus ?? '') === 'paid' ? 'selected' : '' }}>✓ Paid</option>
+                                    <option value="unpaid" {{ ($paymentStatus ?? '') === 'unpaid' ? 'selected' : '' }}>⏳ Unpaid</option>
+                                    <option value="pending_verification" {{ ($paymentStatus ?? '') === 'pending_verification' ? 'selected' : '' }}>🔍 Verification</option>
+                                </select>
+
+                                <!-- Sort By Column Filter -->
+                                <select name="sort_by" onchange="this.form.submit()" class="bg-slate-50 border border-slate-200 focus:border-orange-500 focus:bg-white text-slate-800 text-xs rounded-xl px-3 py-2.5 focus:ring-0 transition-all cursor-pointer shadow-sm">
+                                    <option value="latest" {{ ($sortBy ?? '') === 'latest' ? 'selected' : '' }}>Sort: Newest First</option>
+                                    <option value="oldest" {{ ($sortBy ?? '') === 'oldest' ? 'selected' : '' }}>Sort: Oldest First</option>
+                                    <option value="amount_high" {{ ($sortBy ?? '') === 'amount_high' ? 'selected' : '' }}>Sort: Highest Price</option>
+                                    <option value="amount_low" {{ ($sortBy ?? '') === 'amount_low' ? 'selected' : '' }}>Sort: Lowest Price</option>
+                                </select>
+
+                            </div>
+
+                            <!-- Additional Expandable Column Filters (Rider & Date Range) -->
+                            <div x-show="moreFiltersOpen || '{{ $riderId ?? '' }}' !== '' || '{{ $dateRange ?? '' }}' !== ''" 
+                                 x-cloak
+                                 class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+                                
+                                <!-- Rider Column Filter -->
+                                <div>
+                                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">🛵 Filter by Assigned Rider</label>
+                                    <select name="rider_id" onchange="this.form.submit()" class="w-full bg-white border border-slate-200 text-slate-800 text-xs rounded-xl px-3 py-2 focus:ring-0 cursor-pointer">
+                                        <option value="">All Riders</option>
+                                        <option value="unassigned" {{ ($riderId ?? '') === 'unassigned' ? 'selected' : '' }}>⚠️ Unassigned Orders Only</option>
+                                        @foreach($riders as $r)
+                                            <option value="{{ $r->id }}" {{ ($riderId ?? '') == $r->id ? 'selected' : '' }}>🛵 {{ $r->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <!-- Date Range Column Filter -->
+                                <div>
+                                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">📅 Filter by Date Range</label>
+                                    <select name="date_range" onchange="this.form.submit()" class="w-full bg-white border border-slate-200 text-slate-800 text-xs rounded-xl px-3 py-2 focus:ring-0 cursor-pointer">
+                                        <option value="">All Time</option>
+                                        <option value="today" {{ ($dateRange ?? '') === 'today' ? 'selected' : '' }}>📅 Today</option>
+                                        <option value="yesterday" {{ ($dateRange ?? '') === 'yesterday' ? 'selected' : '' }}>📅 Yesterday</option>
+                                        <option value="this_week" {{ ($dateRange ?? '') === 'this_week' ? 'selected' : '' }}>📅 This Week</option>
+                                        <option value="this_month" {{ ($dateRange ?? '') === 'this_month' ? 'selected' : '' }}>📅 This Month</option>
+                                    </select>
+                                </div>
+
+                                <!-- Action Buttons -->
+                                <div class="flex items-end gap-2">
+                                    <button type="submit" class="flex-1 py-2 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl transition-all shadow-sm flex items-center justify-center gap-1 cursor-pointer">
+                                        <span>🔍 Apply Filter</span>
+                                    </button>
+                                    @if($search || $status || $paymentMethod || ($paymentStatus ?? null) || ($riderId ?? null) || ($dateRange ?? null))
+                                        <a href="{{ route('admin.orders.index') }}" class="px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl transition-all flex items-center justify-center gap-1">
+                                            <span>✕ Clear</span>
+                                        </a>
+                                    @endif
+                                </div>
+
+                            </div>
                         </form>
                     </div>
 
                     <!-- Orders Table -->
-                    <div class="overflow-x-auto rounded-xl border border-slate-200">
+                    <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
                         <table class="w-full text-left text-xs">
-                            <thead class="bg-slate-50 text-slate-600 font-bold uppercase tracking-wider border-b border-slate-200">
+                            <thead class="bg-slate-50 text-slate-600 font-bold uppercase tracking-wider border-b border-slate-200 select-none">
                                 <tr>
-                                    <th class="px-4 py-3.5">Order # / Date</th>
-                                    <th class="px-4 py-3.5">Customer Info</th>
-                                    <th class="px-4 py-3.5">Items Ordered</th>
-                                    <th class="px-4 py-3.5">Total & Payment</th>
-                                    <th class="px-4 py-3.5">Order Status</th>
-                                    <th class="px-4 py-3.5 text-center">Quick Action (1-Click)</th>
-                                    <th class="px-4 py-3.5 text-right">Actions</th>
+                                    <th x-show="cols.order_date" class="px-4 py-3.5">Order # / Date</th>
+                                    <th x-show="cols.customer" class="px-4 py-3.5">Customer Info</th>
+                                    <th x-show="cols.items" class="px-4 py-3.5">Items Ordered</th>
+                                    <th x-show="cols.payment" class="px-4 py-3.5">Total &amp; Payment</th>
+                                    <th x-show="cols.status" class="px-4 py-3.5">Order Status &amp; Dispatch</th>
+                                    <th x-show="cols.quick_action" class="px-4 py-3.5 text-center">Quick Action (1-Click)</th>
+                                    <th x-show="cols.actions" class="px-4 py-3.5 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 text-slate-700 font-medium">
@@ -364,7 +569,7 @@
                                     <tr class="hover:bg-slate-50 transition-colors {{ $isNewPending ? 'bg-amber-50/50' : '' }}">
                                         
                                         <!-- Order # & Date -->
-                                        <td class="px-4 py-4">
+                                        <td x-show="cols.order_date" class="px-4 py-4">
                                             <div class="font-mono text-sm font-black text-orange-600 flex items-center gap-2">
                                                 <span>#{{ $order->order_number }}</span>
                                                 @if($isNewPending)
@@ -380,7 +585,7 @@
                                         </td>
 
                                         <!-- Customer Info -->
-                                        <td class="px-4 py-4">
+                                        <td x-show="cols.customer" class="px-4 py-4">
                                             <div class="font-bold text-slate-900 text-sm">
                                                 {{ $order->user ? $order->user->name : 'Guest Customer' }}
                                             </div>
@@ -394,7 +599,7 @@
                                         </td>
 
                                         <!-- Items Ordered -->
-                                        <td class="px-4 py-4">
+                                        <td x-show="cols.items" class="px-4 py-4">
                                             <div class="space-y-1.5 min-w-[220px]">
                                                 <div class="flex items-center justify-between">
                                                     <span class="px-2 py-0.5 bg-slate-100 rounded border border-slate-200 text-[10px] font-bold text-slate-700 inline-block">
@@ -421,7 +626,7 @@
                                         </td>
 
                                         <!-- Total & Payment -->
-                                        <td class="px-4 py-4">
+                                        <td x-show="cols.payment" class="px-4 py-4">
                                             <div class="text-sm font-black text-slate-900">
                                                 {{ number_format($order->total_amount) }} <span class="text-[10px] text-orange-600 font-bold">MMK</span>
                                             </div>
@@ -443,7 +648,7 @@
                                         </td>
 
                                         <!-- Order Status & Rider Dispatch Column -->
-                                        <td class="px-4 py-4 space-y-2.5 min-w-[220px]">
+                                        <td x-show="cols.status" class="px-4 py-4 space-y-2.5 min-w-[220px]">
                                             <!-- Status Selector Form -->
                                             <form method="POST" action="{{ route('admin.orders.update', $order) }}" class="block">
                                                 @csrf
@@ -537,7 +742,7 @@
                                         </td>
 
                                         <!-- 1-Click Accept / Reject Action Column -->
-                                        <td class="px-4 py-4 text-center">
+                                        <td x-show="cols.quick_action" class="px-4 py-4 text-center">
                                             <div class="flex flex-col items-center justify-center gap-1.5">
                                                 @if($order->status === 'pending')
                                                     <!-- Accept Form -->
@@ -552,7 +757,7 @@
                                                     <!-- Reject Button -->
                                                     <button @click="openRejectModal({{ $order->id }}, '{{ $order->order_number }}')" 
                                                             class="w-full max-w-[90px] px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-bold text-[11px] rounded-lg transition-all flex items-center justify-center gap-1 cursor-pointer">
-                                                        <span>✕</span>
+                                                         <span>✕</span>
                                                         <span>Reject</span>
                                                     </button>
                                                 @elseif($order->status === 'preparing')
@@ -583,7 +788,7 @@
                                         </td>
 
                                         <!-- Actions -->
-                                        <td class="px-4 py-4 text-right">
+                                        <td x-show="cols.actions" class="px-4 py-4 text-right">
                                             <div class="flex items-center justify-end gap-2">
                                                 <!-- Direct Proof Photo Button (If available) -->
                                                 @if($order->delivery_proof_photo)
@@ -596,6 +801,13 @@
                                                     </button>
                                                 @endif
 
+                                                <!-- Foodpanda Payslip & Tax Invoice Button -->
+                                                <a href="{{ route('orders.payslip', $order) }}" target="_blank" title="View & Print Official Foodpanda Payslip"
+                                                   class="px-2.5 py-1.5 bg-pink-50 hover:bg-pink-100 text-[#D70F64] text-xs font-bold rounded-xl border border-pink-200 transition-all flex items-center gap-1 cursor-pointer shadow-sm">
+                                                    <span>🧾</span>
+                                                    <span class="hidden xl:inline text-[11px]">Payslip</span>
+                                                </a>
+
                                                 <!-- View Details Button -->
                                                 @php
                                                     $subtotalVal = $order->orderItems->sum('subtotal');
@@ -606,6 +818,8 @@
                                                             'order_number' => $order->order_number,
                                                             'customer_name' => $order->user ? $order->user->name : 'Guest',
                                                             'customer_email' => $order->user ? $order->user->email : 'N/A',
+                                                            'rider_name' => $order->rider ? $order->rider->name : 'Unassigned',
+                                                            'rider_email' => $order->rider ? $order->rider->email : null,
                                                             'delivery_phone' => $order->delivery_phone,
                                                             'delivery_address' => $order->delivery_address,
                                                             'subtotal' => number_format($subtotalVal),
@@ -619,6 +833,7 @@
                                                             'status' => $order->status,
                                                             'notes' => $order->notes ?? 'No notes provided',
                                                             'created_at' => $order->created_at ? $order->created_at->format('M d, Y • h:i A') : 'N/A',
+                                                            'payslip_url' => route('orders.payslip', $order),
                                                             'items' => $order->orderItems->map(function($i) {
                                                                 $unitPrice = $i->unit_price ?? ($i->menuItem ? $i->menuItem->price : 0);
                                                                 $itemSubtotal = $i->subtotal ?? ($unitPrice * $i->quantity);
@@ -655,7 +870,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="px-6 py-12 text-center text-slate-500">
+                                        <td :colspan="getActiveColCount()" class="px-6 py-12 text-center text-slate-500">
                                             <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3 text-xl">
                                                 📦
                                             </div>
@@ -793,6 +1008,67 @@
                         <div class="border-t border-slate-200 pt-2 flex items-center justify-between">
                             <span class="font-black text-slate-900 uppercase tracking-wider text-xs">Total Amount</span>
                             <div class="text-lg font-black text-orange-600" x-text="activeOrder.total_amount + ' MMK'"></div>
+                        </div>
+                    </div>
+
+                    <!-- Foodpanda Official Payslip & Email Dispatch Card -->
+                    <div class="bg-gradient-to-r from-pink-50 via-rose-50 to-orange-50 border-2 border-pink-300 rounded-2xl p-4 sm:p-5 space-y-3 shadow-sm">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-9 h-9 rounded-xl bg-[#D70F64] text-white flex items-center justify-center text-lg shadow-sm">
+                                    🐼
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-black text-slate-900 text-sm">Foodpanda Digital Payslip &amp; Invoicing Hub</span>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-[#D70F64] text-white">
+                                            LIVE SYSTEM
+                                        </span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-600">Official tax invoice generated upon order acceptance &amp; emailed automatically</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Open / Print Foodpanda Payslip in New Window -->
+                            <a :href="'/orders/' + activeOrder.id + '/payslip'" target="_blank"
+                               class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-[#D70F64] to-[#E21B70] hover:from-[#c20d5a] hover:to-[#cb1864] active:scale-95 text-white font-black text-xs rounded-xl shadow-md shadow-[#D70F64]/20 transition-all cursor-pointer">
+                                <span>🧾</span>
+                                <span>Open &amp; Print Payslip</span>
+                                <span>&rarr;</span>
+                            </a>
+                        </div>
+
+                        <!-- Manual Resend Email Controls -->
+                        <div class="pt-2 border-t border-pink-200/80 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 text-xs">
+                            <span class="font-bold text-slate-700 text-[11px]">📧 Resend Digital Payslips:</span>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <!-- Send to Customer -->
+                                <form method="POST" :action="'/admin/orders/' + activeOrder.id + '/send-payslip'">
+                                    @csrf
+                                    <input type="hidden" name="recipient" value="customer">
+                                    <button type="submit" class="px-3 py-1.5 bg-white hover:bg-pink-100 text-[#D70F64] border border-pink-300 font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer">
+                                        <span>👤 Email Customer</span>
+                                    </button>
+                                </form>
+
+                                <!-- Send to Rider -->
+                                <form method="POST" :action="'/admin/orders/' + activeOrder.id + '/send-payslip'">
+                                    @csrf
+                                    <input type="hidden" name="recipient" value="rider">
+                                    <button type="submit" class="px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer">
+                                        <span>🛵 Email Rider</span>
+                                    </button>
+                                </form>
+
+                                <!-- Send to Both -->
+                                <form method="POST" :action="'/admin/orders/' + activeOrder.id + '/send-payslip'">
+                                    @csrf
+                                    <input type="hidden" name="recipient" value="both">
+                                    <button type="submit" class="px-3 py-1.5 bg-[#D70F64] hover:bg-[#c20d5a] text-white font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer shadow-sm">
+                                        <span>✉️ Email Both</span>
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </div>
 

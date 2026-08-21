@@ -83,7 +83,10 @@ class RiderDashboardController extends Controller
             'status' => 'delivering',
         ]);
 
-        return back()->with('success', "Order #{$order->order_number} successfully picked up! It is now in your Active Deliveries. 🛵💨");
+        // Send Foodpanda delivery slip email to rider
+        \App\Services\PayslipService::sendRiderPayslip($order, $rider);
+
+        return back()->with('success', "Order #{$order->order_number} successfully picked up! Foodpanda delivery slip emailed to you. 🛵💨");
     }
 
     /**

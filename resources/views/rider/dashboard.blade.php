@@ -401,12 +401,21 @@
                             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">👤 Customer &amp; Payment</p>
                             <p class="font-bold text-slate-900">{{ $order->user->name ?? 'Customer' }}</p>
                             <div class="flex items-center justify-between pt-1">
-                                <span class="text-slate-600 uppercase font-semibold">
-                                    @if($order->payment_method === 'cod') 💵 Cash on Delivery
-                                    @elseif($order->payment_method === 'kbzpay') 📱 KBZPay
-                                    @elseif($order->payment_method === 'wavepay') 🌊 WavePay
-                                    @else {{ $order->payment_method }} @endif
-                                </span>
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <span class="text-slate-600 uppercase font-semibold">
+                                        @if($order->payment_method === 'cod') 💵 Cash on Delivery
+                                        @elseif($order->payment_method === 'kbzpay') 📱 KBZPay
+                                        @elseif($order->payment_method === 'wavepay') 🌊 WavePay
+                                        @else {{ $order->payment_method }} @endif
+                                    </span>
+                                    @if($order->payment_screenshot)
+                                        <button type="button" 
+                                                @click="proofModalSrc = '{{ asset($order->payment_screenshot) }}'; proofModalOpen = true;"
+                                                class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 font-bold rounded text-[9px] transition-colors cursor-pointer">
+                                            <span>📸 Transfer Screenshot</span>
+                                        </button>
+                                    @endif
+                                </div>
                                 <span class="font-black text-emerald-600 font-mono text-sm">
                                     {{ number_format($order->total_amount) }} MMK
                                 </span>
@@ -504,23 +513,37 @@
 
                     <!-- Payment & Amount Info -->
                     <div class="flex items-center justify-between bg-slate-50 p-3.5 rounded-2xl border border-slate-100 text-xs">
-                        <div>
-                            <span class="text-slate-500 font-medium">Payment Mode: </span>
+                        <div class="flex items-center flex-wrap gap-1.5">
+                            <span class="text-slate-500 font-medium">Payment: </span>
                             <span class="font-bold text-slate-900 uppercase">
                                 @if($order->payment_method === 'cod') 💵 Cash on Delivery
                                 @elseif($order->payment_method === 'kbzpay') 📱 KBZPay
                                 @elseif($order->payment_method === 'wavepay') 🌊 WavePay
                                 @else {{ $order->payment_method }} @endif
                             </span>
-                            <span class="ms-2 px-2 py-0.5 rounded text-[10px] font-bold uppercase {{ $order->payment_status === 'paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-orange-100 text-orange-800' }}">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase {{ $order->payment_status === 'paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-orange-100 text-orange-800' }}">
                                 {{ $order->payment_status }}
                             </span>
+
+                            <!-- Foodpanda Delivery Slip -->
+                            <a href="{{ route('orders.payslip', $order) }}" target="_blank"
+                               class="inline-flex items-center gap-1 px-2.5 py-1 bg-pink-50 hover:bg-pink-100 border border-pink-200 text-[#D70F64] font-black rounded-lg text-[10px] transition-colors cursor-pointer shadow-sm">
+                                <span>🧾 Delivery Slip</span>
+                            </a>
+
+                            @if($order->payment_screenshot)
+                                <button type="button" 
+                                        @click="proofModalSrc = '{{ asset($order->payment_screenshot) }}'; proofModalOpen = true;"
+                                        class="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 font-bold rounded-md text-[10px] transition-colors cursor-pointer">
+                                    <span>📸 Transfer Screenshot</span>
+                                </button>
+                            @endif
                         </div>
 
                         <div class="text-right">
                             <span class="text-slate-500 font-medium">Cash to Collect: </span>
                             <span class="text-sm font-black text-emerald-600 font-mono">
-                                {{ number_format($order->total_amount) }} MMK
+                                {{ $order->payment_status === 'paid' ? '0 MMK (Paid)' : number_format($order->total_amount) . ' MMK' }}
                             </span>
                         </div>
                     </div>

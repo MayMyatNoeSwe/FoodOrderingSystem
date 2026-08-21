@@ -15,6 +15,10 @@ class OrderController extends Controller
         $search = $request->query('search');
         $status = $request->query('status');
         $paymentMethod = $request->query('payment_method');
+        $paymentStatus = $request->query('payment_status');
+        $riderId = $request->query('rider_id');
+        $dateRange = $request->query('date_range');
+        $sortBy = $request->query('sort_by', 'latest');
 
         // Order Statistics
         $totalOrdersCount = Order::count();
@@ -27,7 +31,7 @@ class OrderController extends Controller
             $totalRevenue = Order::sum('total_amount');
         }
 
-        $orders = Order::with(['user', 'rider', 'orderItems.menuItem'])
+        $ordersQuery = Order::with(['user', 'rider', 'orderItems.menuItem'])
             ->when($search, function ($query, $search) {
                 return $query->where('order_number', 'like', "%{$search}%")
                              ->orWhere('delivery_phone', 'like', "%{$search}%")
@@ -43,10 +47,39 @@ class OrderController extends Controller
             ->when($paymentMethod, function ($query, $paymentMethod) {
                 return $query->where('payment_method', $paymentMethod);
             })
-            ->latest()
-            ->paginate(10)
-            ->withQueryString();
+            ->when($paymentStatus, function ($query, $paymentStatus) {
+                return $query->where('payment_status', $paymentStatus);
+            })
+            ->when($riderId !== null && $riderId !== '', function ($query) use ($riderId) {
+                if ($riderId === 'unassigned') {
+                    return $query->whereNull('rider_id');
+                }
+                return $query->where('rider_id', $riderId);
+            })
+            ->when($dateRange, function ($query, $dateRange) {
+                if ($dateRange === 'today') {
+                    return $query->whereDate('created_at', today());
+                } elseif ($dateRange === 'yesterday') {
+                    return $query->whereDate('created_at', today()->subDay());
+                } elseif ($dateRange === 'this_week') {
+                    return $query->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
+                } elseif ($dateRange === 'this_month') {
+                    return $query->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year);
+                }
+                return $query;
+            });
 
+        if ($sortBy === 'oldest') {
+            $ordersQuery->oldest();
+        } elseif ($sortBy === 'amount_high') {
+            $ordersQuery->orderByDesc('total_amount');
+        } elseif ($sortBy === 'amount_low') {
+            $ordersQuery->orderBy('total_amount');
+        } else {
+            $ordersQuery->latest();
+        }
+
+        $orders = $ordersQuery->paginate(10)->withQueryString();
         $riders = \App\Models\User::where('role', 'rider')->get();
 
         return view('admin.orders.index', compact(
@@ -55,6 +88,10 @@ class OrderController extends Controller
             'search',
             'status',
             'paymentMethod',
+            'paymentStatus',
+            'riderId',
+            'dateRange',
+            'sortBy',
             'totalOrdersCount',
             'pendingCount',
             'activeCount',

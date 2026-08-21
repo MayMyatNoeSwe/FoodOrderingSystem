@@ -52,28 +52,85 @@
           editItemName: '{{ old('name') && old('_method') === 'PUT' ? addslashes(old('name')) : '' }}',
           editItemCategoryId: '{{ old('category_id') && old('_method') === 'PUT' ? old('category_id') : '' }}',
           editItemPrice: '{{ old('price') && old('_method') === 'PUT' ? old('price') : '' }}',
-          editItemStock: '{{ old('stock') && old('_method') === 'PUT' ? old('stock') : '' }}',
+          editItemMinStock: {{ old('min_stock_level') && old('_method') === 'PUT' ? old('min_stock_level') : '10' }},
           editItemDescription: '{{ old('description') && old('_method') === 'PUT' ? addslashes(old('description')) : '' }}',
           editItemImage: '{{ old('image') && old('_method') === 'PUT' ? addslashes(old('image')) : '' }}',
           editItemIsAvailable: {{ old('is_available') && old('_method') === 'PUT' ? 'true' : 'false' }},
           editItemUrl: '{{ old('edit_item_url', '') }}',
 
           createImageInput: '',
-          createPreviewUrl: '',
-          editPreviewUrl: '',
+          createImagePreviews: [],
+          
+          editExistingImages: [],
+          editNewImagePreviews: [],
 
-          handleCreateFile(e) {
-              const file = e.target.files[0];
-              if (file) {
-                  this.createPreviewUrl = URL.createObjectURL(file);
+          draggedIdx: null,
+
+          handleCreateFiles(e) {
+              const files = Array.from(e.target.files || []);
+              if (files.length > 0) {
+                  this.createImagePreviews = files.map(file => URL.createObjectURL(file));
+              } else {
+                  this.createImagePreviews = [];
               }
           },
-          handleEditFile(e) {
-              const file = e.target.files[0];
-              if (file) {
-                  this.editPreviewUrl = URL.createObjectURL(file);
+
+          handleEditFiles(e) {
+              const files = Array.from(e.target.files || []);
+              if (files.length > 0) {
+                  const newUrls = files.map(file => URL.createObjectURL(file));
+                  this.editNewImagePreviews = [...this.editNewImagePreviews, ...newUrls];
+              } else {
+                  this.editNewImagePreviews = [];
               }
           },
+
+          removeExistingImage(index) {
+              this.editExistingImages.splice(index, 1);
+          },
+
+          moveExistingImage(fromIdx, toIdx) {
+              if (toIdx < 0 || toIdx >= this.editExistingImages.length) return;
+              const item = this.editExistingImages.splice(fromIdx, 1)[0];
+              this.editExistingImages.splice(toIdx, 0, item);
+          },
+
+          setAsCoverExistingImage(idx) {
+              if (idx <= 0 || idx >= this.editExistingImages.length) return;
+              const item = this.editExistingImages.splice(idx, 1)[0];
+              this.editExistingImages.unshift(item);
+          },
+
+          removeCreatePreview(index) {
+              this.createImagePreviews.splice(index, 1);
+          },
+
+          moveCreateImage(fromIdx, toIdx) {
+              if (toIdx < 0 || toIdx >= this.createImagePreviews.length) return;
+              const item = this.createImagePreviews.splice(fromIdx, 1)[0];
+              this.createImagePreviews.splice(toIdx, 0, item);
+          },
+
+          setAsCoverCreateImage(idx) {
+              if (idx <= 0 || idx >= this.createImagePreviews.length) return;
+              const item = this.createImagePreviews.splice(idx, 1)[0];
+              this.createImagePreviews.unshift(item);
+          },
+
+          removeEditNewPreview(index) {
+              this.editNewImagePreviews.splice(index, 1);
+          },
+
+          handleDrop(targetIdx, type = 'edit') {
+              if (this.draggedIdx === null || this.draggedIdx === targetIdx) return;
+              if (type === 'edit') {
+                  this.moveExistingImage(this.draggedIdx, targetIdx);
+              } else {
+                  this.moveCreateImage(this.draggedIdx, targetIdx);
+              }
+              this.draggedIdx = null;
+          },
+
           resolveImageSrc(imgPath) {
               if (!imgPath) return '';
               const img = imgPath.trim();
@@ -88,10 +145,19 @@
               this.editItemName = item.name;
               this.editItemCategoryId = item.category_id;
               this.editItemPrice = item.price;
-              this.editItemStock = item.stock !== undefined ? item.stock : 50;
+              this.editItemMinStock = (item.min_stock_level !== undefined && item.min_stock_level !== null) ? item.min_stock_level : 10;
               this.editItemDescription = item.description || '';
               this.editItemImage = item.image || '';
-              this.editPreviewUrl = item.image ? this.resolveImageSrc(item.image) : '';
+              
+              if (item.images && Array.isArray(item.images) && item.images.length > 0) {
+                  this.editExistingImages = [...item.images];
+              } else if (item.image) {
+                  this.editExistingImages = [item.image];
+              } else {
+                  this.editExistingImages = [];
+              }
+
+              this.editNewImagePreviews = [];
               this.editItemIsAvailable = item.is_available ? true : false;
               this.editItemUrl = url;
               this.editModalOpen = true;
@@ -123,7 +189,7 @@
                                 {{ $menuItems->total() }} Dishes & Drinks
                             </span>
                         </h1>
-                        <p class="text-xs text-slate-500 hidden sm:block">Manage items, prices, availability, and descriptions</p>
+                        <p class="text-xs text-slate-500 hidden sm:block">Manage items, multiple photos, min stock thresholds, and prices</p>
                     </div>
                 </div>
 
@@ -189,7 +255,7 @@
                             </div>
                         </div>
                         <div class="text-3xl font-black text-slate-900 mt-2">{{ $totalItemsCount ?? $menuItems->total() }}</div>
-                        <div class="text-xs text-slate-500 font-medium mt-2">Total Dishes in catalog</div>
+                        <div class="text-xs text-slate-500 font-medium mt-2">Total dishes in catalog</div>
                     </a>
 
                     <!-- Metric Card 2: In Stock -->
@@ -209,7 +275,7 @@
                     <!-- Metric Card 3: Low Stock Alert -->
                     <a href="{{ route('admin.menuItems.index', array_filter(['category_id' => $categoryId, 'stock_status' => 'low_stock', 'search' => $search])) }}" class="bg-white border {{ ($stockStatus ?? '') === 'low_stock' ? 'border-amber-500 ring-2 ring-amber-500/20' : 'border-slate-200/80' }} rounded-2xl p-5 relative overflow-hidden group hover:border-amber-300 hover:shadow-md transition-all shadow-sm block">
                         <div class="flex items-center justify-between">
-                            <span class="text-slate-500 text-xs font-bold uppercase tracking-wider">Low Stock (1-10)</span>
+                            <span class="text-slate-500 text-xs font-bold uppercase tracking-wider">Low Stock (≤ min)</span>
                             <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-base border border-amber-100">
                                 ⚠️
                             </div>
@@ -236,14 +302,14 @@
 
                 </div>
 
-                <!-- Menu Items Management Section -->
+                <!-- Items Management Section -->
                 <div class="bg-white border border-slate-200/80 rounded-2xl p-5 sm:p-6 shadow-sm space-y-6">
                     
                     <!-- Search & Action Toolbar -->
                     <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
                         <div>
-                            <h3 class="text-lg font-black text-slate-900 tracking-tight">Food & Drink Offerings</h3>
-                            <p class="text-slate-500 text-xs mt-0.5">Manage details, pricing, availability toggles, and images</p>
+                            <h3 class="text-lg font-black text-slate-900 tracking-tight">Food &amp; Drink Offerings</h3>
+                            <p class="text-slate-500 text-xs mt-0.5">Manage details, multi-photos, prices, and min stock levels</p>
                         </div>
 
                         <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
@@ -263,22 +329,12 @@
                                     @endforeach
                                 </select>
 
-                                <!-- Stock Status Select Filter -->
-                                <select name="stock_status" 
-                                        onchange="this.form.submit()" 
-                                        class="bg-slate-50 border border-slate-200 focus:border-orange-500 focus:bg-white text-slate-800 text-xs rounded-xl px-3 py-2.5 focus:ring-0 cursor-pointer w-full sm:w-auto">
-                                    <option value="">All Stock Levels</option>
-                                    <option value="in_stock" {{ ($stockStatus ?? '') === 'in_stock' ? 'selected' : '' }}>In Stock (> 10)</option>
-                                    <option value="low_stock" {{ ($stockStatus ?? '') === 'low_stock' ? 'selected' : '' }}>Low Stock (1-10)</option>
-                                    <option value="out_of_stock" {{ ($stockStatus ?? '') === 'out_of_stock' ? 'selected' : '' }}>Out of Stock (0)</option>
-                                </select>
-
                                 <!-- Text Search Input -->
                                 <div class="relative w-full sm:w-56">
                                     <input type="text" 
                                            name="search" 
                                            value="{{ $search }}" 
-                                           placeholder="Search food item name..." 
+                                           placeholder="Search item name..." 
                                            class="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:bg-white text-slate-800 text-xs rounded-xl px-3.5 py-2.5 pl-9 pr-8 focus:ring-0 transition-all placeholder-slate-400">
                                     
                                     <svg class="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -312,9 +368,10 @@
                             <thead class="bg-slate-50 text-slate-600 font-bold uppercase tracking-wider border-b border-slate-200">
                                 <tr>
                                     <th class="px-4 py-3.5 w-16">Item</th>
-                                    <th class="px-4 py-3.5">Name & Description</th>
+                                    <th class="px-4 py-3.5">Name &amp; Description</th>
                                     <th class="px-4 py-3.5">Category</th>
                                     <th class="px-4 py-3.5">Price</th>
+                                    <th class="px-4 py-3.5">Min Stock Alert</th>
                                     <th class="px-4 py-3.5">Status</th>
                                     <th class="px-4 py-3.5 text-right">Actions</th>
                                 </tr>
@@ -329,25 +386,40 @@
                                         elseif (str_contains($catName, 'noodle') || str_contains($catName, 'pasta')) { $fallbackIcon = '🍜'; }
                                         elseif (str_contains($catName, 'drink') || str_contains($catName, 'beverage')) { $fallbackIcon = '🍹'; }
                                         elseif (str_contains($catName, 'dessert')) { $fallbackIcon = '🍰'; }
+                                        
+                                        $imagesCount = is_array($item->images) ? count($item->images) : ($item->image ? 1 : 0);
                                     @endphp
 
                                     <tr class="hover:bg-slate-50 transition-colors">
-                                        <!-- Image Thumbnail -->
+                                        <!-- Image Thumbnail with Multi-Photo Badge -->
                                         <td class="px-4 py-4">
-                                            @if($item->image)
-                                                <div class="w-12 h-12 rounded-xl overflow-hidden bg-white border border-slate-200 shrink-0">
+                                            <div class="relative w-12 h-12 rounded-xl overflow-hidden bg-white border border-slate-200 shrink-0">
+                                                @if($item->image || !empty($item->images))
                                                     <img src="{{ $item->image_url }}" alt="{{ $item->name }}" class="w-full h-full object-cover">
-                                                </div>
-                                            @else
-                                                <div class="w-12 h-12 rounded-xl bg-orange-50 border border-orange-100 text-orange-600 flex items-center justify-center text-xl shrink-0">
-                                                    {{ $fallbackIcon }}
-                                                </div>
-                                            @endif
+                                                @else
+                                                    <div class="w-full h-full bg-orange-50 text-orange-600 flex items-center justify-center text-xl">
+                                                        {{ $fallbackIcon }}
+                                                    </div>
+                                                @endif
+
+                                                @if($imagesCount > 1)
+                                                    <span class="absolute bottom-0 right-0 bg-slate-900/80 text-white font-bold text-[8px] px-1 py-0.2 rounded-tl-md">
+                                                        +{{ $imagesCount }}
+                                                    </span>
+                                                @endif
+                                            </div>
                                         </td>
 
                                         <!-- Name & Description -->
                                         <td class="px-4 py-4">
-                                            <div class="font-extrabold text-slate-900 text-sm">{{ $item->name }}</div>
+                                            <div class="font-extrabold text-slate-900 text-sm flex items-center gap-1.5">
+                                                <span>{{ $item->name }}</span>
+                                                @if($imagesCount > 1)
+                                                    <span class="text-[10px] text-purple-600 bg-purple-50 border border-purple-200 px-1.5 py-0.2 rounded-full font-bold">
+                                                        📸 {{ $imagesCount }} photos
+                                                    </span>
+                                                @endif
+                                            </div>
                                             <div class="text-slate-500 text-xs mt-0.5 line-clamp-1 max-w-sm">
                                                 {{ $item->description ?? 'No description available.' }}
                                             </div>
@@ -365,6 +437,14 @@
                                             {{ number_format($item->price) }} MMK
                                         </td>
 
+                                        <!-- Min Stock Level -->
+                                        <td class="px-4 py-4 whitespace-nowrap">
+                                            <span class="px-2.5 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-lg font-mono font-bold text-[11px] inline-flex items-center gap-1">
+                                                <span>⚠️ Min:</span>
+                                                <span>{{ $item->min_stock_level ?? 10 }} units</span>
+                                            </span>
+                                        </td>
+
                                         <!-- Availability Status -->
                                         <td class="px-4 py-4 whitespace-nowrap">
                                             @if($item->is_available)
@@ -375,7 +455,7 @@
                                             @else
                                                 <span class="px-2.5 py-1 bg-red-50 text-red-700 rounded-full border border-red-200 text-[11px] font-bold inline-flex items-center gap-1.5">
                                                     <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-                                                    <span>Out of Stock</span>
+                                                    <span>Unavailable</span>
                                                 </span>
                                             @endif
                                         </td>
@@ -407,7 +487,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="px-4 py-12 text-center text-slate-500">
+                                        <td colspan="7" class="px-4 py-12 text-center text-slate-500">
                                             <div class="max-w-xs mx-auto space-y-3">
                                                 <div class="text-3xl">🍕</div>
                                                 <div class="font-bold text-slate-800 text-sm">No Items Found</div>
@@ -445,7 +525,7 @@
 
     </div>
 
-    <!-- ================= CREATE MENU ITEM MODAL ================= -->
+    <!-- ================= CREATE ITEM MODAL ================= -->
     <div x-show="createModalOpen" 
          x-cloak
          x-transition:enter="transition ease-out duration-200"
@@ -457,7 +537,7 @@
          class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         
         <div @click.outside="createModalOpen = false" 
-             class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+             class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 max-w-xl w-full shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
             
             <!-- Modal Header -->
             <div class="flex items-center justify-between border-b border-slate-100 pb-4">
@@ -467,7 +547,7 @@
                     </div>
                     <div>
                         <h3 class="text-lg font-black text-slate-900">Add New Item</h3>
-                        <p class="text-slate-500 text-xs">Create a new dish or drink offering</p>
+                        <p class="text-slate-500 text-xs">Create a new offering with multi-photos and stock thresholds</p>
                     </div>
                 </div>
                 <button @click="createModalOpen = false" class="text-slate-400 hover:text-slate-700 p-1 text-lg font-bold">✕</button>
@@ -490,15 +570,15 @@
                            class="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:bg-white text-slate-900 text-sm rounded-xl px-4 py-3 focus:ring-0 transition-all placeholder-slate-400">
                 </div>
 
-                <!-- Category & Price -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Category, Price & Min Stock Level -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
                             Category <span class="text-orange-500">*</span>
                         </label>
                         <select name="category_id" 
                                 required 
-                                class="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:bg-white text-slate-900 text-sm rounded-xl px-4 py-3 focus:ring-0 transition-all">
+                                class="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:bg-white text-slate-900 text-sm rounded-xl px-3 py-3 focus:ring-0 transition-all">
                             <option value="">Select Category</option>
                             @foreach($categories as $cat)
                                 <option value="{{ $cat->id }}">{{ $cat->name }}</option>
@@ -516,7 +596,20 @@
                                min="0" 
                                required 
                                placeholder="15000" 
-                               class="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:bg-white text-slate-900 text-sm rounded-xl px-4 py-3 focus:ring-0 transition-all placeholder-slate-400">
+                               class="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:bg-white text-slate-900 text-sm rounded-xl px-3 py-3 focus:ring-0 transition-all placeholder-slate-400">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
+                            Min Stock Alert
+                        </label>
+                        <input type="number" 
+                               name="min_stock_level" 
+                               min="0" 
+                               value="10" 
+                               placeholder="10" 
+                               class="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:bg-white text-slate-900 text-sm rounded-xl px-3 py-3 focus:ring-0 transition-all placeholder-slate-400"
+                               title="Threshold when low-stock warning triggers in Inventory">
                     </div>
                 </div>
 
@@ -529,45 +622,117 @@
                               class="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:bg-white text-slate-900 text-sm rounded-xl px-4 py-3 focus:ring-0 transition-all placeholder-slate-400"></textarea>
                 </div>
 
-                <!-- Live Image Preview Widget -->
-                <div class="space-y-3">
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Image Preview & Upload</label>
-                    
-                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center gap-3.5">
-                        <div class="w-16 h-16 rounded-xl overflow-hidden bg-white border border-slate-200 shrink-0 flex items-center justify-center relative shadow-sm">
-                            <template x-if="createPreviewUrl || (createImageInput && resolveImageSrc(createImageInput))">
-                                <img :src="createPreviewUrl || resolveImageSrc(createImageInput)" 
-                                     alt="Preview" 
-                                     class="w-full h-full object-cover">
-                            </template>
-                            <template x-if="!createPreviewUrl && (!createImageInput || !resolveImageSrc(createImageInput))">
-                                <span class="text-2xl opacity-40">🖼️</span>
-                            </template>
-                        </div>
-                        <div class="space-y-1 min-w-0 flex-1">
-                            <div class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                                <span class="w-2 h-2 rounded-full" :class="(createPreviewUrl || createImageInput) ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'"></span>
-                                <span x-text="(createPreviewUrl || createImageInput) ? 'Image Selected' : 'No Image Selected'"></span>
+                <!-- Multiple Photos Upload & Live Gallery Preview -->
+                <div class="space-y-3 p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                            <span>📸</span>
+                            <span>Upload Multiple Photos (ဓာတ်ပုံများ)</span>
+                        </label>
+                        <span class="text-[10px] text-purple-700 bg-purple-100 font-bold px-2 py-0.5 rounded-full"
+                              x-text="(createImagePreviews.length > 0 ? createImagePreviews.length + ' Photos Selected' : (createImageInput ? '1 Photo via URL' : 'Multiple Allowed'))">
+                        </span>
+                    </div>
+
+                    <!-- Multiple Files Picker Box -->
+                    <div class="relative border-2 border-dashed border-slate-300 hover:border-orange-500 rounded-2xl p-4 text-center transition-all bg-white cursor-pointer group">
+                        <input type="file" 
+                               name="image_files[]" 
+                               multiple 
+                               accept="image/*" 
+                               @change="handleCreateFiles($event)" 
+                               class="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10">
+                        <div class="py-2 space-y-1 pointer-events-none">
+                            <div class="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center mx-auto text-xl group-hover:scale-110 transition-transform">
+                                🖼️
                             </div>
-                            <p class="text-[11px] text-slate-500 truncate" x-text="createPreviewUrl || createImageInput || 'Upload a file or enter image URL'"></p>
+                            <p class="text-xs font-bold text-slate-800">Click to Select Multiple Photos</p>
+                            <p class="text-[10px] text-slate-500">Select one or multiple dish images (JPG, PNG, WEBP)</p>
                         </div>
                     </div>
 
-                    <input type="text" 
-                           name="image" 
-                           x-model="createImageInput" 
-                           placeholder="https://images.unsplash.com/photo-..." 
-                           class="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:bg-white text-slate-900 text-xs rounded-xl px-4 py-2.5 focus:ring-0 transition-all placeholder-slate-400">
-                    <div class="text-[10px] text-slate-500 font-medium">Or replace with file upload:</div>
-                    <input type="file" 
-                           name="image_file" 
-                           accept="image/*" 
-                           @change="handleCreateFile($event)" 
-                           class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer">
+                    <!-- Live Photo Gallery Preview Grid with Reordering -->
+                    <template x-if="createImagePreviews.length > 0">
+                        <div class="space-y-2 pt-2 border-t border-slate-200/80">
+                            <div class="flex items-center justify-between text-[11px]">
+                                <span class="font-bold text-slate-700">Selected Photos (Drag or use ◀ ▶ arrows to rearrange):</span>
+                                <span class="text-[10px] text-amber-600 font-bold">First = Main Cover</span>
+                            </div>
+                            <div class="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
+                                <template x-for="(src, idx) in createImagePreviews" :key="'create-' + idx">
+                                    <div class="relative group rounded-2xl overflow-hidden border-2 transition-all bg-white aspect-square shadow-sm cursor-grab active:cursor-grabbing"
+                                         :class="idx === 0 ? 'border-amber-400 ring-2 ring-amber-400/20' : 'border-slate-200 hover:border-orange-400'"
+                                         draggable="true"
+                                         @dragstart="draggedIdx = idx"
+                                         @dragover.prevent=""
+                                         @drop.prevent="handleDrop(idx, 'create')">
+                                        
+                                        <img :src="src" class="w-full h-full object-cover select-none pointer-events-none">
+                                        
+                                        <!-- Top Badges / Set Cover Action -->
+                                        <template x-if="idx === 0">
+                                            <span class="absolute top-1.5 left-1.5 bg-amber-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-lg shadow-sm flex items-center gap-0.5 z-10 pointer-events-none">
+                                                ⭐ Cover
+                                            </span>
+                                        </template>
+                                        <template x-if="idx > 0">
+                                            <button type="button" 
+                                                    @click.stop="setAsCoverCreateImage(idx)" 
+                                                    title="Set as Cover Photo" 
+                                                    class="absolute top-1.5 left-1.5 bg-black/75 hover:bg-amber-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow-sm cursor-pointer">
+                                                ⭐ Set Cover
+                                            </button>
+                                        </template>
+
+                                        <!-- Remove Button -->
+                                        <button type="button" 
+                                                @click.stop="removeCreatePreview(idx)" 
+                                                title="Remove Photo"
+                                                class="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-black flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 cursor-pointer shadow-md">
+                                            ✕
+                                        </button>
+
+                                        <!-- Bottom Reorder Navigation Bar -->
+                                        <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-1.5 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                            <button type="button" 
+                                                    @click.stop="moveCreateImage(idx, idx - 1)" 
+                                                    :disabled="idx === 0"
+                                                    :class="idx === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/30 cursor-pointer'"
+                                                    class="w-5 h-5 rounded-md bg-black/40 text-white text-[10px] font-bold flex items-center justify-center transition-colors"
+                                                    title="Move Left (Earlier)">
+                                                ◀
+                                            </button>
+                                            
+                                            <span class="text-[9px] text-white/90 font-mono font-bold" x-text="'#' + (idx + 1)"></span>
+
+                                            <button type="button" 
+                                                    @click.stop="moveCreateImage(idx, idx + 1)" 
+                                                    :disabled="idx === createImagePreviews.length - 1"
+                                                    :class="idx === createImagePreviews.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/30 cursor-pointer'"
+                                                    class="w-5 h-5 rounded-md bg-black/40 text-white text-[10px] font-bold flex items-center justify-center transition-colors"
+                                                    title="Move Right (Later)">
+                                                ▶
+                                            </button>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+
+                    <!-- Or Image URL (Single or Comma-separated) -->
+                    <div class="pt-2 border-t border-slate-200/80 space-y-1">
+                        <span class="text-[10px] text-slate-500 font-semibold block">Or paste image URL(s):</span>
+                        <input type="text" 
+                               name="image" 
+                               x-model="createImageInput" 
+                               placeholder="https://... or /images/dish.png (comma separated for multiple)" 
+                               class="w-full bg-white border border-slate-200 focus:border-orange-500 text-slate-900 text-xs rounded-xl px-3.5 py-2.5 focus:ring-0 transition-all placeholder-slate-400">
+                    </div>
                 </div>
 
                 <!-- Availability Toggle -->
-                <div class="pt-2 flex items-center gap-3">
+                <div class="pt-1 flex items-center gap-3">
                     <input type="checkbox" 
                            id="create_is_available" 
                            name="is_available" 
@@ -603,7 +768,7 @@
          class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         
         <div @click.outside="editModalOpen = false" 
-             class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+             class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 max-w-xl w-full shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
             
             <!-- Modal Header -->
             <div class="flex items-center justify-between border-b border-slate-100 pb-4">
@@ -613,7 +778,7 @@
                     </div>
                     <div>
                         <h3 class="text-lg font-black text-slate-900">Edit Item</h3>
-                        <p class="text-slate-500 text-xs">Update dish details, price, or availability</p>
+                        <p class="text-slate-500 text-xs">Update dish details, multiple photos, min stock level, and price</p>
                     </div>
                 </div>
                 <button @click="editModalOpen = false" class="text-slate-400 hover:text-slate-700 p-1 text-lg font-bold">✕</button>
@@ -628,6 +793,11 @@
                 <input type="hidden" name="edit_item_url" :value="editItemUrl">
                 <input type="hidden" name="return_url" value="{{ request()->fullUrl() }}">
 
+                <!-- Hidden inputs to persist existing images array -->
+                <template x-for="(img, idx) in editExistingImages" :key="'ex-' + idx">
+                    <input type="hidden" name="existing_images[]" :value="img">
+                </template>
+
                 <!-- Name -->
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
@@ -640,8 +810,8 @@
                            class="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:bg-white text-slate-900 text-sm rounded-xl px-4 py-3 focus:ring-0 transition-all">
                 </div>
 
-                <!-- Category & Price -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Category, Price & Min Stock Level -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
                             Category <span class="text-orange-500">*</span>
@@ -649,7 +819,7 @@
                         <select name="category_id" 
                                 x-model="editItemCategoryId" 
                                 required 
-                                class="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:bg-white text-slate-900 text-sm rounded-xl px-4 py-3 focus:ring-0 transition-all">
+                                class="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:bg-white text-slate-900 text-sm rounded-xl px-3 py-3 focus:ring-0 transition-all">
                             <option value="">Select Category</option>
                             @foreach($categories as $cat)
                                 <option value="{{ $cat->id }}">{{ $cat->name }}</option>
@@ -667,7 +837,20 @@
                                min="0" 
                                x-model="editItemPrice" 
                                required 
-                               class="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:bg-white text-slate-900 text-sm rounded-xl px-4 py-3 focus:ring-0 transition-all">
+                               class="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:bg-white text-slate-900 text-sm rounded-xl px-3 py-3 focus:ring-0 transition-all">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
+                            Min Stock Alert
+                        </label>
+                        <input type="number" 
+                               name="min_stock_level" 
+                               min="0" 
+                               x-model="editItemMinStock" 
+                               placeholder="10" 
+                               class="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:bg-white text-slate-900 text-sm rounded-xl px-3 py-3 focus:ring-0 transition-all"
+                               title="Threshold when low-stock warning triggers in Inventory">
                     </div>
                 </div>
 
@@ -680,45 +863,134 @@
                               class="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:bg-white text-slate-900 text-sm rounded-xl px-4 py-3 focus:ring-0 transition-all"></textarea>
                 </div>
 
-                <!-- Live Image Preview Widget -->
-                <div class="space-y-3">
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Image Preview & Upload</label>
-                    
-                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center gap-3.5">
-                        <div class="w-16 h-16 rounded-xl overflow-hidden bg-white border border-slate-200 shrink-0 flex items-center justify-center relative shadow-sm">
-                            <template x-if="editPreviewUrl || (editItemImage && resolveImageSrc(editItemImage))">
-                                <img :src="editPreviewUrl || resolveImageSrc(editItemImage)" 
-                                     alt="Preview" 
-                                     class="w-full h-full object-cover">
-                            </template>
-                            <template x-if="!editPreviewUrl && (!editItemImage || !resolveImageSrc(editItemImage))">
-                                <span class="text-2xl opacity-40">🖼️</span>
-                            </template>
-                        </div>
-                        <div class="space-y-1 min-w-0 flex-1">
-                            <div class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                                <span class="w-2 h-2 rounded-full" :class="(editPreviewUrl || editItemImage) ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'"></span>
-                                <span x-text="(editPreviewUrl || editItemImage) ? 'Current Image Preview' : 'No Image Set'"></span>
+                <!-- Multiple Photos Upload & Live Gallery Management -->
+                <div class="space-y-3 p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                            <span>📸</span>
+                            <span>Item Photos Gallery (ဓာတ်ပုံများ)</span>
+                        </label>
+                        <span class="text-[10px] text-purple-700 bg-purple-100 font-bold px-2 py-0.5 rounded-full"
+                              x-text="(editExistingImages.length + editNewImagePreviews.length) + ' Photos'">
+                        </span>
+                    </div>
+
+                    <!-- Existing Saved Photos Grid with Drag & Reorder Controls -->
+                    <template x-if="editExistingImages.length > 0">
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wider block">
+                                    Current Saved Photos <span class="text-slate-400 font-normal normal-case">(Drag or use ◀ ▶ arrows to rearrange)</span>
+                                </span>
+                                <span class="text-[10px] text-amber-600 font-bold">First = Main Cover</span>
                             </div>
-                            <p class="text-[11px] text-slate-500 truncate font-mono" x-text="editPreviewUrl || editItemImage || 'Upload a file or enter image URL'"></p>
+
+                            <div class="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
+                                <template x-for="(img, idx) in editExistingImages" :key="'saved-' + idx">
+                                    <div class="relative group rounded-2xl overflow-hidden border-2 transition-all bg-white aspect-square shadow-sm cursor-grab active:cursor-grabbing"
+                                         :class="idx === 0 ? 'border-amber-400 ring-2 ring-amber-400/20' : 'border-slate-200 hover:border-orange-400'"
+                                         draggable="true"
+                                         @dragstart="draggedIdx = idx"
+                                         @dragover.prevent=""
+                                         @drop.prevent="handleDrop(idx, 'edit')">
+                                        
+                                        <img :src="resolveImageSrc(img)" class="w-full h-full object-cover select-none pointer-events-none">
+                                        
+                                        <!-- Top Cover Badge / Action -->
+                                        <template x-if="idx === 0">
+                                            <span class="absolute top-1.5 left-1.5 bg-amber-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-lg shadow-sm flex items-center gap-0.5 z-10 pointer-events-none">
+                                                ⭐ Cover
+                                            </span>
+                                        </template>
+                                        <template x-if="idx > 0">
+                                            <button type="button" 
+                                                    @click.stop="setAsCoverExistingImage(idx)" 
+                                                    title="Set as Cover Photo" 
+                                                    class="absolute top-1.5 left-1.5 bg-black/75 hover:bg-amber-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow-sm cursor-pointer">
+                                                ⭐ Set Cover
+                                            </button>
+                                        </template>
+
+                                        <!-- Remove Photo Button -->
+                                        <button type="button" 
+                                                @click.stop="removeExistingImage(idx)" 
+                                                title="Remove photo" 
+                                                class="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-black flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 cursor-pointer shadow-md">
+                                            ✕
+                                        </button>
+
+                                        <!-- Bottom Reorder Navigation Bar -->
+                                        <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-1.5 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                            <button type="button" 
+                                                    @click.stop="moveExistingImage(idx, idx - 1)" 
+                                                    :disabled="idx === 0"
+                                                    :class="idx === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/30 cursor-pointer'"
+                                                    class="w-5 h-5 rounded-md bg-black/40 text-white text-[10px] font-bold flex items-center justify-center transition-colors"
+                                                    title="Move Left (Earlier)">
+                                                ◀
+                                            </button>
+                                            
+                                            <span class="text-[9px] text-white/90 font-mono font-bold" x-text="'#' + (idx + 1)"></span>
+
+                                            <button type="button" 
+                                                    @click.stop="moveExistingImage(idx, idx + 1)" 
+                                                    :disabled="idx === editExistingImages.length - 1"
+                                                    :class="idx === editExistingImages.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/30 cursor-pointer'"
+                                                    class="w-5 h-5 rounded-md bg-black/40 text-white text-[10px] font-bold flex items-center justify-center transition-colors"
+                                                    title="Move Right (Later)">
+                                                ▶
+                                            </button>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+
+                    <!-- Newly Selected Files Preview -->
+                    <template x-if="editNewImagePreviews.length > 0">
+                        <div class="space-y-1.5 pt-2 border-t border-slate-200/80">
+                            <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider block">+ New Photos to Upload:</span>
+                            <div class="grid grid-cols-4 gap-2">
+                                <template x-for="(src, idx) in editNewImagePreviews" :key="'new-' + idx">
+                                    <div class="relative group rounded-xl overflow-hidden border border-emerald-300 bg-white aspect-square shadow-sm">
+                                        <img :src="src" class="w-full h-full object-cover">
+                                        <button type="button" @click="removeEditNewPreview(idx)" class="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-600 text-white text-[10px] font-bold flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                                            ✕
+                                        </button>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+
+                    <!-- Add More / Replace Files Button -->
+                    <div class="relative border-2 border-dashed border-slate-300 hover:border-orange-500 rounded-2xl p-3 text-center transition-all bg-white cursor-pointer group">
+                        <input type="file" 
+                               name="image_files[]" 
+                               multiple 
+                               accept="image/*" 
+                               @change="handleEditFiles($event)" 
+                               class="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10">
+                        <div class="py-1 space-y-0.5 pointer-events-none">
+                            <p class="text-xs font-bold text-slate-800">📷 Add More Photos</p>
+                            <p class="text-[10px] text-slate-500">Hold Ctrl/Shift to pick multiple new images</p>
                         </div>
                     </div>
 
-                    <input type="text" 
-                           name="image" 
-                           x-model="editItemImage" 
-                           placeholder="https://images.unsplash.com/photo-..." 
-                           class="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:bg-white text-slate-900 text-xs rounded-xl px-4 py-2.5 focus:ring-0 transition-all placeholder-slate-400">
-                    <div class="text-[10px] text-slate-500 font-medium">Or replace with file upload:</div>
-                    <input type="file" 
-                           name="image_file" 
-                           accept="image/*" 
-                           @change="handleEditFile($event)" 
-                           class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer">
+                    <!-- Image URL input -->
+                    <div class="pt-1 space-y-1">
+                        <span class="text-[10px] text-slate-500 font-semibold block">Or add via Image URL(s):</span>
+                        <input type="text" 
+                               name="image" 
+                               x-model="editItemImage" 
+                               placeholder="https://... (comma separated)" 
+                               class="w-full bg-white border border-slate-200 focus:border-orange-500 text-slate-900 text-xs rounded-xl px-3.5 py-2.5 focus:ring-0 transition-all placeholder-slate-400">
+                    </div>
                 </div>
 
                 <!-- Availability Toggle -->
-                <div class="pt-2 flex items-center gap-3">
+                <div class="pt-1 flex items-center gap-3">
                     <input type="checkbox" 
                            id="edit_is_available" 
                            name="is_available" 

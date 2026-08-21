@@ -431,20 +431,35 @@
                             
                             <div>
                                 <!-- Food Image Showcase -->
-                                <div class="relative h-48 sm:h-52 overflow-hidden bg-slate-100 dark:bg-slate-800">
-                                    <img src="{{ $item->image_url }}" alt="{{ $item->name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out">
-                                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-black/20"></div>
+                                <div class="relative h-48 sm:h-52 overflow-hidden bg-slate-100 dark:bg-slate-800"
+                                     x-data="{ currentImg: '{{ $item->image_url }}', allImgs: {{ json_encode($item->all_images) }} }">
+                                    <img :src="currentImg" alt="{{ $item->name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out">
+                                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-black/20 pointer-events-none"></div>
                                     
                                     <!-- Category Pill Tag -->
-                                    <span class="absolute top-3.5 left-3.5 glass-badge text-slate-900 dark:text-white text-xs font-extrabold px-3 py-1 rounded-full shadow-md border border-white/40 dark:border-slate-700/60 flex items-center gap-1.5">
+                                    <span class="absolute top-3.5 left-3.5 glass-badge text-slate-900 dark:text-white text-xs font-extrabold px-3 py-1 rounded-full shadow-md border border-white/40 dark:border-slate-700/60 flex items-center gap-1.5 pointer-events-none">
                                         <span>{{ $icon }}</span>
                                         <span>{{ $catName }}</span>
                                     </span>
 
                                     <!-- Rating Pill -->
-                                    <span class="absolute top-3.5 right-3.5 glass-badge text-amber-500 dark:text-amber-400 text-xs font-black px-2.5 py-1 rounded-full shadow-md border border-white/40 dark:border-slate-700/60 flex items-center gap-1">
+                                    <span class="absolute top-3.5 right-3.5 glass-badge text-amber-500 dark:text-amber-400 text-xs font-black px-2.5 py-1 rounded-full shadow-md border border-white/40 dark:border-slate-700/60 flex items-center gap-1 pointer-events-none">
                                         ⭐ 4.9
                                     </span>
+
+                                    @if(count($item->all_images) > 1)
+                                        <!-- Photo Gallery Dots Switcher -->
+                                        <div class="absolute bottom-2.5 right-2.5 flex items-center gap-1 bg-black/60 backdrop-blur-xs px-2 py-1 rounded-full z-10 shadow-sm">
+                                            <span class="text-[9px] text-white/90 font-bold mr-0.5">📸 {{ count($item->all_images) }}</span>
+                                            <template x-for="(imgSrc, idx) in allImgs" :key="idx">
+                                                <button type="button" 
+                                                        @click.stop="currentImg = imgSrc" 
+                                                        :class="currentImg === imgSrc ? 'bg-orange-500 w-3' : 'bg-white/70 hover:bg-white w-1.5'"
+                                                        class="h-1.5 rounded-full transition-all cursor-pointer">
+                                                </button>
+                                            </template>
+                                        </div>
+                                    @endif
                                 </div>
 
                                 <!-- Card Body Information -->
@@ -456,7 +471,7 @@
                                                 <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
                                                 <span>{{ __('Out of Stock') }}</span>
                                             </span>
-                                        @elseif($item->stock <= 10)
+                                        @elseif($item->stock <= ($item->min_stock_level ?? 10))
                                             <span class="text-amber-600 dark:text-amber-400 flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950/50 px-2 py-0.5 rounded-lg border border-amber-200 dark:border-amber-900/50">
                                                 <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
                                                 <span>{{ __('Only') }} {{ $item->stock }} {{ __('left') }}</span>

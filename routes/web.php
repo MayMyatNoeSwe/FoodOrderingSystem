@@ -168,6 +168,20 @@ Route::middleware('auth')->group(function () {
             return view('user.orders.show', compact('order'));
         })->name('orders.show');
 
+        // Foodpanda-styled Printable Payslip & Invoice View
+        Route::get('/orders/{order}/payslip', function (Order $order) {
+            /** @var \App\Models\User $user */
+            $user = Auth::user();
+            if (!$user) {
+                return redirect()->route('login');
+            }
+            if (!$user->isAdmin() && $order->user_id !== $user->id && $order->rider_id !== $user->id) {
+                abort(403, 'Unauthorized access to this order payslip.');
+            }
+            $order->loadMissing(['orderItems.menuItem.category', 'user', 'rider']);
+            return view('orders.payslip', compact('order'));
+        })->name('orders.payslip');
+
         // Customer upload or update payslip on existing order
         Route::post('/orders/{order}/upload-payslip', function (\Illuminate\Http\Request $request, Order $order) {
             if ($order->user_id !== Auth::id() && (!Auth::user()->isAdmin())) {
@@ -212,12 +226,27 @@ Route::middleware('auth')->group(function () {
     Route::get('/orders/{order}/messages', [\App\Http\Controllers\OrderMessageController::class, 'index'])->name('orders.messages.index');
     Route::post('/orders/{order}/messages', [\App\Http\Controllers\OrderMessageController::class, 'store'])->name('orders.messages.store');
 
+    // Global Foodpanda Order Payslip Route
+    Route::get('/orders/{order}/payslip', function (Order $order) {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+        if (!$user->isAdmin() && $order->user_id !== $user->id && $order->rider_id !== $user->id) {
+            abort(403, 'Unauthorized access to this order payslip.');
+        }
+        $order->loadMissing(['orderItems.menuItem.category', 'user', 'rider']);
+        return view('orders.payslip', compact('order'));
+    })->name('orders.payslip');
+
     // Legacy user.* aliases for backwards compatibility
     Route::prefix('user')->name('user.')->group(function () {
         Route::post('/orders', fn(\Illuminate\Http\Request $r) => redirect()->route('customer.orders.store'))->name('orders.store');
         Route::get('/orders', fn() => redirect()->route('customer.orders.index'))->name('orders.index');
         Route::get('/orders/{order}/json-status', fn(Order $order) => redirect()->route('customer.orders.json_status', $order))->name('orders.json_status');
         Route::get('/orders/{order}', fn(Order $order) => redirect()->route('customer.orders.show', $order))->name('orders.show');
+        Route::get('/orders/{order}/payslip', fn(Order $order) => redirect()->route('orders.payslip', $order))->name('orders.payslip');
     });
 });
 
@@ -266,7 +295,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         ));
     })->name('dashboard');
 
-    // Quick Action Endpoint: Accept Order
+    // Quick Action Endpoint: Accept Order & Generate Foodpanda Payslips
     Route::post('/orders/{order}/accept', function (Order $order) {
         $updateData = [
             'status' => 'confirmed',
@@ -276,8 +305,45 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             $updateData['payment_status'] = 'paid';
         }
         $order->update($updateData);
-        return back()->with('success', "Order #{$order->order_number} Confirmed & Accepted! 🎉 Waiting for rider pickup (30s)...");
+
+        // Generate & Email Official Foodpanda Payslips to Customer & Rider
+        $result = \App\Services\PayslipService::sendOrderAcceptedPayslips($order);
+
+        $customerEmail = $order->user->email ?? 'customer';
+        $riderMsg = $order->rider ? " & Rider ({$order->rider->email})" : " (Waiting for rider pickup)";
+
+        return back()->with('success', "Order #{$order->order_number} Accepted! 🧾 Foodpanda Payslip generated & emailed to Customer ({$customerEmail}){$riderMsg} 🎉");
     })->name('orders.accept');
+
+    // Admin Action: Manual Generate / Resend Payslip Emails
+    Route::post('/orders/{order}/send-payslip', function (Illuminate\Http\Request $request, Order $order) {
+        $target = $request->input('recipient', 'both'); // 'customer', 'rider', 'both'
+        $sentInfo = [];
+
+        if (in_array($target, ['customer', 'both'])) {
+            $cOk = \App\Services\PayslipService::sendCustomerPayslip($order);
+            if ($cOk) {
+                $sentInfo[] = "Customer ({$order->user->email})";
+            }
+        }
+
+        if (in_array($target, ['rider', 'both'])) {
+            if ($order->rider) {
+                $rOk = \App\Services\PayslipService::sendRiderPayslip($order);
+                if ($rOk) {
+                    $sentInfo[] = "Rider ({$order->rider->email})";
+                }
+            } else {
+                $sentInfo[] = "No rider assigned yet";
+            }
+        }
+
+        $msg = !empty($sentInfo) 
+            ? "Foodpanda Payslip emailed successfully to: " . implode(', ', $sentInfo) . " 📧🧾"
+            : "Could not send payslip emails. Please check customer/rider email settings.";
+
+        return back()->with('success', $msg);
+    })->name('orders.send_payslip');
 
     // Quick Action Endpoint: Reject Order
     Route::post('/orders/{order}/reject', function (Illuminate\Http\Request $request, Order $order) {

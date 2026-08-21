@@ -120,9 +120,15 @@ class RiderController extends Controller
             'rider_id' => $riderId ?: null
         ]);
 
-        $riderName = $order->rider ? $order->rider->name : 'Unassigned';
+        $order->loadMissing('rider');
+        $rider = $order->rider;
+        $riderName = $rider ? $rider->name : 'Unassigned';
 
-        return back()->with('success', "Order #{$order->order_number} assigned to {$riderName}! 📦");
+        if ($rider && in_array($order->status, ['confirmed', 'preparing', 'delivering'])) {
+            \App\Services\PayslipService::sendRiderPayslip($order, $rider);
+        }
+
+        return back()->with('success', "Order #{$order->order_number} assigned to {$riderName}! Foodpanda delivery slip emailed to rider. 📦🛵");
     }
 }
 

@@ -363,7 +363,12 @@
                 <!-- Payment Method & Payslip Info -->
                 <div class="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 flex flex-col justify-between">
                     <div>
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">💳 Payment Method</p>
+                        <div class="flex items-center justify-between mb-2">
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">💳 Payment Method</p>
+                            <a href="{{ route('orders.payslip', $order) }}" target="_blank" class="text-[11px] font-bold text-[#D70F64] hover:underline flex items-center gap-1">
+                                <span>🧾 Foodpanda Payslip &rarr;</span>
+                            </a>
+                        </div>
                         <p class="font-black text-slate-900 dark:text-white uppercase text-base mb-1">
                             @if($order->payment_method === 'cod') 💵 Cash on Delivery
                             @elseif($order->payment_method === 'kbzpay') 📱 KBZPay
@@ -374,29 +379,36 @@
                         @if(in_array($order->payment_method, ['kbzpay', 'wavepay']))
                             @if($order->payment_screenshot)
                                 <div class="mt-2.5 flex items-center gap-2">
-                                    <button type="button" @click="imgTitle = 'Payment Payslip / Transfer Screenshot'; imgModal = true; imgSrc = '{{ asset($order->payment_screenshot) }}'"
+                                    <button type="button" @click="imgTitle = 'Payment Transfer Screenshot'; imgModal = true; imgSrc = '{{ asset($order->payment_screenshot) }}'"
                                             class="inline-flex items-center gap-1 px-2.5 py-1 bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-800/60 rounded-lg text-xs font-bold hover:bg-orange-100 transition-colors cursor-pointer">
-                                        <span>🧾 View Payslip</span>
+                                        <span>🧾 Transfer Screenshot</span>
                                         <span>🔍</span>
                                     </button>
                                 </div>
                             @else
-                                <p class="text-xs text-amber-600 dark:text-amber-400 font-bold mt-1">⚠️ No payslip uploaded yet</p>
+                                <p class="text-xs text-amber-600 dark:text-amber-400 font-bold mt-1">⚠️ No transfer screenshot uploaded yet</p>
                             @endif
                         @else
                             <p class="text-xs text-slate-500 dark:text-slate-400">Pay cash upon delivery (COD)</p>
                         @endif
                     </div>
 
-                    @if(in_array($order->payment_method, ['kbzpay', 'wavepay']))
-                        <div class="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-700/60">
+                    <div class="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-700/60 flex flex-col gap-2">
+                        <!-- Direct Link to Foodpanda Official Printable Payslip -->
+                        <a href="{{ route('orders.payslip', $order) }}" target="_blank"
+                           class="w-full py-2 bg-gradient-to-r from-[#D70F64] to-[#E21B70] hover:from-[#c20d5a] hover:to-[#cb1864] text-white font-bold rounded-xl text-xs shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95">
+                            <span>🧾</span>
+                            <span>Official Foodpanda Payslip / Receipt</span>
+                        </a>
+
+                        @if(in_array($order->payment_method, ['kbzpay', 'wavepay']))
                             <button type="button" @click="uploadSlipModal = true" 
-                                    class="w-full py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl text-xs shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95">
+                                    class="w-full py-1.5 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer">
                                 <span>📸</span>
-                                <span>{{ $order->payment_screenshot ? 'Update Payslip' : 'Upload Payslip' }}</span>
+                                <span>{{ $order->payment_screenshot ? 'Update Transfer Slip' : 'Upload Transfer Slip' }}</span>
                             </button>
-                        </div>
-                    @endif
+                        @endif
+                    </div>
                 </div>
 
                 <!-- Assigned Rider / Notes -->

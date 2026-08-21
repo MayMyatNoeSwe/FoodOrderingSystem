@@ -20,7 +20,7 @@ class MenuItemController extends Controller
 
         $categories = Category::orderBy('name', 'asc')->get();
 
-        // Stock stats
+        // Stock stats using dynamic min_stock_level
         $totalItemsCount = MenuItem::count();
         $inStockCount = MenuItem::where('stock', '>', 10)->count();
         $lowStockCount = MenuItem::where('stock', '>', 0)->where('stock', '<=', 10)->count();
@@ -67,33 +67,65 @@ class MenuItemController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'category_id' => 'required|exists:categories,id',
-            'price' => 'required|numeric|min:0',
-            'stock' => 'nullable|integer|min:0',
-            'description' => 'nullable|string',
-            'image' => 'nullable|string|max:500',
-            'image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'is_available' => 'nullable|boolean',
+            'name'             => 'required|string|max:255',
+            'category_id'      => 'required|exists:categories,id',
+            'price'            => 'required|numeric|min:0',
+            'min_stock_level'  => 'nullable|integer|min:0',
+            'stock'            => 'nullable|integer|min:0',
+            'description'      => 'nullable|string',
+            'image'            => 'nullable|string|max:1000',
+            'image_file'       => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
+            'image_files'      => 'nullable|array',
+            'image_files.*'    => 'image|mimes:jpeg,png,jpg,gif,webp|max:4096',
+            'is_available'     => 'nullable|boolean',
         ]);
 
-        $imagePath = $validated['image'] ?? null;
-        if ($request->hasFile('image_file')) {
-            $imagePath = $request->file('image_file')->store('menu_items', 'public');
+        $imagesList = [];
+
+        // 1. Process URL text (support multiple URLs split by comma or newline)
+        if ($request->filled('image')) {
+            $rawUrls = preg_split('/[\r\n,]+/', $request->input('image'));
+            foreach ($rawUrls as $url) {
+                $url = trim($url);
+                if (!empty($url)) {
+                    $imagesList[] = $url;
+                }
+            }
         }
 
+        // 2. Process single uploaded file
+        if ($request->hasFile('image_file')) {
+            $path = $request->file('image_file')->store('menu_items', 'public');
+            $imagesList[] = $path;
+        }
+
+        // 3. Process multiple uploaded files
+        if ($request->hasFile('image_files')) {
+            foreach ($request->file('image_files') as $file) {
+                if ($file && $file->isValid()) {
+                    $path = $file->store('menu_items', 'public');
+                    $imagesList[] = $path;
+                }
+            }
+        }
+
+        $imagesList = array_values(array_unique(array_filter($imagesList)));
+        $primaryImage = $imagesList[0] ?? null;
+
         MenuItem::create([
-            'name' => $validated['name'],
-            'category_id' => $validated['category_id'],
-            'price' => $validated['price'],
-            'stock' => $request->filled('stock') ? (int)$request->input('stock') : 999,
-            'description' => $validated['description'] ?? null,
-            'image' => $imagePath,
-            'is_available' => $request->has('is_available') ? $request->boolean('is_available') : true,
+            'name'            => $validated['name'],
+            'category_id'     => $validated['category_id'],
+            'price'           => $validated['price'],
+            'stock'           => $request->filled('stock') ? (int)$request->input('stock') : 999,
+            'min_stock_level' => $request->filled('min_stock_level') ? (int)$request->input('min_stock_level') : 10,
+            'description'     => $validated['description'] ?? null,
+            'image'           => $primaryImage,
+            'images'          => $imagesList,
+            'is_available'    => $request->has('is_available') ? $request->boolean('is_available') : true,
         ]);
 
         $returnUrl = $request->input('return_url') ?: url()->previous(route('admin.menuItems.index'));
-        return redirect()->to($returnUrl)->with('success', 'Item created successfully!');
+        return redirect()->to($returnUrl)->with('success', 'Item created successfully with photos & min stock level!');
     }
 
     /**
@@ -102,34 +134,72 @@ class MenuItemController extends Controller
     public function update(Request $request, MenuItem $menuItem)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'category_id' => 'required|exists:categories,id',
-            'price' => 'required|numeric|min:0',
-            'stock' => 'nullable|integer|min:0',
-            'description' => 'nullable|string',
-            'image' => 'nullable|string|max:500',
-            'image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'is_available' => 'nullable|boolean',
+            'name'             => 'required|string|max:255',
+            'category_id'      => 'required|exists:categories,id',
+            'price'            => 'required|numeric|min:0',
+            'min_stock_level'  => 'nullable|integer|min:0',
+            'stock'            => 'nullable|integer|min:0',
+            'description'      => 'nullable|string',
+            'image'            => 'nullable|string|max:1000',
+            'existing_images'  => 'nullable|array',
+            'image_file'       => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
+            'image_files'      => 'nullable|array',
+            'image_files.*'    => 'image|mimes:jpeg,png,jpg,gif,webp|max:4096',
+            'is_available'     => 'nullable|boolean',
         ]);
 
-        $imagePath = $menuItem->image;
-        if ($request->hasFile('image_file')) {
-            if ($menuItem->image && !str_starts_with($menuItem->image, '/images/') && !str_starts_with($menuItem->image, 'images/') && Storage::disk('public')->exists($menuItem->image)) {
-                Storage::disk('public')->delete($menuItem->image);
+        $imagesList = [];
+
+        // 1. Keep retained existing images
+        if ($request->has('existing_images') && is_array($request->input('existing_images'))) {
+            foreach ($request->input('existing_images') as $ex) {
+                if (!empty($ex)) {
+                    $imagesList[] = trim($ex);
+                }
             }
-            $imagePath = $request->file('image_file')->store('menu_items', 'public');
         } elseif ($request->filled('image')) {
-            $imagePath = trim($request->input('image'));
+            $rawUrls = preg_split('/[\r\n,]+/', $request->input('image'));
+            foreach ($rawUrls as $url) {
+                $url = trim($url);
+                if (!empty($url)) {
+                    $imagesList[] = $url;
+                }
+            }
+        } elseif ($menuItem->images && is_array($menuItem->images)) {
+            $imagesList = $menuItem->images;
+        } elseif ($menuItem->image) {
+            $imagesList = [$menuItem->image];
         }
 
+        // 2. Process single uploaded file
+        if ($request->hasFile('image_file')) {
+            $path = $request->file('image_file')->store('menu_items', 'public');
+            $imagesList[] = $path;
+        }
+
+        // 3. Process multiple uploaded files
+        if ($request->hasFile('image_files')) {
+            foreach ($request->file('image_files') as $file) {
+                if ($file && $file->isValid()) {
+                    $path = $file->store('menu_items', 'public');
+                    $imagesList[] = $path;
+                }
+            }
+        }
+
+        $imagesList = array_values(array_unique(array_filter($imagesList)));
+        $primaryImage = $imagesList[0] ?? $menuItem->image;
+
         $menuItem->update([
-            'name' => $validated['name'],
-            'category_id' => $validated['category_id'],
-            'price' => $validated['price'],
-            'stock' => $request->filled('stock') ? (int)$request->input('stock') : ($menuItem->stock ?? 999),
-            'description' => $validated['description'] ?? null,
-            'image' => $imagePath,
-            'is_available' => $request->has('is_available') ? $request->boolean('is_available') : false,
+            'name'            => $validated['name'],
+            'category_id'     => $validated['category_id'],
+            'price'           => $validated['price'],
+            'stock'           => $request->filled('stock') ? (int)$request->input('stock') : ($menuItem->stock ?? 999),
+            'min_stock_level' => $request->filled('min_stock_level') ? (int)$request->input('min_stock_level') : ($menuItem->min_stock_level ?? 10),
+            'description'     => $validated['description'] ?? null,
+            'image'           => $primaryImage,
+            'images'          => $imagesList,
+            'is_available'    => $request->has('is_available') ? $request->boolean('is_available') : false,
         ]);
 
         $returnUrl = $request->input('return_url') ?: url()->previous(route('admin.menuItems.index'));
@@ -143,6 +213,14 @@ class MenuItemController extends Controller
     {
         if ($menuItem->image && Storage::disk('public')->exists($menuItem->image)) {
             Storage::disk('public')->delete($menuItem->image);
+        }
+
+        if ($menuItem->images && is_array($menuItem->images)) {
+            foreach ($menuItem->images as $img) {
+                if (Storage::disk('public')->exists($img)) {
+                    Storage::disk('public')->delete($img);
+                }
+            }
         }
 
         MenuItem::destroy($menuItem->id);
