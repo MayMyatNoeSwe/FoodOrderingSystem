@@ -20,16 +20,23 @@ class OrderController extends Controller
         $dateRange = $request->query('date_range');
         $sortBy = $request->query('sort_by', 'latest');
 
-        // Order Statistics
-        $totalOrdersCount = Order::count();
-        $pendingCount = Order::where('status', 'pending')->count();
-        $activeCount = Order::whereIn('status', ['pending', 'preparing', 'delivering', 'confirmed'])->count();
-        $completedCount = Order::where('status', 'completed')->count();
-        $cancelledCount = Order::where('status', 'cancelled')->count();
-        $totalRevenue = Order::where('status', 'completed')->sum('total_amount');
-        if ($totalRevenue == 0) {
-            $totalRevenue = Order::sum('total_amount');
-        }
+        // Order Statistics in a single aggregate query
+        $stats = Order::selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
+            SUM(CASE WHEN status IN ('pending', 'preparing', 'delivering', 'confirmed') THEN 1 ELSE 0 END) as active,
+            SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
+            SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as cancelled,
+            SUM(CASE WHEN status = 'completed' THEN total_amount ELSE 0 END) as completed_revenue,
+            SUM(total_amount) as total_revenue
+        ")->first();
+
+        $totalOrdersCount = (int)($stats->total ?? 0);
+        $pendingCount = (int)($stats->pending ?? 0);
+        $activeCount = (int)($stats->active ?? 0);
+        $completedCount = (int)($stats->completed ?? 0);
+        $cancelledCount = (int)($stats->cancelled ?? 0);
+        $totalRevenue = (float)(($stats->completed_revenue ?? 0) > 0 ? $stats->completed_revenue : ($stats->total_revenue ?? 0));
 
         $ordersQuery = Order::with(['user', 'rider', 'orderItems.menuItem'])
             ->when($search, function ($query, $search) {

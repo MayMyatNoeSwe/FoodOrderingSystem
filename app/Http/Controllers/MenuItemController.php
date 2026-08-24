@@ -18,13 +18,20 @@ class MenuItemController extends Controller
         $categoryId = $request->query('category_id');
         $stockStatus = $request->query('stock_status');
 
-        $categories = Category::orderBy('name', 'asc')->get();
+        $categories = Category::select('id', 'name')->orderBy('name', 'asc')->get();
 
-        // Stock stats using dynamic min_stock_level
-        $totalItemsCount = MenuItem::count();
-        $inStockCount = MenuItem::where('stock', '>', 10)->count();
-        $lowStockCount = MenuItem::where('stock', '>', 0)->where('stock', '<=', 10)->count();
-        $outOfStockCount = MenuItem::where('stock', 0)->count();
+        // Stock stats using single aggregated query
+        $stats = MenuItem::selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN stock > 10 THEN 1 ELSE 0 END) as in_stock,
+            SUM(CASE WHEN stock > 0 AND stock <= 10 THEN 1 ELSE 0 END) as low_stock,
+            SUM(CASE WHEN stock = 0 THEN 1 ELSE 0 END) as out_of_stock
+        ")->first();
+
+        $totalItemsCount = (int)($stats->total ?? 0);
+        $inStockCount = (int)($stats->in_stock ?? 0);
+        $lowStockCount = (int)($stats->low_stock ?? 0);
+        $outOfStockCount = (int)($stats->out_of_stock ?? 0);
 
         $menuItems = MenuItem::with('category')
             ->when($search, function ($query, $search) {

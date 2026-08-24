@@ -18,16 +18,16 @@ class CustomerController extends Controller
         $search = $request->query('search');
         $status = $request->query('status', 'all');
 
-        // Customer Statistics
-        $totalCustomers = User::where('role', 'user')->count();
-        $activeCustomers = User::where('role', 'user')
-            ->where(function ($q) {
-                $q->where('status', 'active')->orWhereNull('status');
-            })
-            ->count();
-        $bannedCustomers = User::where('role', 'user')
-            ->where('status', 'banned')
-            ->count();
+        // Customer Statistics in single aggregate query
+        $stats = User::where('role', 'user')->selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN status = 'active' OR status IS NULL THEN 1 ELSE 0 END) as active,
+            SUM(CASE WHEN status = 'banned' THEN 1 ELSE 0 END) as banned
+        ")->first();
+
+        $totalCustomers = (int)($stats->total ?? 0);
+        $activeCustomers = (int)($stats->active ?? 0);
+        $bannedCustomers = (int)($stats->banned ?? 0);
         $totalCustomerOrders = Order::whereHas('user', function ($query) {
             $query->where('role', 'user');
         })->count();

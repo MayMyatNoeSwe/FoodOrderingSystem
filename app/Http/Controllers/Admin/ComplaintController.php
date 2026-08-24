@@ -52,12 +52,20 @@ class ComplaintController extends Controller
 
         $complaints = $query->paginate(15)->withQueryString();
 
+        $statsRaw = Complaint::selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
+            SUM(CASE WHEN status = 'in_review' THEN 1 ELSE 0 END) as in_review,
+            SUM(CASE WHEN status = 'resolved' THEN 1 ELSE 0 END) as resolved,
+            SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) as rejected
+        ")->first();
+
         $stats = [
-            'total'     => Complaint::count(),
-            'pending'   => Complaint::where('status', 'pending')->count(),
-            'in_review' => Complaint::where('status', 'in_review')->count(),
-            'resolved'  => Complaint::where('status', 'resolved')->count(),
-            'rejected'  => Complaint::where('status', 'rejected')->count(),
+            'total'     => (int)($statsRaw->total ?? 0),
+            'pending'   => (int)($statsRaw->pending ?? 0),
+            'in_review' => (int)($statsRaw->in_review ?? 0),
+            'resolved'  => (int)($statsRaw->resolved ?? 0),
+            'rejected'  => (int)($statsRaw->rejected ?? 0),
         ];
 
         return view('admin.complaints.index', compact('complaints', 'stats'));

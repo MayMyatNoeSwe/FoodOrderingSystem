@@ -30,7 +30,7 @@
 
             <div class="flex items-center gap-2.5 flex-wrap">
                 <h1 class="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight truncate">
-                    {{ $heading }}
+                    {!! $heading !!}
                 </h1>
 
                 @if(isset($badge) && $badge)
@@ -42,7 +42,7 @@
 
             @if(isset($subheading) && $subheading)
                 <p class="text-xs text-slate-500 dark:text-slate-400 hidden sm:block truncate mt-0.5">
-                    {{ $subheading }}
+                    {!! $subheading !!}
                 </p>
             @endif
         </div>

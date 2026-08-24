@@ -160,17 +160,7 @@
         }
     }" class="space-y-6">
 
-        <!-- Top Action Slot Trigger -->
-        <x-slot:actions>
-            <button @click="createModalOpen = true" 
-                    type="button"
-                    class="px-3.5 py-1.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white text-xs font-bold rounded-xl shadow-md shadow-orange-500/20 transition-all flex items-center gap-1.5 cursor-pointer">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                </svg>
-                <span>{{ __('+ Add Food Item') }}</span>
-            </button>
-        </x-slot:actions>
+
 
         <!-- Validation Errors Banner -->
         @if(isset($errors) && $errors->any())

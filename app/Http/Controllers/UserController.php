@@ -18,12 +18,20 @@ class UserController extends Controller
         $search = $request->query('search');
         $role = $request->query('role');
 
-        // User Statistics
-        $totalUsersCount = User::count();
-        $adminCount = User::where('role', 'admin')->count();
-        $riderCount = User::where('role', 'rider')->count();
-        $customerCount = User::where('role', 'user')->count();
-        $newThisMonthCount = User::where('created_at', '>=', now()->startOfMonth())->count();
+        // User Statistics in single aggregate query
+        $stats = User::selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN role = 'admin' THEN 1 ELSE 0 END) as admin_count,
+            SUM(CASE WHEN role = 'rider' THEN 1 ELSE 0 END) as rider_count,
+            SUM(CASE WHEN role = 'user' THEN 1 ELSE 0 END) as customer_count,
+            SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as new_this_month
+        ", [now()->startOfMonth()])->first();
+
+        $totalUsersCount = (int)($stats->total ?? 0);
+        $adminCount = (int)($stats->admin_count ?? 0);
+        $riderCount = (int)($stats->rider_count ?? 0);
+        $customerCount = (int)($stats->customer_count ?? 0);
+        $newThisMonthCount = (int)($stats->new_this_month ?? 0);
 
         $users = User::withCount('orders')
             ->when($search, function ($query, $search) {

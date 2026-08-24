@@ -18,13 +18,20 @@ class InventoryController extends Controller
         $categoryId = $request->query('category_id');
         $stockStatus = $request->query('stock_status', 'all');
 
-        $categories = Category::orderBy('name', 'asc')->get();
+        $categories = Category::select('id', 'name')->orderBy('name', 'asc')->get();
 
-        // Overall metric stats
-        $totalItemsCount = MenuItem::count();
-        $inStockCount = MenuItem::where('is_available', true)->where('stock', '>', 0)->count();
-        $lowStockCount = MenuItem::where('stock', '>', 0)->where('stock', '<=', 10)->count();
-        $outOfStockCount = MenuItem::where('is_available', false)->orWhere('stock', '<=', 0)->count();
+        // Overall metric stats in single aggregate query
+        $stats = MenuItem::selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN is_available = 1 AND stock > 0 THEN 1 ELSE 0 END) as in_stock,
+            SUM(CASE WHEN stock > 0 AND stock <= 10 THEN 1 ELSE 0 END) as low_stock,
+            SUM(CASE WHEN is_available = 0 OR stock <= 0 THEN 1 ELSE 0 END) as out_of_stock
+        ")->first();
+
+        $totalItemsCount = (int)($stats->total ?? 0);
+        $inStockCount = (int)($stats->in_stock ?? 0);
+        $lowStockCount = (int)($stats->low_stock ?? 0);
+        $outOfStockCount = (int)($stats->out_of_stock ?? 0);
 
         // Query with filters
         $itemsQuery = MenuItem::with('category')

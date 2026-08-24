@@ -277,27 +277,31 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             return redirect()->route('home');
         }
 
-        $totalOrdersCount = Order::count();
-        $cancelledCount = Order::where('status', 'cancelled')->count();
+        $todayDate = today()->toDateString();
+        $stats = Order::selectRaw("
+            COUNT(*) as total_orders,
+            SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as cancelled_orders,
+            SUM(CASE WHEN DATE(created_at) = ? AND status = 'completed' THEN total_amount ELSE 0 END) as today_completed_revenue,
+            SUM(CASE WHEN status = 'completed' THEN total_amount ELSE 0 END) as all_completed_revenue,
+            SUM(total_amount) as total_revenue,
+            SUM(CASE WHEN DATE(created_at) = ? THEN 1 ELSE 0 END) as today_orders,
+            SUM(CASE WHEN status IN ('pending', 'preparing') THEN 1 ELSE 0 END) as pending_orders,
+            SUM(CASE WHEN status IN ('pending', 'preparing', 'delivering', 'confirmed') THEN 1 ELSE 0 END) as active_orders
+        ", [$todayDate, $todayDate])->first();
+
+        $totalOrdersCount = (int)($stats->total_orders ?? 0);
+        $cancelledCount = (int)($stats->cancelled_orders ?? 0);
         $cancellationRate = $totalOrdersCount > 0 ? round(($cancelledCount / $totalOrdersCount) * 100, 1) : 0;
 
-        // Today's Stats with Fallbacks for seeded test data
-        $todaysRevenue = Order::whereDate('created_at', today())->where('status', 'completed')->sum('total_amount');
-        if ($todaysRevenue == 0) {
-            $todaysRevenue = Order::where('status', 'completed')->sum('total_amount');
-            if ($todaysRevenue == 0) {
-                $todaysRevenue = Order::sum('total_amount');
-            }
-        }
+        $todaysRevenue = (float)(($stats->today_completed_revenue ?? 0) > 0 ? $stats->today_completed_revenue : (($stats->all_completed_revenue ?? 0) > 0 ? $stats->all_completed_revenue : ($stats->total_revenue ?? 0)));
+        $todaysOrdersCount = (int)(($stats->today_orders ?? 0) > 0 ? $stats->today_orders : $totalOrdersCount);
+        $pendingOrdersCount = (int)($stats->pending_orders ?? 0);
+        $activeOrdersCount = (int)($stats->active_orders ?? 0);
 
-        $todaysOrdersCount = Order::whereDate('created_at', today())->count();
-        if ($todaysOrdersCount == 0) {
-            $todaysOrdersCount = $totalOrdersCount;
-        }
-
-        $pendingOrdersCount = Order::whereIn('status', ['pending', 'preparing'])->count();
-        $activeOrdersCount = Order::whereIn('status', ['pending', 'preparing', 'delivering', 'confirmed'])->count();
-        $recentOrders = Order::with(['user', 'orderItems.menuItem'])->latest()->take(20)->get();
+        $recentOrders = Order::with(['user', 'orderItems.menuItem'])
+            ->latest()
+            ->take(15)
+            ->get();
 
         return view('admin.dashboard.index', compact(
             'todaysRevenue',
