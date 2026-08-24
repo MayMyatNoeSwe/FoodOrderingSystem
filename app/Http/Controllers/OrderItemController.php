@@ -16,13 +16,16 @@ class OrderItemController extends Controller
     {
         $search = $request->query('search');
         $categoryId = $request->query('category_id');
+        $orderId = $request->query('order_id');
         $status = $request->query('status');
 
         $categories = Category::orderBy('name', 'asc')->get();
 
         // Metrics Summary
-        $totalQuantitySold = OrderItem::sum('quantity');
-        $totalItemsRevenue = OrderItem::sum('subtotal');
+        $totalQuantitySold = OrderItem::sum('quantity') ?: 0;
+        $totalItemsRevenue = OrderItem::sum('subtotal') ?: 0;
+        $uniqueMenuItemsCount = OrderItem::distinct('menu_item_id')->count('menu_item_id');
+        $avgItemPrice = $totalQuantitySold > 0 ? round($totalItemsRevenue / $totalQuantitySold) : 0;
 
         $topItemRow = OrderItem::select('menu_item_id', DB::raw('SUM(quantity) as total_qty'))
             ->groupBy('menu_item_id')
@@ -48,6 +51,9 @@ class OrderItemController extends Controller
                     $q->where('category_id', $categoryId);
                 });
             })
+            ->when($orderId, function ($query, $orderId) {
+                return $query->where('order_id', $orderId);
+            })
             ->when($status, function ($query, $status) {
                 return $query->whereHas('order', function ($q) use ($status) {
                     $q->where('status', $status);
@@ -62,9 +68,12 @@ class OrderItemController extends Controller
             'categories',
             'search',
             'categoryId',
+            'orderId',
             'status',
             'totalQuantitySold',
             'totalItemsRevenue',
+            'uniqueMenuItemsCount',
+            'avgItemPrice',
             'topItemName'
         ));
     }
@@ -81,4 +90,3 @@ class OrderItemController extends Controller
         return redirect()->to($returnUrl)->with('success', "Order item '{$itemName}' deleted successfully!");
     }
 }
-

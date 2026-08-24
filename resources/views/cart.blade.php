@@ -846,32 +846,28 @@
                         <button type="button"
                             @click="submitOrder($event)"
                             :disabled="!canSubmit() || isSubmitting"
-                            class="w-full py-3.5 text-white font-black text-sm rounded-xl shadow-lg transition-all flex items-center justify-center gap-2"
+                            class="w-full relative group py-3.5 px-6 text-white font-black text-sm rounded-2xl transition-all duration-200 flex items-center justify-center gap-2.5 shadow-lg select-none"
                             :class="(canSubmit() && !isSubmitting)
-                                ? 'bg-orange-500 hover:bg-orange-600 active:bg-orange-700 shadow-orange-500/25 cursor-pointer'
-                                : 'bg-slate-300 dark:bg-slate-700 opacity-70 cursor-not-allowed'">
+                                ? 'bg-gradient-to-r from-orange-500 via-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 shadow-orange-500/25 hover:shadow-orange-500/35 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer'
+                                : 'bg-slate-300 dark:bg-slate-800 text-slate-400 dark:text-slate-500 shadow-none cursor-not-allowed'">
+                            
                             <template x-if="isSubmitting">
-                                <svg class="w-4 h-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+                                <svg class="w-5 h-5 animate-spin shrink-0 text-white" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
                             </template>
                             <template x-if="!isSubmitting">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                </svg>
+                                <span class="text-base leading-none" x-text="paymentMethod === 'cod' ? '🛵' : '🧾'"></span>
                             </template>
-                            <span x-text="isSubmitting ? '{{ __('Placing Order...') }}' : (paymentMethod === 'cod' ? '{{ __('Proceed to Checkout') }}' : '{{ __('Upload Payslip & Place Order') }}')"></span>
-                            <span x-show="!isSubmitting">&mdash; <span x-text="formatPrice(total())"></span> MMK</span>
+                            <span x-text="isSubmitting ? '{{ __('Placing Order...') }}' : (paymentMethod === 'cod' ? '{{ __('Place Order') }}' : '{{ __('Upload Payslip & Place Order') }}')"></span>
                         </button>
                     @else
                         <button type="button" 
                             @click="goToLogin()"
-                            class="w-full py-3.5 text-white font-black text-sm rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer bg-orange-500 hover:bg-orange-600 active:bg-orange-700 shadow-orange-500/25">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
-                            </svg>
-                            <span>{{ __('Log in to Place Order') }} &mdash; <span x-text="formatPrice(total())"></span> MMK</span>
+                            class="w-full relative group py-3.5 px-6 text-white font-black text-sm rounded-2xl transition-all duration-200 flex items-center justify-center gap-2.5 shadow-lg shadow-orange-500/25 hover:shadow-orange-500/35 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer bg-gradient-to-r from-orange-500 via-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 select-none">
+                            <span class="text-base leading-none">🔑</span>
+                            <span>{{ __('Log in to Place Order') }}</span>
                         </button>
                     @endauth
 

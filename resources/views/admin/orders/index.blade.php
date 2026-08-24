@@ -1,84 +1,45 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+<x-admin-layout 
+    active="orders" 
+    title="Real-Time Orders Dispatch - {{ config('app.name', 'Food Ordering System') }}"
+    heading="{{ __('Real-Time Orders Dispatch') }}"
+    subheading="{{ __('Live dispatch queue with instant sound alarms and order operations') }}">
 
-    <title>Real-Time Orders Dispatch - {{ config('app.name', 'Food Ordering System') }}</title>
-
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet" />
-
-    <!-- Scripts & Styles -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        function confirmDeleteOrder(form, orderNumber) {
-            Swal.fire({
-                title: 'Delete Order #' + orderNumber + '?',
-                html: `Are you sure you want to permanently delete order <strong class="text-orange-500">#${orderNumber}</strong>?<br><span class="text-xs text-slate-500 mt-1 block">This operation cannot be undone.</span>`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#64748b',
-                confirmButtonText: 'Yes, Delete Order',
-                cancelButtonText: 'Cancel',
-                background: '#ffffff',
-                color: '#0f172a',
-                customClass: {
-                    popup: 'border border-slate-200 rounded-3xl shadow-2xl',
-                    title: 'text-slate-900 font-bold text-lg',
-                    confirmButton: 'px-5 py-2.5 rounded-xl font-bold text-xs shadow-lg shadow-red-500/20 cursor-pointer',
-                    cancelButton: 'px-5 py-2.5 rounded-xl font-bold text-xs cursor-pointer'
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    form.submit();
-                }
-            });
-            return false;
-        }
-
-        window.adminOrderPoller = function() {
-            return {
-                mobileMenuOpen: false,
-                detailsModalOpen: false,
-                rejectModalOpen: false,
-                proofModalOpen: false,
-                columnDropdownOpen: false,
-                moreFiltersOpen: false,
-                cols: {
-                    order_date: true,
-                    customer: true,
-                    items: true,
-                    payment: true,
-                    status: true,
-                    quick_action: true,
-                    actions: true
-                },
-                proofModalSrc: '',
-                proofModalTitle: '',
-                activeOrder: null,
-                activeRejectOrder: null,
-                activeRejectReason: 'Kitchen Busy',
-                audioEnabled: true,
-                statusStateMap: {},
-                now: Date.now(),
-
-                toggleCol: function(key) {
-                    this.cols[key] = !this.cols[key];
-                    this.saveColPrefs();
-                },
-                setAllCols: function(val) {
-                    for (var k in this.cols) {
-                        this.cols[k] = val;
+    <x-slot:head>
+        <script>
+            function confirmDeleteOrder(form, orderNumber) {
+                Swal.fire({
+                    title: 'Delete Order #' + orderNumber + '?',
+                    html: `Are you sure you want to permanently delete order <strong class="text-orange-500">#${orderNumber}</strong>?<br><span class="text-xs text-slate-500 mt-1 block">This operation cannot be undone.</span>`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: 'Yes, Delete Order',
+                    cancelButtonText: 'Cancel',
+                    background: '#ffffff',
+                    color: '#0f172a',
+                    customClass: {
+                        popup: 'border border-slate-200 rounded-3xl shadow-2xl',
+                        title: 'text-slate-900 font-bold text-lg',
+                        confirmButton: 'px-5 py-2.5 rounded-xl font-bold text-xs shadow-lg shadow-red-500/20 cursor-pointer',
+                        cancelButton: 'px-5 py-2.5 rounded-xl font-bold text-xs cursor-pointer'
                     }
-                    this.saveColPrefs();
-                },
-                resetCols: function() {
-                    this.cols = {
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+                return false;
+            }
+
+            window.adminOrderPoller = function() {
+                return {
+                    detailsModalOpen: false,
+                    rejectModalOpen: false,
+                    proofModalOpen: false,
+                    columnDropdownOpen: false,
+                    moreFiltersOpen: false,
+                    cols: {
                         order_date: true,
                         customer: true,
                         items: true,
@@ -86,160 +47,155 @@
                         status: true,
                         quick_action: true,
                         actions: true
-                    };
-                    this.saveColPrefs();
-                },
-                saveColPrefs: function() {
-                    try {
-                        localStorage.setItem('admin_order_table_cols_v1', JSON.stringify(this.cols));
-                    } catch(e) {}
-                },
-                loadColPrefs: function() {
-                    try {
-                        var s = localStorage.getItem('admin_order_table_cols_v1');
-                        if (s) {
-                            var parsed = JSON.parse(s);
-                            this.cols = Object.assign(this.cols, parsed);
+                    },
+                    proofModalSrc: '',
+                    proofModalTitle: '',
+                    activeOrder: null,
+                    activeRejectOrder: null,
+                    activeRejectReason: 'Kitchen Busy',
+                    audioEnabled: true,
+                    statusStateMap: {},
+                    now: Date.now(),
+
+                    toggleCol: function(key) {
+                        this.cols[key] = !this.cols[key];
+                        this.saveColPrefs();
+                    },
+                    setAllCols: function(val) {
+                        for (var k in this.cols) {
+                            this.cols[k] = val;
                         }
-                    } catch(e) {}
-                },
-                getActiveColCount: function() {
-                    var c = 0;
-                    for (var k in this.cols) {
-                        if (this.cols[k]) c++;
-                    }
-                    return Math.max(1, c);
-                },
-                getTotalColCount: function() {
-                    return Object.keys(this.cols).length;
-                },
+                        this.saveColPrefs();
+                    },
+                    resetCols: function() {
+                        this.cols = {
+                            order_date: true,
+                            customer: true,
+                            items: true,
+                            payment: true,
+                            status: true,
+                            quick_action: true,
+                            actions: true
+                        };
+                        this.saveColPrefs();
+                    },
+                    saveColPrefs: function() {
+                        try {
+                            localStorage.setItem('admin_order_table_cols_v1', JSON.stringify(this.cols));
+                        } catch(e) {}
+                    },
+                    loadColPrefs: function() {
+                        try {
+                            var s = localStorage.getItem('admin_order_table_cols_v1');
+                            if (s) {
+                                var parsed = JSON.parse(s);
+                                this.cols = Object.assign(this.cols, parsed);
+                            }
+                        } catch(e) {}
+                    },
+                    getActiveColCount: function() {
+                        var c = 0;
+                        for (var k in this.cols) {
+                            if (this.cols[k]) c++;
+                        }
+                        return Math.max(1, c);
+                    },
+                    getTotalColCount: function() {
+                        return Object.keys(this.cols).length;
+                    },
 
-                getRemainingSeconds: function(isoDate) {
-                    if (!isoDate) return 0;
-                    var t = new Date(isoDate).getTime();
-                    var elapsed = Math.floor((this.now - t) / 1000);
-                    return Math.max(0, 30 - elapsed);
-                },
+                    getRemainingSeconds: function(isoDate) {
+                        if (!isoDate) return 0;
+                        var t = new Date(isoDate).getTime();
+                        var elapsed = Math.floor((this.now - t) / 1000);
+                        return Math.max(0, 30 - elapsed);
+                    },
 
-                init: function() {
-                    var self = this;
-                    this.loadColPrefs();
-                    setInterval(function() {
-                        self.now = Date.now();
-                    }, 1000);
+                    init: function() {
+                        var self = this;
+                        this.loadColPrefs();
+                        setInterval(function() {
+                            self.now = Date.now();
+                        }, 1000);
 
-                    setInterval(function() {
-                        fetch('{{ route('admin.orders.json_list') }}')
-                            .then(function(res) { return res.json(); })
-                            .then(function(data) {
-                                if (data && data.orders && data.orders.length > 0) {
-                                    var hasChange = false;
-                                    data.orders.forEach(function(o) {
-                                        var k = 'ord_' + o.id;
-                                        var v = o.status + '_' + (o.rider_id || 0) + '_' + o.payment_status;
-                                        if (self.statusStateMap[k] && self.statusStateMap[k] !== v) {
-                                            hasChange = true;
+                        setInterval(function() {
+                            fetch('{{ route('admin.orders.json_list') }}')
+                                .then(function(res) { return res.json(); })
+                                .then(function(data) {
+                                    if (data && data.orders && data.orders.length > 0) {
+                                        var hasChange = false;
+                                        data.orders.forEach(function(o) {
+                                            var k = 'ord_' + o.id;
+                                            var v = o.status + '_' + (o.rider_id || 0) + '_' + o.payment_status;
+                                            if (self.statusStateMap[k] && self.statusStateMap[k] !== v) {
+                                                hasChange = true;
+                                            }
+                                            self.statusStateMap[k] = v;
+                                        });
+                                        if (hasChange && !self.detailsModalOpen && !self.rejectModalOpen && !self.proofModalOpen) {
+                                            window.location.reload();
                                         }
-                                        self.statusStateMap[k] = v;
-                                    });
-                                    if (hasChange && !self.detailsModalOpen && !self.rejectModalOpen && !self.proofModalOpen) {
-                                        window.location.reload();
                                     }
-                                }
-                            })
-                            .catch(function() {});
-                    }, 3000);
-                },
+                                })
+                                .catch(function() {});
+                        }, 3000);
+                    },
 
-                playNotificationSound: function() {
-                    if (!this.audioEnabled) return;
-                    try {
-                        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                        const osc = ctx.createOscillator();
-                        const gain = ctx.createGain();
-                        osc.type = 'sine';
-                        osc.frequency.setValueAtTime(587.33, ctx.currentTime);
-                        osc.frequency.setValueAtTime(880, ctx.currentTime + 0.15);
-                        gain.gain.setValueAtTime(0.3, ctx.currentTime);
-                        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
-                        osc.connect(gain);
-                        gain.connect(ctx.destination);
-                        osc.start();
-                        osc.stop(ctx.currentTime + 0.5);
-                    } catch(e) { console.log('Audio error:', e); }
-                },
+                    playNotificationSound: function() {
+                        if (!this.audioEnabled) return;
+                        try {
+                            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                            const osc = ctx.createOscillator();
+                            const gain = ctx.createGain();
+                            osc.type = 'sine';
+                            osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+                            osc.frequency.setValueAtTime(880, ctx.currentTime + 0.15);
+                            gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+                            osc.connect(gain);
+                            gain.connect(ctx.destination);
+                            osc.start();
+                            osc.stop(ctx.currentTime + 0.5);
+                        } catch(e) { console.log('Audio error:', e); }
+                    },
 
-                openDetailsModal: function(order) {
-                    this.activeOrder = order;
-                    this.detailsModalOpen = true;
-                },
+                    openDetailsModal: function(order) {
+                        this.activeOrder = order;
+                        this.detailsModalOpen = true;
+                    },
 
-                openProofPhoto: function(src, title) {
-                    this.proofModalSrc = src;
-                    this.proofModalTitle = title || 'Delivery Proof Photo';
-                    this.proofModalOpen = true;
-                },
+                    openProofPhoto: function(src, title) {
+                        this.proofModalSrc = src;
+                        this.proofModalTitle = title || 'Delivery Proof Photo';
+                        this.proofModalOpen = true;
+                    },
 
-                openRejectModal: function(orderId, orderNum) {
-                    this.activeRejectOrder = { id: orderId, number: orderNum };
-                    this.rejectModalOpen = true;
-                }
+                    openRejectModal: function(orderId, orderNum) {
+                        this.activeRejectOrder = { id: orderId, number: orderNum };
+                        this.rejectModalOpen = true;
+                    }
+                };
             };
-        };
-    </script>
-</head>
-<body class="font-sans antialiased text-slate-800 bg-slate-50 selection:bg-orange-500 selection:text-white min-h-screen"
-      x-data="adminOrderPoller()">
+        </script>
+    </x-slot:head>
 
-    <div class="min-h-screen flex flex-col md:flex-row">
+    <x-slot:badge>
+        <span class="bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-800 text-xs font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1.5 shadow-xs">
+            <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
+            <span>{{ __('Live Dispatch Queue') }}</span>
+        </span>
+    </x-slot:badge>
 
-        <!-- ================= ADMIN SIDEBAR ================= -->
-        <x-admin-sidebar active="orders" />
+    <div x-data="adminOrderPoller()" class="space-y-6">
 
-        <!-- ================= MAIN CONTENT AREA ================= -->
-        <div class="flex-1 flex flex-col min-w-0">
-            
-            <!-- Topbar Header -->
-            <header class="bg-white/90 backdrop-blur-md sticky top-0 z-30 border-b border-slate-200/80 px-6 py-4 flex items-center justify-between gap-4 shadow-sm">
-                <div class="flex items-center gap-3">
-                    <!-- Mobile Hamburger Toggle -->
-                    <button @click="mobileMenuOpen = true" class="md:hidden p-2 text-slate-500 hover:text-slate-900 rounded-lg hover:bg-slate-100">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                        </svg>
-                    </button>
-
-                    <div>
-                        <h1 class="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
-                            <span>Real-Time Order Dispatch & Operations Hub</span>
-                            <span class="bg-orange-50 text-orange-600 border border-orange-200 text-xs font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1.5 shadow-sm">
-                                <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
-                                <span>Live Dispatch Queue</span>
-                            </span>
-                        </h1>
-                        <p class="text-xs text-slate-500 hidden sm:block">Monitor incoming customer orders with sound alert notifications and 1-click accept/reject actions</p>
-                    </div>
-                </div>
-
-                <div class="flex items-center gap-3">
-                    <!-- Notification Alarm Sound Toggle Button -->
-                    <button @click="audioEnabled = !audioEnabled; if(audioEnabled) playNotificationSound();" 
-                            :class="audioEnabled ? 'bg-orange-50 text-orange-600 border-orange-200 hover:bg-orange-100' : 'bg-slate-100 text-slate-500 border-slate-200'"
-                            class="px-3.5 py-2 text-xs font-bold rounded-xl border transition-all flex items-center gap-2 cursor-pointer shadow-sm">
-                        <span x-text="audioEnabled ? '🔔 Sound Alarm ON' : '🔕 Sound Muted'"></span>
-                    </button>
-
-                    <a href="{{ route('home') }}" target="_blank" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl border border-slate-200 transition-all flex items-center gap-2">
-                        <span>Storefront</span>
-                        <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                        </svg>
-                    </a>
-                </div>
-            </header>
-
-            <!-- Main Scrollable Content -->
-            <main class="flex-1 p-4 sm:p-6 space-y-6 overflow-y-auto">
+        <x-slot:actions>
+            <button @click="audioEnabled = !audioEnabled; if(audioEnabled) playNotificationSound();" 
+                    type="button"
+                    :class="audioEnabled ? 'bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-800 hover:bg-orange-100 dark:hover:bg-orange-900/50' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'"
+                    class="px-3.5 py-1.5 text-xs font-bold rounded-xl border transition-all flex items-center gap-2 cursor-pointer shadow-xs">
+                <span x-text="audioEnabled ? '🔔 {{ __('Sound Alarm ON') }}' : '🔕 {{ __('Sound Muted') }}'"></span>
+            </button>
+        </x-slot:actions>
 
                 <!-- Success Alert Toast -->
                 @if(session('success'))
@@ -888,12 +844,7 @@
                         {{ $orders->links() }}
                     </div>
 
-                </div>
-
-            </main>
-        </div>
-
-    </div>
+            <!-- End Orders Table Section -->
 
     <!-- ================= RECEIPT & ORDER DETAILS MODAL ================= -->
     <div x-show="detailsModalOpen" 
@@ -1328,5 +1279,5 @@
         </div>
     </div>
 
-</body>
-</html>
+    </div>
+</x-admin-layout>

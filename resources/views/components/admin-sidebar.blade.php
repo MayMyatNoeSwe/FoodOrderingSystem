@@ -69,7 +69,7 @@
 @endphp
 
 <!-- ================= DESKTOP SIDEBAR ================= -->
-<aside class="w-64 bg-white border-r border-slate-200/80 hidden md:flex flex-col justify-between p-6 shrink-0 sticky top-0 h-screen shadow-sm">
+<aside class="w-64 bg-white dark:bg-slate-900 border-r border-slate-200/80 dark:border-slate-800 hidden md:flex flex-col justify-between p-6 shrink-0 sticky top-0 h-screen shadow-sm transition-colors duration-200">
     <div class="space-y-8">
         <!-- Admin Brand -->
         <a href="{{ route('home') }}" class="flex items-center gap-3 group">
@@ -77,7 +77,7 @@
                 🐼
             </div>
             <div>
-                <span class="text-xl font-black text-[#D70F64] tracking-tight lowercase">food<span class="text-slate-900">panda</span></span>
+                <span class="text-xl font-black text-[#D70F64] tracking-tight lowercase">food<span class="text-slate-900 dark:text-white">panda</span></span>
                 <span class="block text-[10px] text-pink-600 font-bold uppercase tracking-widest">{{ __('Admin Portal') }}</span>
             </div>
         </a>
@@ -87,36 +87,34 @@
             @foreach($navItems as $item)
                 @php $isActive = ($active === $item['key']); @endphp
                 <a href="{{ route($item['route']) }}"
-                   class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium {{ $isActive ? 'bg-orange-500 text-white font-bold shadow-lg shadow-orange-500/25' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80' }}">
+                   class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium {{ $isActive ? 'bg-orange-500 text-white font-bold shadow-lg shadow-orange-500/25' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/80 dark:hover:bg-slate-800' }}">
                     {!! $item['icon'] !!}
                     <span>{{ __($item['label']) }}</span>
                     @if($item['badge'] !== null)
-                        <span class="ms-auto {{ $isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600' }} text-xs font-bold px-2 py-0.5 rounded-full">
+                        <span class="ms-auto {{ $isActive ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' }} text-xs font-bold px-2 py-0.5 rounded-full">
                             {{ $item['badge'] }}
                         </span>
                     @endif
                 </a>
             @endforeach
         </nav>
-
-
     </div>
 
     <!-- Admin Profile Quick Footer -->
-    <div class="border-t border-slate-100 pt-4 flex items-center justify-between">
+    <div class="border-t border-slate-100 dark:border-slate-800 pt-4 flex items-center justify-between">
         <div class="flex items-center gap-3 overflow-hidden">
-            <div class="w-9 h-9 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-600 font-black text-sm shrink-0">
+            <div class="w-9 h-9 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-amber-400 font-black text-sm shrink-0">
                 {{ strtoupper(substr(Auth::user()->name ?? 'A', 0, 1)) }}
             </div>
             <div class="text-xs truncate">
-                <div class="font-bold text-slate-800 truncate">{{ Auth::user()->name ?? 'Admin' }}</div>
-                <div class="text-amber-600 font-semibold">{{ __('Admin Portal') }}</div>
+                <div class="font-bold text-slate-800 dark:text-slate-200 truncate">{{ Auth::user()->name ?? 'Admin' }}</div>
+                <div class="text-amber-600 dark:text-amber-400 font-semibold">{{ __('Admin Portal') }}</div>
             </div>
         </div>
 
         <form method="POST" action="{{ route('logout') }}" onsubmit="localStorage.removeItem('foodorder_cart')">
             @csrf
-            <button type="submit" title="{{ __('Log Out') }}" class="p-2 text-slate-400 hover:text-red-500 transition-colors cursor-pointer rounded-lg hover:bg-slate-100">
+            <button type="submit" title="{{ __('Log Out') }}" class="p-2 text-slate-400 hover:text-red-500 transition-colors cursor-pointer rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
                 </svg>
@@ -127,6 +125,7 @@
 
 <!-- ================= MOBILE DRAWER NAVIGATION ================= -->
 <div x-show="mobileMenuOpen"
+     x-cloak
      x-transition:enter="transition-opacity ease-out duration-200"
      x-transition:enter-start="opacity-0"
      x-transition:enter-end="opacity-100"
@@ -137,13 +136,14 @@
      @click="mobileMenuOpen = false"></div>
 
 <aside x-show="mobileMenuOpen"
+       x-cloak
        x-transition:enter="transition transform ease-out duration-200"
        x-transition:enter-start="-translate-x-full"
        x-transition:enter-end="translate-x-0"
        x-transition:leave="transition transform ease-in duration-150"
        x-transition:leave-start="translate-x-0"
        x-transition:leave-end="-translate-x-full"
-       class="fixed inset-y-0 left-0 w-72 bg-white border-r border-slate-200 p-6 flex flex-col justify-between z-50 md:hidden shadow-2xl">
+       class="fixed inset-y-0 left-0 w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 p-6 flex flex-col justify-between z-50 md:hidden shadow-2xl transition-colors duration-200">
 
     <div class="space-y-6">
         <!-- Header & Close -->
@@ -153,11 +153,11 @@
                     🐼
                 </div>
                 <div>
-                    <span class="text-base font-black text-[#D70F64] lowercase">food<span class="text-slate-900">panda</span></span>
+                    <span class="text-base font-black text-[#D70F64] lowercase">food<span class="text-slate-900 dark:text-white">panda</span></span>
                     <span class="block text-[9px] text-pink-600 font-bold uppercase tracking-widest">{{ __('Admin Portal') }}</span>
                 </div>
             </a>
-            <button @click="mobileMenuOpen = false" class="text-slate-400 hover:text-slate-700 p-1">
+            <button @click="mobileMenuOpen = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
@@ -169,29 +169,27 @@
             @foreach($navItems as $item)
                 @php $isActive = ($active === $item['key']); @endphp
                 <a href="{{ route($item['route']) }}"
-                   class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium {{ $isActive ? 'bg-orange-500 text-white font-bold shadow-lg shadow-orange-500/25' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+                   class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium {{ $isActive ? 'bg-orange-500 text-white font-bold shadow-lg shadow-orange-500/25' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800' }}">
                     {!! $item['icon'] !!}
                     <span>{{ __($item['label']) }}</span>
                     @if($item['badge'] !== null)
-                        <span class="ms-auto {{ $isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600' }} text-xs font-bold px-2 py-0.5 rounded-full">
+                        <span class="ms-auto {{ $isActive ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' }} text-xs font-bold px-2 py-0.5 rounded-full">
                             {{ $item['badge'] }}
                         </span>
                     @endif
                 </a>
             @endforeach
         </nav>
-
-
     </div>
 
-    <div class="border-t border-slate-100 pt-4 flex items-center justify-between">
+    <div class="border-t border-slate-100 dark:border-slate-800 pt-4 flex items-center justify-between">
         <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-600 font-black text-sm">
+            <div class="w-9 h-9 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-amber-400 font-black text-sm">
                 {{ strtoupper(substr(Auth::user()->name ?? 'A', 0, 1)) }}
             </div>
             <div class="text-xs">
-                <div class="font-bold text-slate-800">{{ Auth::user()->name ?? 'Admin' }}</div>
-                <div class="text-amber-600 font-semibold">{{ __('Admin Portal') }}</div>
+                <div class="font-bold text-slate-800 dark:text-slate-200">{{ Auth::user()->name ?? 'Admin' }}</div>
+                <div class="text-amber-600 dark:text-amber-400 font-semibold">{{ __('Admin Portal') }}</div>
             </div>
         </div>
 

@@ -402,9 +402,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     // Admin Customer Routes (Ban/Unban status management only)
     Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
     Route::post('/customers/{customer}/toggle-status', [CustomerController::class, 'toggleStatus'])->name('customers.toggle-status');
-    Route::get('/users', function () {
-        return redirect()->route('admin.customers.index');
-    })->name('users.index');
+    Route::get('/users', [\App\Http\Controllers\UserController::class, 'index'])->name('users.index');
 
     // Admin Customer Complaints Management Routes
     Route::resource('complaints', \App\Http\Controllers\Admin\ComplaintController::class)->only(['index', 'show', 'update', 'destroy']);
