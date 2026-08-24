@@ -247,5 +247,9 @@
     "Flash Alert ON": "မီးလင်း အချက်ပေးဖွင့်",
     "Flash Off": "မီးလင်း အချက်ပေးပိတ်",
     "NEW ORDER RECEIVED!": "အော်ဒါအသစ် ရောက်ရှိလာပါပြီ!",
-    "Dismiss": "ပိတ်မည်"
+    "Dismiss": "ပိတ်မည်",
+    "Collapse Sidebar": "ဘေးဘား ချုံ့မည်",
+    "Expand Sidebar": "ဘေးဘား ချဲ့မည်",
+    "Fold sidebar": "ဘေးဘား ချုံ့မည်",
+    "Toggle sidebar": "ဘေးဘား ချုံ့/ချဲ့မည်"
 }

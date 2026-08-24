@@ -122,7 +122,12 @@
 <body data-admin-portal class="font-sans antialiased text-slate-800 dark:text-slate-100 bg-slate-50 dark:bg-slate-950 selection:bg-orange-500 selection:text-white min-h-screen transition-colors duration-200"
       x-data="{ 
           mobileMenuOpen: false,
+          sidebarFolded: localStorage.getItem('admin_sidebar_folded') === 'true',
           darkMode: localStorage.getItem('foodorder_theme') === 'dark',
+          toggleSidebar() {
+              this.sidebarFolded = !this.sidebarFolded;
+              localStorage.setItem('admin_sidebar_folded', this.sidebarFolded ? 'true' : 'false');
+          },
           toggleTheme() {
               this.darkMode = !this.darkMode;
               if (this.darkMode) {

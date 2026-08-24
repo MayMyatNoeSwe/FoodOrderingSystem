@@ -9,7 +9,7 @@
 <header class="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md sticky top-0 z-30 border-b border-slate-200/80 dark:border-slate-800 px-4 sm:px-6 py-3.5 flex items-center justify-between gap-4 shadow-xs transition-colors duration-200"
         x-data="{ profileDropdownOpen: false }">
     
-    <!-- Left Section: Mobile Toggle & Page Headings / Breadcrumbs -->
+    <!-- Left Section: Mobile Toggle, Desktop Fold Toggle & Page Headings / Breadcrumbs -->
     <div class="flex items-center gap-3 min-w-0">
         <!-- Mobile Menu Hamburger Button -->
         <button @click="mobileMenuOpen = true"
@@ -18,6 +18,17 @@
                 class="md:hidden p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+        </button>
+
+        <!-- Desktop Fold/Unfold Toggle Button -->
+        <button @click="toggleSidebar()"
+                type="button"
+                :title="sidebarFolded ? '{{ __('Expand Sidebar') }}' : '{{ __('Collapse Sidebar') }}'"
+                aria-label="{{ __('Toggle sidebar') }}"
+                class="hidden md:flex p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0 cursor-pointer">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16"></path>
             </svg>
         </button>
 

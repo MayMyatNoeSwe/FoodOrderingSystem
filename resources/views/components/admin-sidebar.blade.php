@@ -69,57 +69,114 @@
 @endphp
 
 <!-- ================= DESKTOP SIDEBAR ================= -->
-<aside class="w-68 xl:w-72 bg-white dark:bg-slate-900 border-r border-slate-200/80 dark:border-slate-800 hidden md:flex flex-col justify-between p-5 shrink-0 sticky top-0 h-screen shadow-xs transition-colors duration-200">
-    <div class="space-y-6">
-        <!-- Admin Brand -->
-        <a href="{{ route('home') }}" class="flex items-center gap-3 group px-2 pt-1">
-            <div class="w-10 h-10 rounded-xl bg-[#D70F64] flex items-center justify-center text-white text-2xl font-black shadow-lg shadow-[#D70F64]/30 group-hover:scale-105 transition-transform shrink-0">
-                🐼
-            </div>
-            <div class="truncate">
-                <span class="text-xl font-black text-[#D70F64] tracking-tight lowercase">food<span class="text-slate-900 dark:text-white">panda</span></span>
-                <span class="block text-[10px] text-pink-600 font-bold uppercase tracking-widest truncate">{{ __('Admin Portal') }}</span>
-            </div>
-        </a>
+<aside :class="sidebarFolded ? 'w-20 p-3' : 'w-68 xl:w-72 p-5'"
+       class="bg-white dark:bg-slate-900 border-r border-slate-200/80 dark:border-slate-800 hidden md:flex flex-col justify-between shrink-0 sticky top-0 h-screen shadow-xs transition-all duration-300 ease-in-out z-20 select-none">
+    
+    <div class="space-y-5">
+        <!-- Admin Brand & Fold Button -->
+        <div class="flex items-center justify-between gap-2 px-1 pt-1">
+            <a href="{{ route('home') }}" class="flex items-center gap-3 group overflow-hidden min-w-0" :class="sidebarFolded ? 'justify-center w-full' : ''">
+                <div class="w-10 h-10 rounded-xl bg-[#D70F64] flex items-center justify-center text-white text-2xl font-black shadow-lg shadow-[#D70F64]/30 group-hover:scale-105 transition-transform shrink-0">
+                    🐼
+                </div>
+                <div x-show="!sidebarFolded" x-cloak class="truncate transition-opacity duration-200">
+                    <span class="text-xl font-black text-[#D70F64] tracking-tight lowercase">food<span class="text-slate-900 dark:text-white">panda</span></span>
+                    <span class="block text-[10px] text-pink-600 font-bold uppercase tracking-widest truncate">{{ __('Admin Portal') }}</span>
+                </div>
+            </a>
+
+            <!-- Sidebar Fold/Unfold Toggle Button in Header (visible when expanded) -->
+            <button x-show="!sidebarFolded"
+                    @click="toggleSidebar()"
+                    type="button"
+                    title="{{ __('Fold sidebar') }}"
+                    class="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+                </svg>
+            </button>
+        </div>
 
         <!-- Navigation Links -->
         <nav class="space-y-1 text-xs sm:text-[13px]">
             @foreach($navItems as $item)
                 @php $isActive = ($active === $item['key']); @endphp
                 <a href="{{ route($item['route']) }}"
-                   class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all {{ $isActive ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/25' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/80 dark:hover:bg-slate-800 font-medium' }}">
+                   title="{{ __($item['label']) }}"
+                   :class="sidebarFolded ? 'justify-center px-0 py-2.5' : 'gap-3 px-3.5 py-2.5'"
+                   class="relative group flex items-center rounded-xl transition-all {{ $isActive ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/25' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/80 dark:hover:bg-slate-800 font-medium' }}">
+                    
+                    <!-- Icon -->
                     <div class="shrink-0">{!! $item['icon'] !!}</div>
-                    <span class="flex-1 truncate whitespace-nowrap leading-relaxed font-semibold">{{ __($item['label']) }}</span>
+
+                    <!-- Label (Expanded Mode) -->
+                    <span x-show="!sidebarFolded" x-cloak class="flex-1 truncate whitespace-nowrap leading-relaxed font-semibold">
+                        {{ __($item['label']) }}
+                    </span>
+
+                    <!-- Badge (Expanded Mode) -->
                     @if($item['badge'] !== null)
-                        <span class="shrink-0 ms-auto {{ $isActive ? 'bg-white/25 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' }} text-[11px] font-bold px-2 py-0.5 rounded-full">
+                        <span x-show="!sidebarFolded" x-cloak class="shrink-0 ms-auto {{ $isActive ? 'bg-white/25 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' }} text-[11px] font-bold px-2 py-0.5 rounded-full">
                             {{ $item['badge'] }}
                         </span>
                     @endif
+
+                    <!-- Badge Indicator Dot (Folded Mini Mode) -->
+                    @if($item['badge'] !== null && $item['badge'] > 0)
+                        <span x-show="sidebarFolded" x-cloak class="absolute top-1.5 right-2 w-2 h-2 rounded-full {{ $isActive ? 'bg-white' : 'bg-orange-500' }}"></span>
+                    @endif
+
+                    <!-- Floating Tooltip (Folded Mini Mode on Hover) -->
+                    <div x-show="sidebarFolded" x-cloak
+                         class="absolute left-full ml-3 px-3 py-1.5 bg-slate-900 dark:bg-slate-800 text-white text-xs font-semibold rounded-xl shadow-xl whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-150 z-50 flex items-center gap-2 border border-slate-700">
+                        <span>{{ __($item['label']) }}</span>
+                        @if($item['badge'] !== null)
+                            <span class="bg-orange-500 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">
+                                {{ $item['badge'] }}
+                            </span>
+                        @endif
+                    </div>
                 </a>
             @endforeach
         </nav>
     </div>
 
-    <!-- Admin Profile Quick Footer -->
-    <div class="border-t border-slate-100 dark:border-slate-800 pt-4 flex items-center justify-between">
-        <div class="flex items-center gap-3 overflow-hidden">
-            <div class="w-9 h-9 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-amber-400 font-black text-sm shrink-0">
-                {{ strtoupper(substr(Auth::user()->name ?? 'A', 0, 1)) }}
-            </div>
-            <div class="text-xs truncate">
-                <div class="font-bold text-slate-800 dark:text-slate-200 truncate">{{ Auth::user()->name ?? 'Admin' }}</div>
-                <div class="text-amber-600 dark:text-amber-400 font-semibold">{{ __('Admin Portal') }}</div>
-            </div>
-        </div>
+    <!-- Bottom Controls & Profile Quick Footer -->
+    <div class="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+        
+        <!-- Bottom Sidebar Toggle Button (expand/collapse button) -->
+        <button @click="toggleSidebar()"
+                type="button"
+                :title="sidebarFolded ? '{{ __('Expand Sidebar') }}' : '{{ __('Collapse Sidebar') }}'"
+                :class="sidebarFolded ? 'justify-center w-full px-0 py-2' : 'justify-start w-full px-3 py-2'"
+                class="flex items-center gap-3 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all cursor-pointer">
+            <svg class="w-5 h-5 transition-transform duration-300" :class="sidebarFolded ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+            </svg>
+            <span x-show="!sidebarFolded" x-cloak class="truncate">{{ __('Collapse Sidebar') }}</span>
+        </button>
 
-        <form method="POST" action="{{ route('logout') }}" onsubmit="localStorage.removeItem('foodorder_cart')">
-            @csrf
-            <button type="submit" title="{{ __('Log Out') }}" class="p-2 text-slate-400 hover:text-red-500 transition-colors cursor-pointer rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                </svg>
-            </button>
-        </form>
+        <!-- Admin Profile -->
+        <div class="flex items-center justify-between" :class="sidebarFolded ? 'flex-col gap-2' : ''">
+            <div class="flex items-center gap-3 overflow-hidden" :class="sidebarFolded ? 'justify-center w-full' : ''" :title="'{{ Auth::user()->name ?? 'Admin' }}'">
+                <div class="w-9 h-9 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-amber-400 font-black text-sm shrink-0">
+                    {{ strtoupper(substr(Auth::user()->name ?? 'A', 0, 1)) }}
+                </div>
+                <div x-show="!sidebarFolded" x-cloak class="text-xs truncate">
+                    <div class="font-bold text-slate-800 dark:text-slate-200 truncate">{{ Auth::user()->name ?? 'Admin' }}</div>
+                    <div class="text-amber-600 dark:text-amber-400 font-semibold">{{ __('Admin Portal') }}</div>
+                </div>
+            </div>
+
+            <form method="POST" action="{{ route('logout') }}" onsubmit="localStorage.removeItem('foodorder_cart')">
+                @csrf
+                <button type="submit" title="{{ __('Log Out') }}" class="p-2 text-slate-400 hover:text-red-500 transition-colors cursor-pointer rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                    </svg>
+                </button>
+            </form>
+        </div>
     </div>
 </aside>
 
