@@ -246,7 +246,7 @@
                 </div>
 
                 <!-- Stock Status Tabs -->
-                <div class="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
+                <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 md:pb-0">
                     <button @click="activeStockTab = 'all'" 
                             type="button"
                             :class="activeStockTab === 'all' ? 'bg-orange-500 text-white font-bold shadow shadow-orange-500/20' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700'"

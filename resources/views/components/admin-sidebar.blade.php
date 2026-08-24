@@ -69,29 +69,29 @@
 @endphp
 
 <!-- ================= DESKTOP SIDEBAR ================= -->
-<aside class="w-64 bg-white dark:bg-slate-900 border-r border-slate-200/80 dark:border-slate-800 hidden md:flex flex-col justify-between p-6 shrink-0 sticky top-0 h-screen shadow-sm transition-colors duration-200">
-    <div class="space-y-8">
+<aside class="w-68 xl:w-72 bg-white dark:bg-slate-900 border-r border-slate-200/80 dark:border-slate-800 hidden md:flex flex-col justify-between p-5 shrink-0 sticky top-0 h-screen shadow-xs transition-colors duration-200">
+    <div class="space-y-6">
         <!-- Admin Brand -->
-        <a href="{{ route('home') }}" class="flex items-center gap-3 group">
-            <div class="w-10 h-10 rounded-xl bg-[#D70F64] flex items-center justify-center text-white text-2xl font-black shadow-lg shadow-[#D70F64]/30 group-hover:scale-105 transition-transform">
+        <a href="{{ route('home') }}" class="flex items-center gap-3 group px-2 pt-1">
+            <div class="w-10 h-10 rounded-xl bg-[#D70F64] flex items-center justify-center text-white text-2xl font-black shadow-lg shadow-[#D70F64]/30 group-hover:scale-105 transition-transform shrink-0">
                 🐼
             </div>
-            <div>
+            <div class="truncate">
                 <span class="text-xl font-black text-[#D70F64] tracking-tight lowercase">food<span class="text-slate-900 dark:text-white">panda</span></span>
-                <span class="block text-[10px] text-pink-600 font-bold uppercase tracking-widest">{{ __('Admin Portal') }}</span>
+                <span class="block text-[10px] text-pink-600 font-bold uppercase tracking-widest truncate">{{ __('Admin Portal') }}</span>
             </div>
         </a>
 
         <!-- Navigation Links -->
-        <nav class="space-y-1.5 text-sm">
+        <nav class="space-y-1 text-xs sm:text-[13px]">
             @foreach($navItems as $item)
                 @php $isActive = ($active === $item['key']); @endphp
                 <a href="{{ route($item['route']) }}"
-                   class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium {{ $isActive ? 'bg-orange-500 text-white font-bold shadow-lg shadow-orange-500/25' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/80 dark:hover:bg-slate-800' }}">
-                    {!! $item['icon'] !!}
-                    <span>{{ __($item['label']) }}</span>
+                   class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all {{ $isActive ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/25' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/80 dark:hover:bg-slate-800 font-medium' }}">
+                    <div class="shrink-0">{!! $item['icon'] !!}</div>
+                    <span class="flex-1 truncate whitespace-nowrap leading-relaxed font-semibold">{{ __($item['label']) }}</span>
                     @if($item['badge'] !== null)
-                        <span class="ms-auto {{ $isActive ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' }} text-xs font-bold px-2 py-0.5 rounded-full">
+                        <span class="shrink-0 ms-auto {{ $isActive ? 'bg-white/25 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' }} text-[11px] font-bold px-2 py-0.5 rounded-full">
                             {{ $item['badge'] }}
                         </span>
                     @endif
@@ -143,18 +143,18 @@
        x-transition:leave="transition transform ease-in duration-150"
        x-transition:leave-start="translate-x-0"
        x-transition:leave-end="-translate-x-full"
-       class="fixed inset-y-0 left-0 w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 p-6 flex flex-col justify-between z-50 md:hidden shadow-2xl transition-colors duration-200">
+       class="fixed inset-y-0 left-0 w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 p-5 flex flex-col justify-between z-50 md:hidden shadow-2xl transition-colors duration-200">
 
     <div class="space-y-6">
         <!-- Header & Close -->
         <div class="flex items-center justify-between">
             <a href="{{ route('home') }}" class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl bg-[#D70F64] flex items-center justify-center text-white text-xl font-black shadow-lg">
+                <div class="w-9 h-9 rounded-xl bg-[#D70F64] flex items-center justify-center text-white text-xl font-black shadow-lg shrink-0">
                     🐼
                 </div>
-                <div>
+                <div class="truncate">
                     <span class="text-base font-black text-[#D70F64] lowercase">food<span class="text-slate-900 dark:text-white">panda</span></span>
-                    <span class="block text-[9px] text-pink-600 font-bold uppercase tracking-widest">{{ __('Admin Portal') }}</span>
+                    <span class="block text-[9px] text-pink-600 font-bold uppercase tracking-widest truncate">{{ __('Admin Portal') }}</span>
                 </div>
             </a>
             <button @click="mobileMenuOpen = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1">
@@ -165,15 +165,15 @@
         </div>
 
         <!-- Navigation Links -->
-        <nav class="space-y-1.5 text-sm">
+        <nav class="space-y-1 text-xs sm:text-[13px]">
             @foreach($navItems as $item)
                 @php $isActive = ($active === $item['key']); @endphp
                 <a href="{{ route($item['route']) }}"
-                   class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium {{ $isActive ? 'bg-orange-500 text-white font-bold shadow-lg shadow-orange-500/25' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800' }}">
-                    {!! $item['icon'] !!}
-                    <span>{{ __($item['label']) }}</span>
+                   class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all {{ $isActive ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/25' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 font-medium' }}">
+                    <div class="shrink-0">{!! $item['icon'] !!}</div>
+                    <span class="flex-1 truncate whitespace-nowrap leading-relaxed font-semibold">{{ __($item['label']) }}</span>
                     @if($item['badge'] !== null)
-                        <span class="ms-auto {{ $isActive ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' }} text-xs font-bold px-2 py-0.5 rounded-full">
+                        <span class="shrink-0 ms-auto {{ $isActive ? 'bg-white/25 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' }} text-[11px] font-bold px-2 py-0.5 rounded-full">
                             {{ $item['badge'] }}
                         </span>
                     @endif

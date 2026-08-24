@@ -366,4 +366,83 @@ html.page-leaving {
     transform: scale(0.96);
 }
 
+/* =============================================
+   Scrollbar Utilities: Sleek Table Horizontal & Hidden Window
+   ============================================= */
+html,
+body,
+.no-scrollbar {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+.no-scrollbar::-webkit-scrollbar {
+    display: none !important;
+    width: 0px !important;
+    height: 0px !important;
+    background: transparent !important;
+}
+
+/* Visible Horizontal Table Scrollbars */
+.overflow-x-auto,
+.table-scroll {
+    scrollbar-width: thin !important;
+    scrollbar-color: #cbd5e1 #f8fafc !important;
+    -ms-overflow-style: auto !important;
+}
+
+.dark .overflow-x-auto,
+.dark .table-scroll {
+    scrollbar-color: #475569 #0f172a !important;
+}
+
+.overflow-x-auto::-webkit-scrollbar,
+.table-scroll::-webkit-scrollbar {
+    display: block !important;
+    height: 7px !important;
+    width: 7px !important;
+    background: #f8fafc !important;
+    border-radius: 9999px !important;
+}
+
+.dark .overflow-x-auto::-webkit-scrollbar,
+.dark .table-scroll::-webkit-scrollbar {
+    background: #0f172a !important;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb,
+.table-scroll::-webkit-scrollbar-thumb {
+    display: block !important;
+    background: #cbd5e1 !important;
+    border-radius: 9999px !important;
+    border: 1px solid #f8fafc !important;
+    cursor: pointer !important;
+}
+
+.dark .overflow-x-auto::-webkit-scrollbar-thumb,
+.dark .table-scroll::-webkit-scrollbar-thumb {
+    background: #475569 !important;
+    border: 1px solid #0f172a !important;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb:hover,
+.table-scroll::-webkit-scrollbar-thumb:hover {
+    background: #f97316 !important;
+    border-color: #f97316 !important;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track,
+.table-scroll::-webkit-scrollbar-track {
+    display: block !important;
+    background: #f1f5f9 !important;
+    border-radius: 9999px !important;
+}
+
+.dark .overflow-x-auto::-webkit-scrollbar-track,
+.dark .table-scroll::-webkit-scrollbar-track {
+    background: #1e293b !important;
+}
+
 
