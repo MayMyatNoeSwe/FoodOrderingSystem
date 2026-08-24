@@ -265,12 +265,15 @@
     <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-6 py-4 shadow-sm">
         <div class="max-w-4xl mx-auto flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-500 flex items-center justify-center text-white text-xl font-black shadow-lg shadow-orange-500/20">
-                    🛵
+                <div class="w-10 h-10 rounded-2xl bg-[#D70F64] flex items-center justify-center text-white text-2xl font-black shadow-lg shadow-pink-500/20">
+                    🐼
                 </div>
                 <div>
-                    <h1 class="text-lg font-black text-slate-900 leading-tight">Rider Delivery Portal</h1>
-                    <p class="text-xs text-orange-600 font-bold">Welcome, {{ $rider->name }} 👋</p>
+                    <h1 class="text-lg font-black text-slate-900 leading-tight flex items-center gap-1.5">
+                        <span class="text-[#D70F64] lowercase font-black">food<span class="text-slate-900">panda</span></span>
+                        <span class="text-xs px-2 py-0.5 rounded-md bg-pink-50 text-[#D70F64] font-bold border border-pink-200">Rider Fleet</span>
+                    </h1>
+                    <p class="text-xs text-slate-500 font-semibold">Welcome back, <span class="font-bold text-slate-800">{{ $rider->name }}</span> 👋</p>
                 </div>
             </div>
 

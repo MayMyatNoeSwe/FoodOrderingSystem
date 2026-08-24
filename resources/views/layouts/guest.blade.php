@@ -30,23 +30,21 @@
             <!-- Brand Header -->
             <div class="mb-6 text-center z-10">
                 <a href="/" class="inline-flex items-center gap-3 group">
-                    <div class="w-12 h-12 rounded-2xl bg-orange-500 flex items-center justify-center text-white shadow-lg shadow-orange-500/30 group-hover:scale-105 transition-transform duration-300">
-                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                        </svg>
+                    <div class="w-12 h-12 rounded-2xl bg-[#D70F64] flex items-center justify-center text-white text-3xl shadow-lg shadow-pink-500/30 group-hover:scale-105 transition-transform duration-300">
+                        🐼
                     </div>
-                    <span class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Food<span class="text-orange-500">Order</span></span>
+                    <span class="text-3xl font-black tracking-tight text-[#D70F64] lowercase">food<span class="text-slate-900 dark:text-white">panda</span></span>
                 </a>
             </div>
 
             <!-- 30% Secondary Container: Clean Card -->
-            <div class="w-full sm:max-w-md bg-white dark:bg-slate-900 shadow-xl shadow-slate-200/50 dark:shadow-none border border-orange-100/80 dark:border-slate-800 rounded-2xl p-8 z-10 transition-all duration-300">
+            <div class="w-full sm:max-w-md bg-white dark:bg-slate-900 shadow-xl shadow-slate-200/50 dark:shadow-none border border-pink-100/80 dark:border-slate-800 rounded-2xl p-8 z-10 transition-all duration-300">
                 {{ $slot }}
             </div>
 
             <!-- Footer Copy -->
             <p class="mt-8 text-center text-xs text-slate-500 dark:text-slate-400">
-                &copy; {{ date('Y') }} FoodOrderingSystem. Tasty food delivered fast.
+                &copy; {{ date('Y') }} foodpanda. {{ __('Tasty food delivered fast.') }}
             </p>
         </div>
     </body>

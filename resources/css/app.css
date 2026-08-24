@@ -139,19 +139,11 @@ html[lang="my"] span[class*="py-1"] {
 
 /* =============================================
    PAGE TRANSITION
-   html gets .page-ready on load (fade-in)
    html gets .page-leaving on navigation (fade-out)
    ============================================= */
-html {
-    opacity: 0;
-    transition: opacity 0.28s ease;
-}
-html.page-ready {
-    opacity: 1;
-}
 html.page-leaving {
     opacity: 0;
-    transition: opacity 0.25s ease;
+    transition: opacity 0.22s ease;
 }
 
 /* =============================================

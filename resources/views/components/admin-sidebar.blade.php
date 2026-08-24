@@ -73,12 +73,12 @@
     <div class="space-y-8">
         <!-- Admin Brand -->
         <a href="{{ route('home') }}" class="flex items-center gap-3 group">
-            <div class="w-10 h-10 rounded-xl bg-orange-500 flex items-center justify-center text-white font-black shadow-lg shadow-orange-500/30 group-hover:scale-105 transition-transform">
-                🍕
+            <div class="w-10 h-10 rounded-xl bg-[#D70F64] flex items-center justify-center text-white text-2xl font-black shadow-lg shadow-[#D70F64]/30 group-hover:scale-105 transition-transform">
+                🐼
             </div>
             <div>
-                <span class="text-lg font-black text-slate-900 tracking-tight">Food<span class="text-orange-500">Order</span></span>
-                <span class="block text-[10px] text-amber-600 font-bold uppercase tracking-widest">{{ __('Admin Portal') }}</span>
+                <span class="text-xl font-black text-[#D70F64] tracking-tight lowercase">food<span class="text-slate-900">panda</span></span>
+                <span class="block text-[10px] text-pink-600 font-bold uppercase tracking-widest">{{ __('Admin Portal') }}</span>
             </div>
         </a>
 
@@ -149,12 +149,12 @@
         <!-- Header & Close -->
         <div class="flex items-center justify-between">
             <a href="{{ route('home') }}" class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl bg-orange-500 flex items-center justify-center text-white font-black shadow-lg">
-                    🍕
+                <div class="w-9 h-9 rounded-xl bg-[#D70F64] flex items-center justify-center text-white text-xl font-black shadow-lg">
+                    🐼
                 </div>
                 <div>
-                    <span class="text-base font-black text-slate-900">Food<span class="text-orange-500">Order</span></span>
-                    <span class="block text-[9px] text-amber-600 font-bold uppercase tracking-widest">{{ __('Admin Portal') }}</span>
+                    <span class="text-base font-black text-[#D70F64] lowercase">food<span class="text-slate-900">panda</span></span>
+                    <span class="block text-[9px] text-pink-600 font-bold uppercase tracking-widest">{{ __('Admin Portal') }}</span>
                 </div>
             </a>
             <button @click="mobileMenuOpen = false" class="text-slate-400 hover:text-slate-700 p-1">

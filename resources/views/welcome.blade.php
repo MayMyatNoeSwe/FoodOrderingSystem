@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'Food Ordering System') }} - Delicious Meals Delivered Fast</title>
+    <title>{{ config('app.name', 'foodpanda') }} - Delicious Meals Delivered Fast</title>
 
     <!-- Theme Initialization (Prevents FOUC) -->
     <script>
@@ -561,7 +561,7 @@
                 
                 <div class="text-center max-w-2xl mx-auto mb-14" data-reveal="fade-up">
                     <h2 class="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
-                        {{ __('Why FoodOrder?') }}
+                        {{ __('Why foodpanda?') }}
                     </h2>
                 </div>
 
@@ -609,10 +609,10 @@
                 <!-- Col 1: Brand -->
                 <div class="space-y-4" data-reveal="fade-up" data-reveal-delay="0">
                     <a href="/" class="flex items-center gap-2.5 group">
-                        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-500 flex items-center justify-center text-white text-lg shadow-lg shadow-orange-500/30 group-hover:scale-105 transition-transform">
-                            🍕
+                        <div class="w-10 h-10 rounded-2xl bg-[#D70F64] flex items-center justify-center text-white text-2xl shadow-lg shadow-pink-500/30 group-hover:scale-105 transition-transform">
+                            🐼
                         </div>
-                        <span class="text-2xl font-black text-white tracking-tight">Food<span class="text-orange-500">Order</span></span>
+                        <span class="text-2xl font-black text-[#D70F64] tracking-tight lowercase">food<span class="text-white">panda</span></span>
                     </a>
                     <p class="text-xs leading-relaxed text-slate-400 font-medium">{{ __('Footer Rights') }}</p>
                 </div>
@@ -621,9 +621,9 @@
                 <div>
                     <h4 class="text-white text-sm font-black tracking-wide uppercase mb-4">{{ __('Categories') }}</h4>
                     <ul class="space-y-2.5 text-xs font-semibold">
-                        <li><a href="#hero" class="hover:text-orange-400 transition-colors flex items-center gap-1.5"><span>→</span> {{ __('Home') }}</a></li>
-                        <li><a href="#categories" class="hover:text-orange-400 transition-colors flex items-center gap-1.5"><span>→</span> {{ __('Categories') }}</a></li>
-                        <li><a href="#menu" class="hover:text-orange-400 transition-colors flex items-center gap-1.5"><span>→</span> {{ __('Popular Menu') }}</a></li>
+                        <li><a href="#hero" class="hover:text-pink-400 transition-colors flex items-center gap-1.5"><span>→</span> {{ __('Home') }}</a></li>
+                        <li><a href="#categories" class="hover:text-pink-400 transition-colors flex items-center gap-1.5"><span>→</span> {{ __('Categories') }}</a></li>
+                        <li><a href="#menu" class="hover:text-pink-400 transition-colors flex items-center gap-1.5"><span>→</span> {{ __('Popular Menu') }}</a></li>
                     </ul>
                 </div>
 
@@ -643,14 +643,14 @@
                     <p class="text-xs text-slate-400 leading-relaxed font-medium">
                         📍 123 Main Street, Yangon, Myanmar<br />
                         📞 +95 9 123 456 789<br />
-                        ✉️ support@foodorder.com
+                        ✉️ support@foodpanda.com
                     </p>
                 </div>
 
             </div>
 
             <div class="border-t border-slate-800/80 pt-8 text-center text-xs text-slate-500 font-medium">
-                &copy; {{ date('Y') }} FoodOrderingSystem. {{ __('All rights reserved.') }}
+                &copy; {{ date('Y') }} foodpanda. {{ __('All rights reserved.') }}
             </div>
         </div>
     </footer>
