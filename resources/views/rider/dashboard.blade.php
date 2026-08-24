@@ -826,5 +826,7 @@
         </div>
     </div>
 
+    <x-scroll-to-top />
+
 </body>
 </html>

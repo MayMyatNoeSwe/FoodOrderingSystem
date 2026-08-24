@@ -177,7 +177,7 @@
     <div class="flex-1 flex flex-col">
 
         <!-- ================= HERO SECTION ================= -->
-        <section id="hero" class="relative overflow-hidden pt-8 pb-16 lg:pt-14 lg:pb-24 transition-colors duration-300">
+        <section id="hero" class="relative overflow-hidden pt-8 pb-16 lg:pt-14 lg:pb-24 transition-colors duration-300 scroll-mt-24 sm:scroll-mt-28">
             <!-- Ambient Background Glow Accents -->
             <div class="pointer-events-none absolute -top-28 -left-28 w-[500px] h-[500px] bg-orange-400/20 dark:bg-orange-500/10 rounded-full blur-3xl animate-pulse-glow"></div>
             <div class="pointer-events-none absolute top-1/3 -right-28 w-[450px] h-[450px] bg-amber-400/20 dark:bg-amber-500/10 rounded-full blur-3xl animate-pulse-glow" style="animation-delay: 2s;"></div>
@@ -308,7 +308,7 @@
         </section>
 
         <!-- ================= CATEGORIES SECTION ================= -->
-        <section id="categories" class="py-10 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md border-y border-slate-200/60 dark:border-slate-800/80 transition-colors duration-300 scroll-mt-20" data-reveal="fade-up">
+        <section id="categories" class="py-10 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md border-y border-slate-200/60 dark:border-slate-800/80 transition-colors duration-300 scroll-mt-24 sm:scroll-mt-28" data-reveal="fade-up">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
                 <div class="flex items-center justify-between gap-4 mb-6">
@@ -326,9 +326,9 @@
                     <button
                         @click="activeCategory = 'all'; searchQuery = '';"
                         :class="activeCategory === 'all' && !searchQuery
-                            ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/30 ring-2 ring-orange-400/50 scale-[1.03]'
+                            ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/30 ring-2 ring-orange-400/50 scale-[1.04]'
                             : 'glass-card text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-800 hover:border-orange-300 dark:hover:border-orange-700 hover:bg-white dark:hover:bg-slate-800 hover:shadow-md hover:scale-[1.02]'"
-                        class="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl font-bold text-xs sm:text-sm cursor-pointer transition-all duration-300 select-none group"
+                        class="category-pill flex items-center gap-2.5 px-4 py-2.5 rounded-2xl font-bold text-xs sm:text-sm cursor-pointer select-none group"
                     >
                         <div class="w-7 h-7 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 transition-transform duration-300 group-hover:rotate-12"
                              :class="activeCategory === 'all' && !searchQuery ? 'bg-white/25 text-white' : 'bg-orange-500/10 text-orange-500 dark:bg-orange-500/20'">
@@ -356,9 +356,9 @@
                         <button
                             @click="activeCategory = '{{ $category->slug }}'; searchQuery = '';"
                             :class="activeCategory === '{{ $category->slug }}' && !searchQuery
-                                ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/30 ring-2 ring-orange-400/50 scale-[1.03]'
+                                ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/30 ring-2 ring-orange-400/50 scale-[1.04]'
                                 : 'glass-card text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-800 hover:border-orange-300 dark:hover:border-orange-700 hover:bg-white dark:hover:bg-slate-800 hover:shadow-md hover:scale-[1.02]'"
-                            class="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl font-bold text-xs sm:text-sm cursor-pointer transition-all duration-300 select-none group"
+                            class="category-pill flex items-center gap-2.5 px-4 py-2.5 rounded-2xl font-bold text-xs sm:text-sm cursor-pointer select-none group"
                         >
                             <!-- Mini Circular Category Image -->
                             <div class="w-7 h-7 rounded-xl overflow-hidden shrink-0 ring-1 ring-orange-500/30 flex items-center justify-center bg-orange-100 dark:bg-slate-800">
@@ -379,7 +379,7 @@
         </section>
 
         <!-- ================= POPULAR MENU SECTION ================= -->
-        <section id="menu" class="py-16 lg:py-20 transition-colors duration-300 scroll-mt-20 relative">
+        <section id="menu" class="py-16 lg:py-20 transition-colors duration-300 scroll-mt-24 sm:scroll-mt-28 relative">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 
                 <!-- Section Header -->
@@ -423,11 +423,14 @@
                         @endphp
 
                         <div x-show="(searchQuery.trim() !== '' || activeCategory === 'all' || activeCategory === '{{ $catSlug }}') && matchesSearch(@js($item->name), @js($item->description ?? ''), @js($catName))"
-                             x-transition:enter="transition ease-out duration-300"
-                             x-transition:enter-start="opacity-0 transform scale-95"
-                             x-transition:enter-end="opacity-100 transform scale-100"
+                             x-transition:enter="transition cubic-bezier(0.34, 1.56, 0.64, 1) duration-400 transform"
+                             x-transition:enter-start="opacity-0 translate-y-6 scale-95"
+                             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                             x-transition:leave="transition cubic-bezier(0.4, 0, 0.2, 1) duration-200 transform"
+                             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                             x-transition:leave-end="opacity-0 translate-y-4 scale-90"
                              data-reveal="zoom-fade" data-reveal-delay="{{ ($loop->index % 4) * 80 }}"
-                             class="group relative flex flex-col justify-between rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/90 shadow-sm hover:shadow-2xl hover:shadow-orange-500/10 hover:border-orange-300/80 dark:hover:border-orange-500/40 hover:-translate-y-1.5 transition-all duration-300 overflow-hidden">
+                             class="card-food-item card-shimmer group relative flex flex-col justify-between rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/90 shadow-sm hover:border-orange-400/80 dark:hover:border-orange-500/50 overflow-hidden">
                             
                             <div>
                                 <!-- Food Image Showcase -->
@@ -553,7 +556,7 @@
         </section>
 
         <!-- ================= FEATURES ("WHY FOODORDER?") SECTION ================= -->
-        <section id="features" class="py-16 lg:py-24 bg-slate-100/60 dark:bg-slate-900/40 border-t border-slate-200/60 dark:border-slate-800/80 transition-colors duration-300 relative overflow-hidden">
+        <section id="features" class="py-16 lg:py-24 bg-slate-100/60 dark:bg-slate-900/40 border-t border-slate-200/60 dark:border-slate-800/80 transition-colors duration-300 relative overflow-hidden scroll-mt-24 sm:scroll-mt-28">
             <!-- Decorative Subtle Backdrop -->
             <div class="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-orange-500/5 rounded-full blur-3xl"></div>
 
@@ -664,7 +667,7 @@
         x-transition:leave="transition ease-in duration-200"
         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
         x-transition:leave-end="opacity-0 translate-y-4 scale-95"
-        class="fixed bottom-6 right-6 z-50 flex items-center gap-3.5 bg-slate-900/95 dark:bg-slate-900/95 backdrop-blur-xl text-white px-5 py-4 rounded-2xl shadow-2xl border border-slate-700/80 max-w-sm"
+        class="fixed bottom-20 right-6 z-50 flex items-center gap-3.5 bg-slate-900/95 dark:bg-slate-900/95 backdrop-blur-xl text-white px-5 py-4 rounded-2xl shadow-2xl border border-slate-700/80 max-w-sm"
         style="display:none;">
         <div class="w-9 h-9 bg-gradient-to-tr from-orange-500 to-amber-500 rounded-xl flex items-center justify-center shrink-0 text-sm shadow-md shadow-orange-500/30">
             🛒
@@ -677,6 +680,9 @@
             View →
         </a>
     </div>
+
+    <!-- Scroll to Top Button -->
+    <x-scroll-to-top />
 
     @if(session('clear_cart'))
     <script>

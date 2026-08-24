@@ -42,6 +42,9 @@
                 {{ $slot }}
             </main>
         </div>
+
+        <x-scroll-to-top />
+
         @if(session('clear_cart'))
         <script>
             localStorage.removeItem('foodorder_cart');

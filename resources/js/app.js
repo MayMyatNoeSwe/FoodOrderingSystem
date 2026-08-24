@@ -5,17 +5,55 @@ window.Alpine = Alpine;
 Alpine.start();
 
 /* =============================================
-   Page Transition — fade out on link navigation
+   Smooth Eased Scroll Animation Helper
+   easeInOutCubic curve provides a silky-smooth glide
+   ============================================= */
+window.smoothScrollTo = function(targetY = 0, duration = 650, callback = null) {
+    const startY = window.pageYOffset || document.documentElement.scrollTop;
+    const diff = targetY - startY;
+    if (Math.abs(diff) < 2) {
+        if (callback) callback();
+        return;
+    }
+    
+    let startTime = null;
+
+    // Cubic Ease In-Out: gentle start, fast glide, cushioned finish
+    function easeInOutCubic(t) {
+        return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
+
+    function step(currentTime) {
+        if (!startTime) startTime = currentTime;
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const ease = easeInOutCubic(progress);
+
+        window.scrollTo(0, startY + (diff * ease));
+
+        if (progress < 1) {
+            requestAnimationFrame(step);
+        } else {
+            window.scrollTo(0, targetY);
+            if (callback) callback();
+        }
+    }
+
+    requestAnimationFrame(step);
+};
+
+/* =============================================
+   Page Transition & Smooth Anchor Navigation
    ============================================= */
 document.addEventListener('DOMContentLoaded', () => {
-    // Fade page out before navigating away to a different page
+    // Intercept clicks on links
     document.addEventListener('click', (e) => {
         const anchor = e.target.closest('a[href]');
         if (!anchor) return;
 
         const href = anchor.getAttribute('href');
-        // Skip empty, hash, javascript, mailto, tel, target _blank, download, or form buttons
-        if (!href || href.startsWith('#') || href.startsWith('javascript:') ||
+        // Skip empty, javascript, mailto, tel, target _blank, download, or form buttons
+        if (!href || href.startsWith('javascript:') ||
             href.startsWith('mailto:') || href.startsWith('tel:') ||
             anchor.target === '_blank' || anchor.hasAttribute('download') ||
             anchor.closest('form')) return;
@@ -32,8 +70,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     const targetEl = document.querySelector(targetUrl.hash);
                     if (targetEl) {
                         e.preventDefault();
-                        targetEl.scrollIntoView({ behavior: 'smooth' });
-                        history.pushState(null, '', targetUrl.hash);
+                        const navOffset = window.innerWidth < 768 ? 92 : 80; // Mobile vs Desktop sticky navbar clearance
+                        const elemPos = targetEl.getBoundingClientRect().top + window.pageYOffset;
+                        const targetY = Math.max(0, elemPos - navOffset);
+                        
+                        window.smoothScrollTo(targetY, 700, () => {
+                            history.pushState(null, '', targetUrl.hash);
+                        });
                     }
                     return;
                 }
@@ -44,6 +87,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         } catch (_) { return; }
+
+        // Skip direct hash links that didn't resolve to element
+        if (href.startsWith('#')) return;
 
         // Trigger smooth fade-out only when navigating to another route
         document.documentElement.classList.add('page-leaving');

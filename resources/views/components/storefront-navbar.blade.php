@@ -159,25 +159,112 @@ class="sticky top-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md borde
                     @endauth
                 @endif
 
-                <!-- Mobile Hamburger Button -->
-                <button @click="open = !open" class="md:hidden p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none">
-                    <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                        <path :class="{'hidden': open, 'inline-flex': !open}" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                        <path :class="{'hidden': !open, 'inline-flex': open}" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                <!-- Animated Mobile Hamburger Button -->
+                <button @click="open = !open" 
+                        type="button"
+                        aria-label="Toggle navigation menu"
+                        class="md:hidden relative w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-orange-50 dark:hover:bg-slate-700 flex items-center justify-center border border-slate-200/60 dark:border-slate-700/60 transition-all duration-200 cursor-pointer select-none">
+                    <div class="w-4 h-3.5 flex flex-col justify-between items-center">
+                        <span :class="open ? 'rotate-45 translate-y-[6px] bg-orange-500' : 'bg-current'" class="w-full h-0.5 rounded-full transition-all duration-300 transform origin-center"></span>
+                        <span :class="open ? 'opacity-0 scale-x-0' : 'opacity-100 bg-current'" class="w-full h-0.5 rounded-full transition-all duration-200"></span>
+                        <span :class="open ? '-rotate-45 -translate-y-[6px] bg-orange-500' : 'bg-current'" class="w-full h-0.5 rounded-full transition-all duration-300 transform origin-center"></span>
+                    </div>
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Mobile Dropdown Menu -->
-    <div x-show="open" class="md:hidden bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 px-4 pt-2 pb-4 space-y-2" style="display: none;">
-        <a href="{{ route('home') }}" class="block px-3 py-2 rounded-xl text-base font-semibold text-slate-700 dark:text-slate-200 hover:bg-orange-50 dark:hover:bg-slate-800 hover:text-orange-500">{{ __('Home') }}</a>
-        <a href="{{ route('home') }}#categories" class="block px-3 py-2 rounded-xl text-base font-semibold text-slate-700 dark:text-slate-200 hover:bg-orange-50 dark:hover:bg-slate-800 hover:text-orange-500">{{ __('Categories') }}</a>
-        <a href="{{ route('home') }}#menu" class="block px-3 py-2 rounded-xl text-base font-semibold text-slate-700 dark:text-slate-200 hover:bg-orange-50 dark:hover:bg-slate-800 hover:text-orange-500">{{ __('Popular Menu') }}</a>
-        <a href="{{ route('home') }}#features" class="block px-3 py-2 rounded-xl text-base font-semibold text-slate-700 dark:text-slate-200 hover:bg-orange-50 dark:hover:bg-slate-800 hover:text-orange-500">{{ __('Why Us') }}</a>
-        <div class="pt-2 border-t border-slate-100 dark:border-slate-800">
-            <x-language-switcher variant="sidebar" />
+    <!-- Mobile Dropdown Menu with Glassmorphism & Slide Down Animation -->
+    <div x-show="open"
+         x-transition:enter="transition cubic-bezier(0.34, 1.56, 0.64, 1) duration-350 transform origin-top"
+         x-transition:enter-start="opacity-0 -translate-y-4 scale-95"
+         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+         x-transition:leave="transition cubic-bezier(0.4, 0, 0.2, 1) duration-200 transform origin-top"
+         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+         x-transition:leave-end="opacity-0 -translate-y-3 scale-95"
+         @click.outside="open = false"
+         class="md:hidden absolute top-[72px] left-0 right-0 z-50 w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border-b border-slate-200/80 dark:border-slate-800/90 shadow-2xl px-4 pt-3 pb-5 space-y-1.5"
+         style="display: none;">
+
+        <a href="{{ route('home') }}" 
+           @click="open = false"
+           class="flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-orange-500/10 hover:text-orange-500 dark:hover:bg-orange-500/15 dark:hover:text-orange-400 transition-all duration-200 group {{ request()->routeIs('home') ? 'bg-orange-500/10 text-orange-500 dark:text-orange-400' : '' }}">
+            <div class="flex items-center gap-3">
+                <span class="w-8 h-8 rounded-xl bg-orange-500/10 dark:bg-orange-500/20 text-orange-500 flex items-center justify-center text-sm group-hover:scale-110 transition-transform">🏠</span>
+                <span>{{ __('Home') }}</span>
+            </div>
+            <svg class="w-4 h-4 text-slate-400 group-hover:text-orange-500 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
+            </svg>
+        </a>
+
+        <a href="{{ route('home') }}#categories" 
+           @click="open = false"
+           class="flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-orange-500/10 hover:text-orange-500 dark:hover:bg-orange-500/15 dark:hover:text-orange-400 transition-all duration-200 group">
+            <div class="flex items-center gap-3">
+                <span class="w-8 h-8 rounded-xl bg-orange-500/10 dark:bg-orange-500/20 text-orange-500 flex items-center justify-center text-sm group-hover:scale-110 transition-transform">🍽️</span>
+                <span>{{ __('Categories') }}</span>
+            </div>
+            <svg class="w-4 h-4 text-slate-400 group-hover:text-orange-500 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
+            </svg>
+        </a>
+
+        <a href="{{ route('home') }}#menu" 
+           @click="open = false"
+           class="flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-orange-500/10 hover:text-orange-500 dark:hover:bg-orange-500/15 dark:hover:text-orange-400 transition-all duration-200 group">
+            <div class="flex items-center gap-3">
+                <span class="w-8 h-8 rounded-xl bg-orange-500/10 dark:bg-orange-500/20 text-orange-500 flex items-center justify-center text-sm group-hover:scale-110 transition-transform">🔥</span>
+                <span>{{ __('Popular Menu') }}</span>
+            </div>
+            <svg class="w-4 h-4 text-slate-400 group-hover:text-orange-500 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
+            </svg>
+        </a>
+
+        <a href="{{ route('home') }}#features" 
+           @click="open = false"
+           class="flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-orange-500/10 hover:text-orange-500 dark:hover:bg-orange-500/15 dark:hover:text-orange-400 transition-all duration-200 group">
+            <div class="flex items-center gap-3">
+                <span class="w-8 h-8 rounded-xl bg-orange-500/10 dark:bg-orange-500/20 text-orange-500 flex items-center justify-center text-sm group-hover:scale-110 transition-transform">💡</span>
+                <span>{{ __('Why Us') }}</span>
+            </div>
+            <svg class="w-4 h-4 text-slate-400 group-hover:text-orange-500 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
+            </svg>
+        </a>
+
+        @auth
+            <div class="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-1">
+                <a href="{{ route('customer.orders.index') }}" 
+                   @click="open = false"
+                   class="flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-orange-500/10 hover:text-orange-500 dark:hover:bg-orange-500/15 dark:hover:text-orange-400 transition-all duration-200 group">
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-xl bg-orange-500/10 dark:bg-orange-500/20 text-orange-500 flex items-center justify-center text-sm group-hover:scale-110 transition-transform">📦</span>
+                        <span>{{ __('My Orders') }}</span>
+                    </div>
+                    <svg class="w-4 h-4 text-slate-400 group-hover:text-orange-500 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </a>
+
+                <a href="{{ route('customer.help') }}" 
+                   @click="open = false"
+                   class="flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-orange-500/10 hover:text-orange-500 dark:hover:bg-orange-500/15 dark:hover:text-orange-400 transition-all duration-200 group">
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-xl bg-orange-500/10 dark:bg-orange-500/20 text-orange-500 flex items-center justify-center text-sm group-hover:scale-110 transition-transform">🆘</span>
+                        <span>{{ __('Help & Complaints') }}</span>
+                    </div>
+                    <svg class="w-4 h-4 text-slate-400 group-hover:text-orange-500 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </a>
+            </div>
+        @endauth
+
+        <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{{ __('Language') }}</span>
+            <x-language-switcher variant="compact" />
         </div>
     </div>
 </nav>
