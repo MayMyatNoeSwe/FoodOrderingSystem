@@ -34,12 +34,6 @@
 
             function adminOrderPoller() {
                 return {
-                    audioEnabled: localStorage.getItem('admin_audio_enabled') !== 'false',
-                    audioCtx: null,
-                    pendingOrdersCount: {{ $orders->where('status', 'pending')->count() }},
-                    lastKnownOrderCount: {{ $orders->total() }},
-                    knownOrderIds: @json($orders->pluck('id')),
-                    lastUpdatedTimestamps: @json($orders->pluck('updated_at', 'id')),
                     nowMs: Date.now(),
                     detailsModalOpen: false,
                     activeOrder: null,
@@ -52,6 +46,12 @@
                     columnDropdownOpen: false,
                     moreFiltersOpen: false,
                     
+                    // Polling baseline & reloading state
+                    initialized: false,
+                    isReloading: false,
+                    knownOrdersMap: {},
+                    maxKnownId: 0,
+
                     // Column Visibility Controls
                     cols: {
                         order_date: true,
@@ -71,49 +71,18 @@
                             } catch (e) {}
                         }
 
-                        // Unlock Web Audio API on first user interaction to satisfy browser autoplay policies
-                        const unlockAudio = () => {
-                            try {
-                                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                                if (!this.audioCtx && AudioContext) {
-                                    this.audioCtx = new AudioContext();
-                                }
-                                if (this.audioCtx && this.audioCtx.state === 'suspended') {
-                                    this.audioCtx.resume();
-                                }
-                            } catch(e) {}
-                            document.removeEventListener('click', unlockAudio);
-                            document.removeEventListener('keydown', unlockAudio);
-                            document.removeEventListener('touchstart', unlockAudio);
-                        };
-                        document.addEventListener('click', unlockAudio, { once: true });
-                        document.addEventListener('keydown', unlockAudio, { once: true });
-                        document.addEventListener('touchstart', unlockAudio, { once: true });
-
                         // Periodic timer for live relative countdowns
                         setInterval(() => {
                             this.nowMs = Date.now();
                         }, 1000);
 
-                        // Real-time background order polling every 3 seconds
-                        setInterval(() => {
-                            this.pollOrders();
-                        }, 3000);
+                        // Initial baseline snapshot poll (no alert, no reload)
+                        this.pollOrders(true);
 
-                        // Periodic reminder alarm chime every 20 seconds if there are pending orders
+                        // Real-time background order polling every 5 seconds
                         setInterval(() => {
-                            if (this.audioEnabled && this.pendingOrdersCount > 0) {
-                                this.playNotificationSound();
-                            }
-                        }, 20000);
-                    },
-
-                    toggleAudio() {
-                        this.audioEnabled = !this.audioEnabled;
-                        localStorage.setItem('admin_audio_enabled', this.audioEnabled);
-                        if (this.audioEnabled) {
-                            this.playNotificationSound();
-                        }
+                            this.pollOrders(false);
+                        }, 5000);
                     },
 
                     toggleCol(colName) {
@@ -157,85 +126,64 @@
                         return remaining > 0 ? remaining : 0;
                     },
 
-                    playNotificationSound() {
-                        if (!this.audioEnabled) return;
-                        try {
-                            const AudioContext = window.AudioContext || window.webkitAudioContext;
-                            if (!AudioContext) return;
-                            const ctx = this.audioCtx || new AudioContext();
-                            this.audioCtx = ctx;
+                    pollOrders(isInitial = false) {
+                        if (this.isReloading) return;
 
-                            if (ctx.state === 'suspended') {
-                                ctx.resume();
-                            }
-
-                            const now = ctx.currentTime;
-
-                            // Harmonic chime note 1 (659Hz - E5)
-                            const osc1 = ctx.createOscillator();
-                            const gain1 = ctx.createGain();
-                            osc1.type = 'sine';
-                            osc1.frequency.setValueAtTime(659.25, now);
-                            gain1.gain.setValueAtTime(0.3, now);
-                            gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
-                            osc1.connect(gain1);
-                            gain1.connect(ctx.destination);
-                            osc1.start(now);
-                            osc1.stop(now + 0.25);
-
-                            // Harmonic chime note 2 (880Hz - A5)
-                            const osc2 = ctx.createOscillator();
-                            const gain2 = ctx.createGain();
-                            osc2.type = 'sine';
-                            osc2.frequency.setValueAtTime(880, now + 0.12);
-                            gain2.gain.setValueAtTime(0.35, now + 0.12);
-                            gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
-                            osc2.connect(gain2);
-                            gain2.connect(ctx.destination);
-                            osc2.start(now + 0.12);
-                            osc2.stop(now + 0.45);
-
-                            // Harmonic chime note 3 (1108Hz - C#6)
-                            const osc3 = ctx.createOscillator();
-                            const gain3 = ctx.createGain();
-                            osc3.type = 'sine';
-                            osc3.frequency.setValueAtTime(1108.73, now + 0.24);
-                            gain3.gain.setValueAtTime(0.4, now + 0.24);
-                            gain3.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
-                            osc3.connect(gain3);
-                            gain3.connect(ctx.destination);
-                            osc3.start(now + 0.24);
-                            osc3.stop(now + 0.65);
-                        } catch(e) {}
-                    },
-
-                    pollOrders() {
                         fetch('{{ route('admin.orders.json_list') }}')
                             .then(res => res.json())
                             .then(data => {
-                                if (!data.orders) return;
-                                let needsReload = false;
+                                if (!data.orders || !Array.isArray(data.orders)) return;
+
+                                // First run: build baseline snapshot without triggering reload
+                                if (isInitial || !this.initialized) {
+                                    data.orders.forEach(o => {
+                                        this.knownOrdersMap[o.id] = {
+                                            status: o.status,
+                                            payment_status: o.payment_status,
+                                            rider_id: o.rider_id,
+                                            updated_at: o.updated_at
+                                        };
+                                        if (o.id > this.maxKnownId) {
+                                            this.maxKnownId = o.id;
+                                        }
+                                    });
+                                    this.initialized = true;
+                                    return;
+                                }
+
+                                // Subsequent runs: check for brand new incoming orders or status modifications
+                                let hasNewOrder = false;
+                                let hasStatusChange = false;
 
                                 for (let order of data.orders) {
-                                    if (!this.knownOrderIds.includes(order.id)) {
-                                        needsReload = true;
+                                    if (order.id > this.maxKnownId) {
+                                        hasNewOrder = true;
                                         break;
                                     }
-                                    if (this.lastUpdatedTimestamps[order.id] && this.lastUpdatedTimestamps[order.id] !== order.updated_at) {
-                                        needsReload = true;
+                                    const prev = this.knownOrdersMap[order.id];
+                                    if (prev && (prev.status !== order.status || prev.payment_status !== order.payment_status || prev.rider_id !== order.rider_id)) {
+                                        hasStatusChange = true;
                                         break;
                                     }
                                 }
 
-                                if (needsReload) {
-                                    if (this.audioEnabled) {
-                                        this.playNotificationSound();
-                                        setTimeout(() => {
-                                            window.location.reload();
-                                        }, 650);
-                                    } else {
-                                        window.location.reload();
+                                if (hasNewOrder || hasStatusChange) {
+                                    this.isReloading = true;
+                                    if (typeof Swal !== 'undefined') {
+                                        Swal.fire({
+                                            toast: true,
+                                            position: 'top-end',
+                                            icon: hasNewOrder ? 'success' : 'info',
+                                            title: hasNewOrder ? '🛒 {{ __('New Order Received!') }}' : '🔄 {{ __('Orders Updated!') }}',
+                                            text: hasNewOrder ? '{{ __('New customer order added to dispatch queue.') }}' : '{{ __('Dispatch queue refreshed.') }}',
+                                            showConfirmButton: false,
+                                            timer: 2000,
+                                            timerProgressBar: true
+                                        });
                                     }
+                                    setTimeout(() => {
+                                        window.location.reload();
+                                    }, 1200);
                                 }
                             })
                             .catch(() => {});
@@ -342,17 +290,8 @@
                         <p class="text-slate-500 dark:text-slate-400 text-xs mt-0.5">{{ __('Filter by column values, toggle visible table columns, and manage orders') }}</p>
                     </div>
 
-                    <!-- Right Controls: Sound Toggle, Column Filter Dropdown & Quick Search -->
+                    <!-- Right Controls: Column Filter Dropdown & Quick Search -->
                     <div class="flex items-center flex-wrap gap-2.5">
-                        
-                        <!-- Sound Alarm Toggle Button -->
-                        <button @click="toggleAudio()" 
-                                type="button"
-                                :class="audioEnabled ? 'bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-800 hover:bg-orange-100 dark:hover:bg-orange-900/50' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'"
-                                class="px-3.5 py-2.5 text-xs font-bold rounded-xl border transition-all flex items-center gap-2 cursor-pointer shadow-xs">
-                            <span x-show="audioEnabled && pendingOrdersCount > 0" class="w-2 h-2 rounded-full bg-orange-500 animate-ping shrink-0"></span>
-                            <span x-text="audioEnabled ? '🔔 {{ __('Sound Alarm ON') }}' : '🔕 {{ __('Sound Muted') }}'"></span>
-                        </button>
 
                         <!-- Column Visibility Filter Dropdown -->
                         <div class="relative" @click.outside="columnDropdownOpen = false">

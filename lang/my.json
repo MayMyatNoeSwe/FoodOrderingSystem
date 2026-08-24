@@ -241,5 +241,11 @@
     "Resolution Console": "တိုင်ကြားချက် ဖြေရှင်းမှု ထိန်းချုပ်ခန်း",
     "Update Ticket Status": "တိုင်ကြားချက် အခြေအနေ ပြောင်းလဲရန်",
     "Admin Official Resolution / Reply": "အက်ဒမင်၏ တရားဝင် အကြောင်းပြန်စာ",
-    "Save & Send Resolution": "သိမ်းဆည်းပြီး အကြောင်းပြန်မည်"
+    "Save & Send Resolution": "သိမ်းဆည်းပြီး အကြောင်းပြန်မည်",
+    "Sound Alarm ON": "အသံ အချက်ပေးဖွင့်",
+    "Sound Muted": "အသံပိတ်",
+    "Flash Alert ON": "မီးလင်း အချက်ပေးဖွင့်",
+    "Flash Off": "မီးလင်း အချက်ပေးပိတ်",
+    "NEW ORDER RECEIVED!": "အော်ဒါအသစ် ရောက်ရှိလာပါပြီ!",
+    "Dismiss": "ပိတ်မည်"
 }
