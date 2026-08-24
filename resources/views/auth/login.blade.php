@@ -14,6 +14,10 @@
         <form method="POST" action="{{ route('login') }}" class="space-y-5" autocomplete="off">
             @csrf
 
+            @if(request('redirect'))
+                <input type="hidden" name="redirect" value="{{ request('redirect') }}">
+            @endif
+
             <!-- Dummy fields to prevent aggressive browser autofill -->
             <input type="text" class="hidden" name="prevent_autofill" autocomplete="off" />
             <input type="password" class="hidden" name="prevent_autofill_pwd" autocomplete="off" />

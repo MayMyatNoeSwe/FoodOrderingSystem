@@ -38,6 +38,10 @@
             return {
                 items: [],
                 selectedTownship: @json(Auth::check() ? (string)(Auth::user()->city ?? '') : ''),
+                deliveryAddress: @json(Auth::check() ? (string)(Auth::user()->detail_address ?? '') : ''),
+                deliveryPhone: @json(Auth::check() ? (string)(Auth::user()->phone_number ?? '') : ''),
+                phoneError: '',
+                deliveryNotes: '',
                 deliveryFee: 0,
                 paymentMethod: 'cod',
                 slipPreview: null,
@@ -45,6 +49,56 @@
                 copiedAccount: false,
                 isSubmitting: false,
                 darkMode: localStorage.getItem('foodorder_theme') === 'dark',
+
+                isPhoneValid() {
+                    if (!this.deliveryPhone) return false;
+                    const digits = this.deliveryPhone.replace(/\D/g, '');
+                    if (digits.startsWith('959')) {
+                        const local = digits.substring(3);
+                        return local.length >= 7 && local.length <= 9;
+                    }
+                    if (digits.startsWith('09')) {
+                        const local = digits.substring(2);
+                        return local.length >= 7 && local.length <= 9;
+                    }
+                    if (digits.startsWith('9') && digits.length >= 8) {
+                        const local = digits.substring(1);
+                        return local.length >= 7 && local.length <= 9;
+                    }
+                    return digits.length >= 7 && digits.length <= 11;
+                },
+
+                onPhoneInput(event) {
+                    let val = event.target.value || '';
+                    // Allow only digits, +, spaces, and dashes
+                    val = val.replace(/[^\d+\s-]/g, '');
+                    
+                    if (val.includes('+')) {
+                        val = '+' + val.replace(/\+/g, '');
+                    }
+                    
+                    this.deliveryPhone = val;
+                    this.validatePhone();
+                    this.saveDeliveryInfo();
+                },
+
+                validatePhone() {
+                    if (!this.deliveryPhone || !this.deliveryPhone.trim()) {
+                        this.phoneError = 'ဖုန်းနံပါတ် ထည့်သွင်းပေးပါ (Phone number is required)';
+                        return false;
+                    }
+                    const digits = this.deliveryPhone.replace(/\D/g, '');
+                    if (digits.length < 7) {
+                        this.phoneError = 'ဖုန်းနံပါတ် တိုလွန်းပါသည် (အနည်းဆုံး ဂဏန်း ၇ လုံး)';
+                        return false;
+                    }
+                    if (digits.length > 12) {
+                        this.phoneError = 'ဖုန်းနံပါတ် ရှည်လွန်းပါသည် (အများဆုံး ဂဏန်း ၁၂ လုံး)';
+                        return false;
+                    }
+                    this.phoneError = '';
+                    return true;
+                },
 
                 copyAccountNumber(num) {
                     if (navigator.clipboard) {
@@ -124,6 +178,32 @@
                         console.error('Cart parse error:', e);
                         this.items = [];
                     }
+
+                    // Restore delivery information from localStorage (gives priority to guest-entered information over DB defaults)
+                    try {
+                        const savedDelivery = localStorage.getItem('foodorder_delivery_info');
+                        if (savedDelivery) {
+                            const parsedInfo = JSON.parse(savedDelivery);
+                            if (parsedInfo.township && typeof parsedInfo.township === 'string' && parsedInfo.township.trim() !== '') {
+                                this.selectedTownship = parsedInfo.township.trim();
+                            }
+                            if (parsedInfo.address && typeof parsedInfo.address === 'string' && parsedInfo.address.trim() !== '') {
+                                this.deliveryAddress = parsedInfo.address.trim();
+                            }
+                            if (parsedInfo.phone && typeof parsedInfo.phone === 'string' && parsedInfo.phone.trim() !== '') {
+                                this.deliveryPhone = parsedInfo.phone.trim();
+                            }
+                            if (parsedInfo.paymentMethod) {
+                                this.paymentMethod = parsedInfo.paymentMethod;
+                            }
+                            if (parsedInfo.notes) {
+                                this.deliveryNotes = parsedInfo.notes;
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Delivery info parse error:', e);
+                    }
+
                     if (this.selectedTownship) {
                         this.onTownshipChange();
                     }
@@ -132,6 +212,18 @@
                 save() {
                     localStorage.setItem('foodorder_cart', JSON.stringify(this.items));
                     window.dispatchEvent(new CustomEvent('cart-updated'));
+                },
+
+                saveDeliveryInfo() {
+                    try {
+                        localStorage.setItem('foodorder_delivery_info', JSON.stringify({
+                            township: this.selectedTownship,
+                            address: this.deliveryAddress,
+                            phone: this.deliveryPhone,
+                            paymentMethod: this.paymentMethod,
+                            notes: this.deliveryNotes
+                        }));
+                    } catch (_) {}
                 },
 
                 increaseQty(index) {
@@ -180,6 +272,7 @@
 
                 onTownshipChange() {
                     this.deliveryFee = yangonFees[this.selectedTownship] || 0;
+                    this.saveDeliveryInfo();
                 },
 
                 getZoneLabel() {
@@ -193,11 +286,18 @@
                 canSubmit() {
                     if (this.items.length === 0) return false;
                     if (!this.selectedTownship) return false;
+                    if (!this.deliveryAddress || !this.deliveryAddress.trim()) return false;
+                    if (!this.isPhoneValid()) return false;
                     for (let i of this.items) {
                         const maxStock = (i.stock !== undefined && i.stock !== null) ? Number(i.stock) : null;
                         if (maxStock !== null && i.qty > maxStock) return false;
                     }
                     return true;
+                },
+
+                goToLogin() {
+                    this.saveDeliveryInfo();
+                    window.location.href = "{{ route('login') }}?redirect=" + encodeURIComponent("{{ route('cart') }}");
                 },
 
                 submitOrder(event) {
@@ -214,6 +314,11 @@
                     if (!this.canSubmit()) {
                         if (!this.selectedTownship) {
                             alert('Please select a township first!');
+                        } else if (!this.deliveryAddress || !this.deliveryAddress.trim()) {
+                            alert('Please enter your full delivery address!');
+                        } else if (!this.isPhoneValid()) {
+                            this.validatePhone();
+                            alert('ကျေးဇူးပြု၍ တရားဝင် မြန်မာဖုန်းနံပါတ် (+95 9...) ကို မှန်ကန်စွာ ထည့်သွင်းပေးပါ!');
                         }
                         return;
                     }
@@ -227,6 +332,7 @@
                     document.getElementById('delivery_township_input').value = `Yangon — ${this.selectedTownship}`;
 
                     this.isSubmitting = true;
+                    this.saveDeliveryInfo();
 
                     // Submit after Alpine finishes updating DOM (avoids disabled-button cancelling native submit)
                     this.$nextTick(() => {
@@ -285,37 +391,115 @@
 
                 <!-- Cart Item Cards -->
                 <template x-for="(item, index) in items" :key="item.id">
-                    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-4 flex items-center gap-4 group hover:shadow-md transition-all">
-                        <div class="w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-slate-100 dark:bg-slate-800">
-                            <img :src="item.image" :alt="item.name" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-3.5 sm:p-4 group hover:shadow-md transition-all">
+                        
+                        <!-- ================= LAPTOP / DESKTOP VIEW (sm+) ================= -->
+                        <div class="hidden sm:flex sm:items-center sm:gap-4">
+                            <!-- Food Image -->
+                            <div class="w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-slate-100 dark:bg-slate-800">
+                                <img :src="item.image" :alt="item.name" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                            </div>
+
+                            <!-- Title & Pricing Info -->
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-bold text-slate-900 dark:text-white text-sm lg:text-base truncate" x-text="item.name"></h3>
+                                <p class="text-orange-500 font-black text-sm mt-0.5"><span x-text="formatPrice(item.price)"></span> MMK</p>
+                                <div class="flex items-center gap-2 mt-0.5 flex-wrap">
+                                    <p class="text-xs text-slate-400" x-text="item.category ?? ''"></p>
+                                    <span class="text-[11px] font-bold px-2 py-0.5 rounded-full"
+                                          :class="isMaxStock(item) ? 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400'">
+                                        Stock: <span x-text="getItemStock(item)"></span>
+                                        <span x-show="isMaxStock(item)">(Max Reached)</span>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Quantity Stepper Controls -->
+                            <div class="flex items-center gap-2 shrink-0">
+                                <button @click="decreaseQty(index)" 
+                                        type="button"
+                                        class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-orange-100 hover:text-orange-600 dark:hover:bg-slate-700 font-black text-lg flex items-center justify-center transition-all cursor-pointer select-none">&minus;</button>
+                                <span class="w-8 text-center font-bold text-slate-900 dark:text-white text-sm" x-text="item.qty"></span>
+                                <button @click="increaseQty(index)"
+                                        type="button"
+                                        :disabled="isMaxStock(item)"
+                                        :class="isMaxStock(item) ? 'opacity-30 cursor-not-allowed pointer-events-none bg-slate-200 text-slate-400' : 'hover:bg-orange-100 hover:text-orange-600 cursor-pointer bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white dark:hover:bg-slate-700'"
+                                        class="w-8 h-8 rounded-lg font-black text-lg flex items-center justify-center transition-all select-none">+</button>
+                            </div>
+
+                            <!-- Subtotal -->
+                            <div class="text-right shrink-0 min-w-[90px]">
+                                <p class="text-xs text-slate-400 mb-0.5">{{ __('Subtotal') }}</p>
+                                <p class="font-black text-slate-900 dark:text-white text-sm lg:text-base"><span x-text="formatPrice(item.price * item.qty)"></span> MMK</p>
+                            </div>
+
+                            <!-- Remove Item Button -->
+                            <button @click="removeItem(index)" 
+                                    type="button"
+                                    title="Remove item"
+                                    class="w-8 h-8 rounded-lg text-slate-300 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/40 flex items-center justify-center transition-all cursor-pointer ml-1 shrink-0">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
                         </div>
-                        <div class="flex-1 min-w-0">
-                            <h3 class="font-bold text-slate-900 dark:text-white text-sm truncate" x-text="item.name"></h3>
-                            <p class="text-orange-500 font-black text-sm mt-0.5"><span x-text="formatPrice(item.price)"></span> MMK</p>
-                            <div class="flex items-center gap-2 mt-0.5 flex-wrap">
-                                <p class="text-xs text-slate-400" x-text="item.category ?? ''"></p>
-                                <span class="text-[11px] font-bold px-2 py-0.5 rounded-full"
-                                      :class="isMaxStock(item) ? 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400'">
-                                    Stock: <span x-text="getItemStock(item)"></span>
-                                    <span x-show="isMaxStock(item)">(Max Reached)</span>
-                                </span>
+
+                        <!-- ================= MOBILE VIEW (< sm) ================= -->
+                        <div class="sm:hidden space-y-3">
+                            <!-- Top Details Row -->
+                            <div class="flex items-start gap-3">
+                                <!-- Food Image -->
+                                <div class="w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-slate-100 dark:bg-slate-800">
+                                    <img :src="item.image" :alt="item.name" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                </div>
+
+                                <!-- Details: Name, Unit Price, Category, Stock -->
+                                <div class="flex-1 min-w-0 pr-1">
+                                    <div class="flex items-start justify-between gap-2">
+                                        <h3 class="font-bold text-slate-900 dark:text-white text-sm leading-snug line-clamp-2" x-text="item.name"></h3>
+                                        
+                                        <!-- Remove Button -->
+                                        <button @click="removeItem(index)" 
+                                                type="button"
+                                                title="Remove item"
+                                                class="w-7 h-7 rounded-lg text-slate-300 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/40 flex items-center justify-center transition-all cursor-pointer shrink-0 -mt-1 -mr-1">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                        </button>
+                                    </div>
+
+                                    <div class="flex items-center gap-2 mt-1.5 flex-wrap">
+                                        <span class="text-orange-500 font-black text-sm"><span x-text="formatPrice(item.price)"></span> MMK</span>
+                                        <span class="text-xs text-slate-400" x-show="item.category" x-text="'• ' + item.category"></span>
+                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                                              :class="isMaxStock(item) ? 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400'">
+                                            Stock: <span x-text="getItemStock(item)"></span>
+                                            <span x-show="isMaxStock(item)">(Max Reached)</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Bottom Controls Row: Stepper + Subtotal -->
+                            <div class="flex items-center justify-between border-t border-slate-100 dark:border-slate-800/80 pt-2.5">
+                                <!-- Qty Stepper -->
+                                <div class="flex items-center gap-2">
+                                    <button @click="decreaseQty(index)" 
+                                            type="button"
+                                            class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-orange-100 hover:text-orange-600 dark:hover:bg-slate-700 font-black text-lg flex items-center justify-center transition-all cursor-pointer select-none">&minus;</button>
+                                    <span class="w-7 text-center font-bold text-slate-900 dark:text-white text-sm" x-text="item.qty"></span>
+                                    <button @click="increaseQty(index)"
+                                            type="button"
+                                            :disabled="isMaxStock(item)"
+                                            :class="isMaxStock(item) ? 'opacity-30 cursor-not-allowed pointer-events-none bg-slate-200 text-slate-400' : 'hover:bg-orange-100 hover:text-orange-600 cursor-pointer bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white dark:hover:bg-slate-700'"
+                                            class="w-8 h-8 rounded-lg font-black text-lg flex items-center justify-center transition-all select-none">+</button>
+                                </div>
+
+                                <!-- Subtotal -->
+                                <div class="text-right">
+                                    <span class="text-[11px] text-slate-400 font-semibold mr-1">{{ __('Subtotal') }}:</span>
+                                    <span class="font-black text-slate-900 dark:text-white text-sm"><span x-text="formatPrice(item.price * item.qty)"></span> MMK</span>
+                                </div>
                             </div>
                         </div>
-                        <div class="flex items-center gap-2 shrink-0">
-                            <button @click="decreaseQty(index)" class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-orange-100 hover:text-orange-600 font-black text-lg flex items-center justify-center transition-all cursor-pointer">&minus;</button>
-                            <span class="w-8 text-center font-bold text-slate-900 dark:text-white text-sm" x-text="item.qty"></span>
-                            <button @click="increaseQty(index)"
-                                    :disabled="isMaxStock(item)"
-                                    :class="isMaxStock(item) ? 'opacity-30 cursor-not-allowed pointer-events-none bg-slate-200 text-slate-400' : 'hover:bg-orange-100 hover:text-orange-600 cursor-pointer bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white'"
-                                    class="w-8 h-8 rounded-lg font-black text-lg flex items-center justify-center transition-all">+</button>
-                        </div>
-                        <div class="text-right shrink-0 min-w-[80px]">
-                            <p class="text-xs text-slate-400 mb-0.5">{{ __('Subtotal') }}</p>
-                            <p class="font-black text-slate-900 dark:text-white text-sm"><span x-text="formatPrice(item.price * item.qty)"></span> MMK</p>
-                        </div>
-                        <button @click="removeItem(index)" class="w-8 h-8 rounded-lg text-slate-300 hover:bg-red-50 hover:text-red-500 flex items-center justify-center transition-all cursor-pointer ml-1 shrink-0">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                        </button>
+
                     </div>
                 </template>
 
@@ -448,8 +632,10 @@
                             {{ __('Delivery Address') }} <span class="text-red-400">*</span>
                         </label>
                         <textarea name="delivery_address" rows="2" required
+                            x-model="deliveryAddress"
+                            @input="saveDeliveryInfo()"
                             placeholder="{{ __('Enter your full address (Street, Ward, City)') }}"
-                            class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none transition-all resize-none placeholder-slate-400 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">{{ old('delivery_address', Auth::check() ? (Auth::user()->detail_address ?? '') : '') }}</textarea>
+                            class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none transition-all resize-none placeholder-slate-400 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100"></textarea>
                     </div>
 
                     {{-- Phone --}}
@@ -457,10 +643,30 @@
                         <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1.5">
                             {{ __('Contact Phone') }} <span class="text-red-400">*</span>
                         </label>
-                        <input type="tel" name="delivery_phone" required
-                            value="{{ old('delivery_phone', Auth::check() ? (Auth::user()->phone_number ?? '') : '') }}"
-                            placeholder="+95 9 ..."
-                            class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none transition-all placeholder-slate-400 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
+                        <div class="relative">
+                            <input type="tel" 
+                                   name="delivery_phone" 
+                                   required
+                                   x-model="deliveryPhone"
+                                   @input="onPhoneInput($event)"
+                                   @blur="validatePhone()"
+                                   placeholder="+95 9... or 09..."
+                                   class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none transition-all placeholder-slate-400 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 font-medium"
+                                   :class="phoneError ? 'border-red-400 focus:border-red-500 focus:ring-red-100' : (isPhoneValid() ? 'border-emerald-400 dark:border-emerald-600 focus:border-emerald-500' : '')">
+                            
+                            <!-- Valid Indicator Badge -->
+                            <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" x-show="isPhoneValid()">
+                                <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-lg border border-emerald-200 dark:border-emerald-800/60">
+                                    ✓ Valid
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Validation & Help Message -->
+                        <p x-show="phoneError" x-text="phoneError" class="text-xs text-red-500 mt-1.5 font-semibold"></p>
+                        <p x-show="!phoneError" class="text-[11px] text-slate-400 mt-1.5">
+                            {{ __('Enter phone number') }} (<span class="font-mono text-orange-500 font-bold">+95 9</span> / <span class="font-mono font-bold text-slate-600 dark:text-slate-300">09</span>)
+                        </p>
                     </div>
 
                     {{-- Payment Method Selector --}}
@@ -474,7 +680,7 @@
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-3">
                             <!-- COD Option -->
                             <button type="button" 
-                                    @click="paymentMethod = 'cod'"
+                                    @click="paymentMethod = 'cod'; saveDeliveryInfo();"
                                     class="p-3 rounded-2xl border-2 text-left transition-all flex flex-col justify-between gap-2 cursor-pointer"
                                     :class="paymentMethod === 'cod' 
                                         ? 'border-green-500 bg-green-50/70 dark:bg-green-950/40 text-green-900 dark:text-green-200 shadow-sm' 
@@ -491,7 +697,7 @@
 
                             <!-- KBZPay Option -->
                             <button type="button" 
-                                    @click="paymentMethod = 'kbzpay'"
+                                    @click="paymentMethod = 'kbzpay'; saveDeliveryInfo();"
                                     class="p-3 rounded-2xl border-2 text-left transition-all flex flex-col justify-between gap-2 cursor-pointer"
                                     :class="paymentMethod === 'kbzpay' 
                                         ? 'border-blue-500 bg-blue-50/70 dark:bg-blue-950/40 text-blue-900 dark:text-blue-200 shadow-sm' 
@@ -508,7 +714,7 @@
 
                             <!-- WavePay Option -->
                             <button type="button" 
-                                    @click="paymentMethod = 'wavepay'"
+                                    @click="paymentMethod = 'wavepay'; saveDeliveryInfo();"
                                     class="p-3 rounded-2xl border-2 text-left transition-all flex flex-col justify-between gap-2 cursor-pointer"
                                     :class="paymentMethod === 'wavepay' 
                                         ? 'border-amber-500 bg-amber-50/70 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 shadow-sm' 
@@ -629,6 +835,8 @@
                     <div>
                         <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1.5">{{ __('Special Notes / Instructions') }} <span class="text-slate-300">(optional)</span></label>
                         <textarea name="notes" rows="2"
+                            x-model="deliveryNotes"
+                            @input="saveDeliveryInfo()"
                             placeholder="{{ __('Any allergy or delivery note (optional)') }}"
                             class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none transition-all resize-none placeholder-slate-400 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100"></textarea>
                     </div>
@@ -641,7 +849,7 @@
                             class="w-full py-3.5 text-white font-black text-sm rounded-xl shadow-lg transition-all flex items-center justify-center gap-2"
                             :class="(canSubmit() && !isSubmitting)
                                 ? 'bg-orange-500 hover:bg-orange-600 active:bg-orange-700 shadow-orange-500/25 cursor-pointer'
-                                : 'bg-slate-300 opacity-70 cursor-not-allowed'">
+                                : 'bg-slate-300 dark:bg-slate-700 opacity-70 cursor-not-allowed'">
                             <template x-if="isSubmitting">
                                 <svg class="w-4 h-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -657,12 +865,13 @@
                             <span x-show="!isSubmitting">&mdash; <span x-text="formatPrice(total())"></span> MMK</span>
                         </button>
                     @else
-                        <button type="button" @click="window.location.href='{{ route('login') }}'"
+                        <button type="button" 
+                            @click="goToLogin()"
                             class="w-full py-3.5 text-white font-black text-sm rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer bg-orange-500 hover:bg-orange-600 active:bg-orange-700 shadow-orange-500/25">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
                             </svg>
-                            {{ __('Log in') }} / {{ __('Proceed to Checkout') }}
+                            <span>{{ __('Log in to Place Order') }} &mdash; <span x-text="formatPrice(total())"></span> MMK</span>
                         </button>
                     @endauth
 

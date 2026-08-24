@@ -8,6 +8,10 @@
     <form method="POST" action="{{ route('register') }}" class="space-y-4" autocomplete="off">
         @csrf
 
+        @if(request('redirect'))
+            <input type="hidden" name="redirect" value="{{ request('redirect') }}">
+        @endif
+
         <!-- Name -->
         <div>
             <x-input-label for="name" :value="__('Full Name')" class="text-slate-700 dark:text-slate-300 font-bold text-xs uppercase tracking-wider mb-1.5" />
@@ -54,7 +58,7 @@
         <!-- Login Redirect -->
         <div class="mt-6 text-center text-xs text-slate-600 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800 pt-5">
             {{ __('Already have an account?') }}
-            <a href="{{ route('login') }}" class="font-bold text-orange-600 hover:text-orange-700 dark:text-orange-400 ms-1 transition-colors">
+            <a href="{{ route('login', request('redirect') ? ['redirect' => request('redirect')] : []) }}" class="font-bold text-orange-600 hover:text-orange-700 dark:text-orange-400 ms-1 transition-colors">
                 {{ __('Sign In here') }}
             </a>
         </div>

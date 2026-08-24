@@ -37,7 +37,11 @@ class AuthenticatedSessionController extends Controller
             return redirect()->route('rider.dashboard');
         }
 
-        return redirect()->route('home');
+        if ($request->filled('redirect')) {
+            return redirect($request->input('redirect'));
+        }
+
+        return redirect()->intended(route('home'));
     }
 
 

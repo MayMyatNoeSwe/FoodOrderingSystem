@@ -50,14 +50,28 @@ Route::middleware('auth')->group(function () {
 
             $request->validate([
                 'delivery_address'   => 'required|string|max:500',
-                'delivery_phone'     => 'required|string|max:30',
+                'delivery_phone'     => ['required', 'string', 'max:30', 'regex:/^(\+?95\s?9|\+?959|09|9)[0-9]{6,9}$/'],
                 'payment_method'     => 'required|in:cod,kbzpay,wavepay',
                 'cart_items'         => 'required|string',
                 'total_amount'       => 'required|numeric|min:1',
                 'payment_screenshot' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
                 'region_type'        => 'nullable|string',
                 'delivery_township'  => 'nullable|string',
+            ], [
+                'delivery_phone.regex' => 'Please provide a valid Myanmar phone number starting with +95 9... (တရားဝင် မြန်မာဖုန်းနံပါတ် +95 9... ထည့်သွင်းပေးပါ)',
             ]);
+
+            // Normalize delivery phone to clean +95 9 format
+            $rawDigits = preg_replace('/\D/', '', $request->delivery_phone);
+            if (str_starts_with($rawDigits, '959')) {
+                $formattedPhone = '+95 9' . substr($rawDigits, 3);
+            } elseif (str_starts_with($rawDigits, '09')) {
+                $formattedPhone = '+95 9' . substr($rawDigits, 2);
+            } elseif (str_starts_with($rawDigits, '9') && strlen($rawDigits) >= 8) {
+                $formattedPhone = '+95 9' . substr($rawDigits, 1);
+            } else {
+                $formattedPhone = '+95 9' . $rawDigits;
+            }
 
             $cartItems = json_decode($request->cart_items, true);
             if (empty($cartItems)) {
@@ -105,7 +119,7 @@ Route::middleware('auth')->group(function () {
                 'delivery_address'   => $request->delivery_address,
                 'region_type'        => $request->region_type ?? 'yangon',
                 'delivery_township'  => $request->delivery_township,
-                'delivery_phone'     => $request->delivery_phone,
+                'delivery_phone'     => $formattedPhone,
                 'payment_method'     => $request->payment_method,
                 'payment_screenshot' => $screenshotPath,
                 'notes'              => $request->notes,
