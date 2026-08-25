@@ -43,65 +43,38 @@ window.smoothScrollTo = function(targetY = 0, duration = 650, callback = null) {
 };
 
 /* =============================================
-   Page Transition & Smooth Anchor Navigation
+   Smooth Anchor Navigation Helper (Hash links only)
    ============================================= */
 document.addEventListener('DOMContentLoaded', () => {
-    // Intercept clicks on links
+    // Intercept clicks only on hash anchor links (#...) for smooth in-page scrolling
     document.addEventListener('click', (e) => {
-        const anchor = e.target.closest('a[href]');
+        const anchor = e.target.closest('a[href*="#"]');
         if (!anchor) return;
 
         const href = anchor.getAttribute('href');
-        // Skip empty, javascript, mailto, tel, target _blank, download, or form buttons
-        if (!href || href.startsWith('javascript:') ||
-            href.startsWith('mailto:') || href.startsWith('tel:') ||
-            anchor.target === '_blank' || anchor.hasAttribute('download') ||
-            anchor.closest('form')) return;
+        if (!href || href === '#' || href.startsWith('javascript:') || anchor.target === '_blank') return;
 
         try {
             const targetUrl = new URL(href, window.location.href);
 
-            // Skip external links
-            if (targetUrl.origin !== window.location.origin) return;
-
-            // Handle same-page hash anchors (e.g. /#features, /#categories, /#menu when on /)
-            if (targetUrl.pathname === window.location.pathname) {
-                if (targetUrl.hash) {
-                    const targetEl = document.querySelector(targetUrl.hash);
-                    if (targetEl) {
-                        e.preventDefault();
-                        const navOffset = window.innerWidth < 768 ? 92 : 80; // Mobile vs Desktop sticky navbar clearance
-                        const elemPos = targetEl.getBoundingClientRect().top + window.pageYOffset;
-                        const targetY = Math.max(0, elemPos - navOffset);
-                        
-                        window.smoothScrollTo(targetY, 700, () => {
-                            history.pushState(null, '', targetUrl.hash);
-                        });
-                    }
-                    return;
-                }
-                // Same exact URL clicked, no need to transition
-                if (targetUrl.search === window.location.search && targetUrl.href === window.location.href) {
+            // Only handle same-origin, same-page hash navigation
+            if (targetUrl.origin === window.location.origin &&
+                targetUrl.pathname === window.location.pathname &&
+                targetUrl.hash) {
+                const targetEl = document.querySelector(targetUrl.hash);
+                if (targetEl) {
                     e.preventDefault();
-                    return;
+                    const navOffset = window.innerWidth < 768 ? 92 : 80;
+                    const elemPos = targetEl.getBoundingClientRect().top + window.pageYOffset;
+                    const targetY = Math.max(0, elemPos - navOffset);
+                    
+                    window.smoothScrollTo(targetY, 700, () => {
+                        history.pushState(null, '', targetUrl.hash);
+                    });
                 }
             }
-        } catch (_) { return; }
-
-        // Skip direct hash links that didn't resolve to element
-        if (href.startsWith('#')) return;
-
-        // Trigger smooth fade-out only when navigating to another route
-        document.documentElement.classList.add('page-leaving');
-
-        e.preventDefault();
-        setTimeout(() => { window.location.href = href; }, 220);
+        } catch (_) {}
     });
-});
-
-// Restore visibility if restored from browser back/forward cache (bfcache)
-window.addEventListener('pageshow', () => {
-    document.documentElement.classList.remove('page-leaving');
 });
 
 /* =============================================

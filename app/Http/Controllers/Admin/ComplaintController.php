@@ -15,7 +15,7 @@ class ComplaintController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Complaint::with(['user', 'order', 'resolver'])->latest();
+        $query = Complaint::with(['user', 'order', 'resolver']);
 
         // Filter by Status
         if ($request->filled('status') && $request->status !== 'all') {
@@ -30,6 +30,14 @@ class ComplaintController extends Controller
         // Filter by Priority
         if ($request->filled('priority') && $request->priority !== 'all') {
             $query->where('priority', $request->priority);
+        }
+
+        // Date Range Filters
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
         }
 
         // Search Query (Ticket #, subject, customer name, email, order #)
@@ -49,6 +57,16 @@ class ComplaintController extends Controller
                   });
             });
         }
+
+        // Sorting
+        $sort = $request->input('sort', 'latest');
+        match ($sort) {
+            'oldest' => $query->oldest(),
+            'priority_high' => $query->orderByRaw("FIELD(priority, 'urgent', 'high', 'normal', 'low')")->latest(),
+            'ticket_asc' => $query->orderBy('ticket_number', 'asc'),
+            'ticket_desc' => $query->orderBy('ticket_number', 'desc'),
+            default => $query->latest(),
+        };
 
         $complaints = $query->paginate(15)->withQueryString();
 

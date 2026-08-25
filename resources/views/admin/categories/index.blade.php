@@ -307,141 +307,145 @@
         </div>
 
         <!-- ================= CREATE CATEGORY MODAL ================= -->
-        <div x-show="createModalOpen" 
-             x-cloak
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0"
-             x-transition:enter-end="opacity-100"
-             x-transition:leave="transition ease-in duration-150"
-             x-transition:leave-start="opacity-100"
-             x-transition:leave-end="opacity-0"
-             class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            
-            <div @click.outside="createModalOpen = false" 
-                 class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6">
+        <template x-teleport="body">
+            <div x-show="createModalOpen" 
+                 x-cloak
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                 
-                <!-- Modal Header -->
-                <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400 flex items-center justify-center text-lg font-bold border border-orange-100 dark:border-orange-900">
-                            ➕
+                <div @click.outside="createModalOpen = false" 
+                     class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 sm:p-6 max-w-md w-full shadow-2xl space-y-4">
+                    
+                    <!-- Modal Header -->
+                    <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400 flex items-center justify-center text-lg font-bold border border-orange-100 dark:border-orange-900">
+                                ➕
+                            </div>
+                            <div>
+                                <h3 class="text-base font-black text-slate-900 dark:text-white">{{ __('Create New Category') }}</h3>
+                                <p class="text-slate-500 dark:text-slate-400 text-xs">{{ __('Add a new food category to organize menu items') }}</p>
+                            </div>
                         </div>
+                        <button @click="createModalOpen = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 text-base font-bold cursor-pointer">✕</button>
+                    </div>
+
+                    <!-- Modal Form -->
+                    <form method="POST" action="{{ route('admin.categories.store') }}" class="space-y-4 text-xs">
+                        @csrf
+                        <input type="hidden" name="return_url" value="{{ request()->fullUrl() }}">
+
                         <div>
-                            <h3 class="text-lg font-black text-slate-900 dark:text-white">{{ __('Create New Category') }}</h3>
-                            <p class="text-slate-500 dark:text-slate-400 text-xs">{{ __('Add a new food category to organize menu items') }}</p>
+                            <label for="create_category_name" class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">
+                                {{ __('Category Name') }} <span class="text-orange-500">*</span>
+                            </label>
+                            <input type="text" 
+                                   id="create_category_name" 
+                                   name="name" 
+                                   x-model="createCategoryName" 
+                                   required 
+                                   autofocus
+                                   placeholder="e.g. Italian Pasta, Tacos, Refreshing Drinks" 
+                                   class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white text-xs rounded-xl px-3.5 py-2.5 focus:ring-0 transition-all placeholder-slate-400">
                         </div>
-                    </div>
-                    <button @click="createModalOpen = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 text-lg font-bold">✕</button>
+
+                        <!-- Slug Preview Indicator -->
+                        <div class="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 space-y-0.5">
+                            <span class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">{{ __('Auto-Generated URL Slug') }}</span>
+                            <div class="font-mono text-xs text-orange-600 dark:text-orange-400 font-bold truncate">
+                                <span x-text="createCategoryName ? slugify(createCategoryName) : 'category-slug-preview'"></span>
+                            </div>
+                        </div>
+
+                        <div class="pt-2 flex items-center justify-end gap-3 border-t border-slate-100 dark:border-slate-800">
+                            <button type="button" @click="createModalOpen = false" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-all cursor-pointer">
+                                {{ __('Cancel') }}
+                            </button>
+                            <button type="submit" class="px-5 py-2 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-orange-500/25 transition-all cursor-pointer">
+                                {{ __('Create Category') }}
+                            </button>
+                        </div>
+                    </form>
                 </div>
-
-                <!-- Modal Form -->
-                <form method="POST" action="{{ route('admin.categories.store') }}" class="space-y-5">
-                    @csrf
-                    <input type="hidden" name="return_url" value="{{ request()->fullUrl() }}">
-
-                    <div>
-                        <label for="create_category_name" class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
-                            {{ __('Category Name') }} <span class="text-orange-500">*</span>
-                        </label>
-                        <input type="text" 
-                               id="create_category_name" 
-                               name="name" 
-                               x-model="createCategoryName" 
-                               required 
-                               autofocus
-                               placeholder="e.g. Italian Pasta, Tacos, Refreshing Drinks" 
-                               class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white text-sm rounded-xl px-4 py-3 focus:ring-0 transition-all placeholder-slate-400">
-                    </div>
-
-                    <!-- Slug Preview Indicator -->
-                    <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 space-y-1">
-                        <span class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">{{ __('Auto-Generated URL Slug') }}</span>
-                        <div class="font-mono text-xs text-orange-600 dark:text-orange-400 font-bold truncate">
-                            <span x-text="createCategoryName ? slugify(createCategoryName) : 'category-slug-preview'"></span>
-                        </div>
-                    </div>
-
-                    <div class="pt-2 flex items-center justify-end gap-3 border-t border-slate-100 dark:border-slate-800">
-                        <button type="button" @click="createModalOpen = false" class="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-all cursor-pointer">
-                            {{ __('Cancel') }}
-                        </button>
-                        <button type="submit" class="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-orange-500/25 transition-all cursor-pointer">
-                            {{ __('Create Category') }}
-                        </button>
-                    </div>
-                </form>
             </div>
-        </div>
+        </template>
 
         <!-- ================= EDIT CATEGORY MODAL ================= -->
-        <div x-show="editModalOpen" 
-             x-cloak
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0"
-             x-transition:enter-end="opacity-100"
-             x-transition:leave="transition ease-in duration-150"
-             x-transition:leave-start="opacity-100"
-             x-transition:leave-end="opacity-0"
-             class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            
-            <div @click.outside="editModalOpen = false" 
-                 class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6">
+        <template x-teleport="body">
+            <div x-show="editModalOpen" 
+                 x-cloak
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                 
-                <!-- Modal Header -->
-                <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400 flex items-center justify-center text-lg font-bold border border-orange-100 dark:border-orange-900">
-                            ✏️
+                <div @click.outside="editModalOpen = false" 
+                     class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 sm:p-6 max-w-md w-full shadow-2xl space-y-4">
+                    
+                    <!-- Modal Header -->
+                    <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400 flex items-center justify-center text-lg font-bold border border-orange-100 dark:border-orange-900">
+                                ✏️
+                            </div>
+                            <div>
+                                <h3 class="text-base font-black text-slate-900 dark:text-white">{{ __('Edit Category') }}</h3>
+                                <p class="text-slate-500 dark:text-slate-400 text-xs">{{ __('Update existing food category details') }}</p>
+                            </div>
                         </div>
+                        <button @click="editModalOpen = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 text-base font-bold cursor-pointer">✕</button>
+                    </div>
+
+                    <!-- Modal Form -->
+                    <form method="POST" :action="editCategoryUrl" class="space-y-4 text-xs">
+                        @csrf
+                        @method('PUT')
+
+                        <!-- Hidden inputs to retain state on validation failure -->
+                        <input type="hidden" name="edit_category_id" :value="editCategoryId">
+                        <input type="hidden" name="edit_category_url" :value="editCategoryUrl">
+                        <input type="hidden" name="return_url" value="{{ request()->fullUrl() }}">
+
                         <div>
-                            <h3 class="text-lg font-black text-slate-900 dark:text-white">{{ __('Edit Category') }}</h3>
-                            <p class="text-slate-500 dark:text-slate-400 text-xs">{{ __('Update existing food category details') }}</p>
+                            <label for="edit_category_name_input" class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">
+                                {{ __('Category Name') }} <span class="text-orange-500">*</span>
+                            </label>
+                            <input type="text" 
+                                   id="edit_category_name_input" 
+                                   name="name" 
+                                   x-model="editCategoryName" 
+                                   required 
+                                   class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white text-xs rounded-xl px-3.5 py-2.5 focus:ring-0 transition-all">
                         </div>
-                    </div>
-                    <button @click="editModalOpen = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 text-lg font-bold">✕</button>
+
+                        <!-- Slug Preview Indicator -->
+                        <div class="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 space-y-0.5">
+                            <span class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">{{ __('Updated URL Slug') }}</span>
+                            <div class="font-mono text-xs text-orange-600 dark:text-orange-400 font-bold truncate">
+                                <span x-text="editCategoryName ? slugify(editCategoryName) : 'category-slug-preview'"></span>
+                            </div>
+                        </div>
+
+                        <div class="pt-2 flex items-center justify-end gap-3 border-t border-slate-100 dark:border-slate-800">
+                            <button type="button" @click="editModalOpen = false" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-all cursor-pointer">
+                                {{ __('Cancel') }}
+                            </button>
+                            <button type="submit" class="px-5 py-2 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-orange-500/25 transition-all cursor-pointer">
+                                {{ __('Update Category') }}
+                            </button>
+                        </div>
+                    </form>
                 </div>
-
-                <!-- Modal Form -->
-                <form method="POST" :action="editCategoryUrl" class="space-y-5">
-                    @csrf
-                    @method('PUT')
-
-                    <!-- Hidden inputs to retain state on validation failure -->
-                    <input type="hidden" name="edit_category_id" :value="editCategoryId">
-                    <input type="hidden" name="edit_category_url" :value="editCategoryUrl">
-                    <input type="hidden" name="return_url" value="{{ request()->fullUrl() }}">
-
-                    <div>
-                        <label for="edit_category_name_input" class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
-                            {{ __('Category Name') }} <span class="text-orange-500">*</span>
-                        </label>
-                        <input type="text" 
-                               id="edit_category_name_input" 
-                               name="name" 
-                               x-model="editCategoryName" 
-                               required 
-                               class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white text-sm rounded-xl px-4 py-3 focus:ring-0 transition-all">
-                    </div>
-
-                    <!-- Slug Preview Indicator -->
-                    <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 space-y-1">
-                        <span class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">{{ __('Updated URL Slug') }}</span>
-                        <div class="font-mono text-xs text-orange-600 dark:text-orange-400 font-bold truncate">
-                            <span x-text="editCategoryName ? slugify(editCategoryName) : 'category-slug-preview'"></span>
-                        </div>
-                    </div>
-
-                    <div class="pt-2 flex items-center justify-end gap-3 border-t border-slate-100 dark:border-slate-800">
-                        <button type="button" @click="editModalOpen = false" class="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-all cursor-pointer">
-                            {{ __('Cancel') }}
-                        </button>
-                        <button type="submit" class="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-orange-500/25 transition-all cursor-pointer">
-                            {{ __('Update Category') }}
-                        </button>
-                    </div>
-                </form>
             </div>
-        </div>
+        </template>
 
     </div>
 

@@ -196,134 +196,154 @@
             @endif
         </div>
 
-        <!-- ================= CREATE NEW RIDER MODAL ================= -->
-        <div x-show="createModalOpen" 
-             x-cloak
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0"
-             x-transition:enter-end="opacity-100"
-             x-transition:leave="transition ease-in duration-150"
-             x-transition:leave-start="opacity-100"
-             x-transition:leave-end="opacity-0"
-             class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            
-            <div @click.outside="createModalOpen = false" 
-                 class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-6">
+        <!-- ================= CREATE RIDER MODAL ================= -->
+        <template x-teleport="body">
+            <div x-show="createModalOpen" 
+                 x-cloak
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                 
-                <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-2xl bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400 flex items-center justify-center text-xl border border-orange-100 dark:border-orange-900">🛵</div>
-                        <h3 class="text-lg font-black text-slate-900 dark:text-white">{{ __('Create New Rider Account') }}</h3>
-                    </div>
-                    <button @click="createModalOpen = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 text-lg font-bold">✕</button>
-                </div>
-
-                <form method="POST" action="{{ route('admin.riders.store') }}" class="space-y-4 text-xs">
-                    @csrf
-                    <input type="hidden" name="return_url" value="{{ request()->fullUrl() }}">
+                <div @click.outside="createModalOpen = false" 
+                     class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto no-scrollbar">
                     
-                    <div>
-                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">{{ __('Rider Full Name') }} <span class="text-orange-500">*</span></label>
-                        <input type="text" name="name" required placeholder="e.g. Mg Mg Rider" 
-                               class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white focus:border-orange-500 focus:outline-none text-sm">
+                    <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400 flex items-center justify-center text-lg border border-orange-100 dark:border-orange-900">🛵</div>
+                            <div>
+                                <h3 class="text-base font-black text-slate-900 dark:text-white">{{ __('Create New Rider Account') }}</h3>
+                                <p class="text-slate-500 dark:text-slate-400 text-xs">{{ __('Add rider personnel credentials for delivery dispatch') }}</p>
+                            </div>
+                        </div>
+                        <button @click="createModalOpen = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 text-base font-bold cursor-pointer">✕</button>
                     </div>
 
-                    <div>
-                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">{{ __('Email Address (Login ID)') }} <span class="text-orange-500">*</span></label>
-                        <input type="email" name="email" required placeholder="rider@foodorder.com" 
-                               class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white focus:border-orange-500 focus:outline-none text-sm">
-                    </div>
+                    <form method="POST" action="{{ route('admin.riders.store') }}" class="space-y-3.5 text-xs">
+                        @csrf
+                        <input type="hidden" name="return_url" value="{{ request()->fullUrl() }}">
+                        
+                        <!-- 1-Column: Full Name -->
+                        <div>
+                            <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">{{ __('Rider Full Name') }} <span class="text-orange-500">*</span></label>
+                            <input type="text" name="name" required placeholder="e.g. Mg Mg Rider" 
+                                   class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white focus:border-orange-500 focus:outline-none text-xs transition-colors">
+                        </div>
 
-                    <div>
-                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">{{ __('Phone Number') }} <span class="text-orange-500">*</span></label>
-                        <input type="text" name="phone_number" required placeholder="09xxxxxxxxx" 
-                               class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white focus:border-orange-500 focus:outline-none text-sm">
-                    </div>
+                        <!-- 1-Column: Email Address -->
+                        <div>
+                            <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">{{ __('Email Address') }} <span class="text-orange-500">*</span></label>
+                            <input type="email" name="email" required placeholder="rider@foodorder.com" 
+                                   class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white focus:border-orange-500 focus:outline-none text-xs transition-colors">
+                        </div>
 
-                    <div>
-                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">{{ __('City / Zone') }}</label>
-                        <input type="text" name="city" value="Yangon" placeholder="Yangon" 
-                               class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white focus:border-orange-500 focus:outline-none text-sm">
-                    </div>
+                        <!-- 1-Column: Phone Number -->
+                        <div>
+                            <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">{{ __('Phone Number') }} <span class="text-orange-500">*</span></label>
+                            <input type="text" name="phone_number" required placeholder="09xxxxxxxxx" 
+                                   class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white focus:border-orange-500 focus:outline-none text-xs transition-colors">
+                        </div>
 
-                    <div>
-                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">{{ __('Password') }} <span class="text-orange-500">*</span></label>
-                        <input type="password" name="password" required placeholder="••••••••" 
-                               class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white focus:border-orange-500 focus:outline-none text-sm">
-                    </div>
+                        <!-- 1-Column: City / Zone -->
+                        <div>
+                            <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">{{ __('City / Zone') }}</label>
+                            <input type="text" name="city" value="Yangon" placeholder="Yangon" 
+                                   class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white focus:border-orange-500 focus:outline-none text-xs transition-colors">
+                        </div>
 
-                    <div class="pt-4 flex items-center justify-end gap-3 border-t border-slate-100 dark:border-slate-800">
-                        <button type="button" @click="createModalOpen = false" class="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl transition-all cursor-pointer">{{ __('Cancel') }}</button>
-                        <button type="submit" class="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-bold rounded-xl shadow-lg shadow-orange-500/25 transition-all cursor-pointer">{{ __('Create Rider') }}</button>
-                    </div>
-                </form>
+                        <!-- 1-Column: Password -->
+                        <div>
+                            <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">{{ __('Password') }} <span class="text-orange-500">*</span></label>
+                            <input type="password" name="password" required placeholder="••••••••" 
+                                   class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white focus:border-orange-500 focus:outline-none text-xs transition-colors">
+                        </div>
+
+                        <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100 dark:border-slate-800">
+                            <button type="button" @click="createModalOpen = false" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl transition-all cursor-pointer">{{ __('Cancel') }}</button>
+                            <button type="submit" class="px-5 py-2 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-bold rounded-xl shadow-lg shadow-orange-500/25 transition-all cursor-pointer">{{ __('Create Rider') }}</button>
+                        </div>
+                    </form>
+                </div>
             </div>
-        </div>
+        </template>
 
         <!-- ================= EDIT RIDER MODAL ================= -->
-        <div x-show="editModalOpen" 
-             x-cloak
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0"
-             x-transition:enter-end="opacity-100"
-             x-transition:leave="transition ease-in duration-150"
-             x-transition:leave-start="opacity-100"
-             x-transition:leave-end="opacity-0"
-             class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            
-            <div @click.outside="editModalOpen = false" 
-                 class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-6">
+        <template x-teleport="body">
+            <div x-show="editModalOpen" 
+                 x-cloak
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                 
-                <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-2xl bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400 flex items-center justify-center text-xl border border-orange-100 dark:border-orange-900">✏️</div>
-                        <h3 class="text-lg font-black text-slate-900 dark:text-white">{{ __('Edit Rider Details') }}</h3>
-                    </div>
-                    <button @click="editModalOpen = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 text-lg font-bold">✕</button>
-                </div>
-
-                <form method="POST" :action="editRiderUrl" class="space-y-4 text-xs">
-                    @csrf
-                    @method('PUT')
-                    <input type="hidden" name="return_url" value="{{ request()->fullUrl() }}">
+                <div @click.outside="editModalOpen = false" 
+                     class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto no-scrollbar">
                     
-                    <div>
-                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">{{ __('Rider Full Name') }} <span class="text-orange-500">*</span></label>
-                        <input type="text" name="name" x-model="editRiderName" required placeholder="e.g. Mg Mg Rider" 
-                               class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white focus:border-orange-500 focus:outline-none text-sm">
+                    <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400 flex items-center justify-center text-lg border border-orange-100 dark:border-orange-900">✏️</div>
+                            <div>
+                                <h3 class="text-base font-black text-slate-900 dark:text-white">{{ __('Edit Rider Details') }}</h3>
+                                <p class="text-slate-500 dark:text-slate-400 text-xs">{{ __('Update profile, contact info, or reset password') }}</p>
+                            </div>
+                        </div>
+                        <button @click="editModalOpen = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 text-base font-bold cursor-pointer">✕</button>
                     </div>
 
-                    <div>
-                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">{{ __('Email Address (Login ID)') }} <span class="text-orange-500">*</span></label>
-                        <input type="email" name="email" x-model="editRiderEmail" required placeholder="rider@foodorder.com" 
-                               class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white focus:border-orange-500 focus:outline-none text-sm">
-                    </div>
+                    <form method="POST" :action="editRiderUrl" class="space-y-3.5 text-xs">
+                        @csrf
+                        @method('PUT')
+                        <input type="hidden" name="return_url" value="{{ request()->fullUrl() }}">
+                        
+                        <!-- 1-Column: Full Name -->
+                        <div>
+                            <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">{{ __('Rider Full Name') }} <span class="text-orange-500">*</span></label>
+                            <input type="text" name="name" x-model="editRiderName" required placeholder="e.g. Mg Mg Rider" 
+                                   class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white focus:border-orange-500 focus:outline-none text-xs transition-colors">
+                        </div>
 
-                    <div>
-                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">{{ __('Phone Number') }} <span class="text-orange-500">*</span></label>
-                        <input type="text" name="phone_number" x-model="editRiderPhone" required placeholder="09xxxxxxxxx" 
-                               class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white focus:border-orange-500 focus:outline-none text-sm">
-                    </div>
+                        <!-- 1-Column: Email Address -->
+                        <div>
+                            <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">{{ __('Email Address') }} <span class="text-orange-500">*</span></label>
+                            <input type="email" name="email" x-model="editRiderEmail" required placeholder="rider@foodorder.com" 
+                                   class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white focus:border-orange-500 focus:outline-none text-xs transition-colors">
+                        </div>
 
-                    <div>
-                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">{{ __('City / Zone') }}</label>
-                        <input type="text" name="city" x-model="editRiderCity" placeholder="Yangon" 
-                               class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white focus:border-orange-500 focus:outline-none text-sm">
-                    </div>
+                        <!-- 1-Column: Phone Number -->
+                        <div>
+                            <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">{{ __('Phone Number') }} <span class="text-orange-500">*</span></label>
+                            <input type="text" name="phone_number" x-model="editRiderPhone" required placeholder="09xxxxxxxxx" 
+                                   class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white focus:border-orange-500 focus:outline-none text-xs transition-colors">
+                        </div>
 
-                    <div>
-                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">{{ __('New Password') }} <span class="text-slate-500 dark:text-slate-400">({{ __('Leave blank to keep current') }})</span></label>
-                        <input type="password" name="password" placeholder="••••••••" 
-                               class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white focus:border-orange-500 focus:outline-none text-sm">
-                    </div>
+                        <!-- 1-Column: City / Zone -->
+                        <div>
+                            <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">{{ __('City / Zone') }}</label>
+                            <input type="text" name="city" x-model="editRiderCity" placeholder="Yangon" 
+                                   class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white focus:border-orange-500 focus:outline-none text-xs transition-colors">
+                        </div>
 
-                    <div class="pt-4 flex items-center justify-end gap-3 border-t border-slate-100 dark:border-slate-800">
-                        <button type="button" @click="editModalOpen = false" class="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl transition-all cursor-pointer">{{ __('Cancel') }}</button>
-                        <button type="submit" class="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-bold rounded-xl shadow-lg shadow-orange-500/25 transition-all cursor-pointer">{{ __('Save Changes') }}</button>
-                    </div>
-                </form>
+                        <!-- 1-Column: Password -->
+                        <div>
+                            <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">{{ __('New Password') }} <span class="text-slate-500 dark:text-slate-400">({{ __('Leave blank to keep current') }})</span></label>
+                            <input type="password" name="password" placeholder="••••••••" 
+                                   class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white focus:border-orange-500 focus:outline-none text-xs transition-colors">
+                        </div>
+
+                        <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100 dark:border-slate-800">
+                            <button type="button" @click="editModalOpen = false" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl transition-all cursor-pointer">{{ __('Cancel') }}</button>
+                            <button type="submit" class="px-5 py-2 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-bold rounded-xl shadow-lg shadow-orange-500/25 transition-all cursor-pointer">{{ __('Save Changes') }}</button>
+                        </div>
+                    </form>
+                </div>
             </div>
-        </div>
+        </template>
 
     </div>
 

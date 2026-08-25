@@ -456,483 +456,482 @@
         </div>
 
         <!-- ================= CREATE ITEM MODAL ================= -->
-        <div x-show="createModalOpen" 
-             x-cloak
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0"
-             x-transition:enter-end="opacity-100"
-             x-transition:leave="transition ease-in duration-150"
-             x-transition:leave-start="opacity-100"
-             x-transition:leave-end="opacity-0"
-             class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            
-            <div @click.outside="createModalOpen = false" 
-                 class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 max-w-xl w-full shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+        <template x-teleport="body">
+            <div x-show="createModalOpen" 
+                 x-cloak
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                 
-                <!-- Modal Header -->
-                <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400 flex items-center justify-center text-lg font-bold border border-orange-100 dark:border-orange-900">
-                            ➕
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-black text-slate-900 dark:text-white">{{ __('Add New Item') }}</h3>
-                            <p class="text-slate-500 dark:text-slate-400 text-xs">{{ __('Create a new offering with multi-photos and stock thresholds') }}</p>
-                        </div>
-                    </div>
-                    <button @click="createModalOpen = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 text-lg font-bold">✕</button>
-                </div>
-
-                <!-- Form -->
-                <form method="POST" action="{{ route('admin.menuItems.store') }}" enctype="multipart/form-data" class="space-y-4">
-                    @csrf
-                    <input type="hidden" name="return_url" value="{{ request()->fullUrl() }}">
-
-                    <!-- Name -->
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
-                            {{ __('Item Name') }} <span class="text-orange-500">*</span>
-                        </label>
-                        <input type="text" 
-                               name="name" 
-                               required 
-                               placeholder="e.g. Pepperoni Feast Pizza, Iced Matcha Latte" 
-                               class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white text-sm rounded-xl px-4 py-3 focus:ring-0 transition-all placeholder-slate-400">
-                    </div>
-
-                    <!-- Category, Price & Min Stock Level -->
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
-                                {{ __('Category') }} <span class="text-orange-500">*</span>
-                            </label>
-                            <select name="category_id" 
-                                    required 
-                                    class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white text-sm rounded-xl px-3 py-3 focus:ring-0 transition-all">
-                                <option value="">{{ __('Select Category') }}</option>
-                                @foreach($categories as $cat)
-                                    <option value="{{ $cat->id }}">{{ $cat->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
-                                {{ __('Price (MMK)') }} <span class="text-orange-500">*</span>
-                            </label>
-                            <input type="number" 
-                                   name="price" 
-                                   step="1" 
-                                   min="0" 
-                                   required 
-                                   placeholder="15000" 
-                                   class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white text-sm rounded-xl px-3 py-3 focus:ring-0 transition-all placeholder-slate-400">
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
-                                {{ __('Min Stock Alert') }}
-                            </label>
-                            <input type="number" 
-                                   name="min_stock_level" 
-                                   min="0" 
-                                   value="10" 
-                                   placeholder="10" 
-                                   class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white text-sm rounded-xl px-3 py-3 focus:ring-0 transition-all placeholder-slate-400"
-                                   title="{{ __('Threshold when low-stock warning triggers in Inventory') }}">
-                        </div>
-                    </div>
-
-                    <!-- Description -->
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">{{ __('Description') }}</label>
-                        <textarea name="description" 
-                                  rows="3" 
-                                  placeholder="Brief description of ingredients, flavor profile..." 
-                                  class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white text-sm rounded-xl px-4 py-3 focus:ring-0 transition-all placeholder-slate-400"></textarea>
-                    </div>
-
-                    <!-- Multiple Photos Upload & Live Gallery Preview -->
-                    <div class="space-y-3 p-4 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl">
-                        <div class="flex items-center justify-between">
-                            <label class="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
-                                <span>📸</span>
-                                <span>{{ __('Upload Multiple Photos (ဓာတ်ပုံများ)') }}</span>
-                            </label>
-                            <span class="text-[10px] text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/50 font-bold px-2 py-0.5 rounded-full"
-                                  x-text="(createImagePreviews.length > 0 ? createImagePreviews.length + ' Photos Selected' : (createImageInput ? '1 Photo via URL' : 'Multiple Allowed'))">
-                            </span>
-                        </div>
-
-                        <!-- Multiple Files Picker Box -->
-                        <div class="relative border-2 border-dashed border-slate-300 dark:border-slate-600 hover:border-orange-500 rounded-2xl p-4 text-center transition-all bg-white dark:bg-slate-800 cursor-pointer group">
-                            <input type="file" 
-                                   name="image_files[]" 
-                                   multiple 
-                                   accept="image/*" 
-                                   @change="handleCreateFiles($event)" 
-                                   class="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10">
-                            <div class="py-2 space-y-1 pointer-events-none">
-                                <div class="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400 flex items-center justify-center mx-auto text-xl group-hover:scale-110 transition-transform">
-                                    🖼️
-                                </div>
-                                <p class="text-xs font-bold text-slate-800 dark:text-slate-200">{{ __('Click to Select Multiple Photos') }}</p>
-                                <p class="text-[10px] text-slate-500 dark:text-slate-400">{{ __('Select one or multiple dish images (JPG, PNG, WEBP)') }}</p>
+                <div @click.outside="createModalOpen = false" 
+                     class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-7 max-w-xl w-full shadow-2xl space-y-5 max-h-[88vh] overflow-y-auto no-scrollbar">
+                    
+                    <!-- Modal Header -->
+                    <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3.5">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400 flex items-center justify-center text-lg font-bold border border-orange-100 dark:border-orange-900">
+                                ➕
+                            </div>
+                            <div>
+                                <h3 class="text-base font-black text-slate-900 dark:text-white">{{ __('Add New Item') }}</h3>
+                                <p class="text-slate-500 dark:text-slate-400 text-xs">{{ __('Create a new offering with multi-photos and stock thresholds') }}</p>
                             </div>
                         </div>
+                        <button @click="createModalOpen = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 text-base font-bold cursor-pointer">✕</button>
+                    </div>
 
-                        <!-- Live Photo Gallery Preview Grid with Reordering -->
-                        <template x-if="createImagePreviews.length > 0">
-                            <div class="space-y-2 pt-2 border-t border-slate-200/80 dark:border-slate-700">
-                                <div class="flex items-center justify-between text-[11px]">
-                                    <span class="font-bold text-slate-700 dark:text-slate-300">{{ __('Selected Photos (Drag or use ◀ ▶ arrows to rearrange):') }}</span>
-                                    <span class="text-[10px] text-amber-600 dark:text-amber-400 font-bold">{{ __('First = Main Cover') }}</span>
-                                </div>
-                                <div class="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
-                                    <template x-for="(src, idx) in createImagePreviews" :key="'create-' + idx">
-                                        <div class="relative group rounded-2xl overflow-hidden border-2 transition-all bg-white dark:bg-slate-800 aspect-square shadow-xs cursor-grab active:cursor-grabbing"
-                                             :class="idx === 0 ? 'border-amber-400 ring-2 ring-amber-400/20' : 'border-slate-200 dark:border-slate-700 hover:border-orange-400'"
-                                             draggable="true"
-                                             @dragstart="draggedIdx = idx"
-                                             @dragover.prevent=""
-                                             @drop.prevent="handleDrop(idx, 'create')">
-                                            
-                                            <img :src="src" class="w-full h-full object-cover select-none pointer-events-none">
-                                            
-                                            <!-- Top Badges / Set Cover Action -->
-                                            <template x-if="idx === 0">
-                                                <span class="absolute top-1.5 left-1.5 bg-amber-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-lg shadow-xs flex items-center gap-0.5 z-10 pointer-events-none">
-                                                    ⭐ Cover
-                                                </span>
-                                            </template>
-                                            <template x-if="idx > 0">
-                                                <button type="button" 
-                                                        @click.stop="setAsCoverCreateImage(idx)" 
-                                                        title="{{ __('Set as Cover Photo') }}" 
-                                                        class="absolute top-1.5 left-1.5 bg-black/75 hover:bg-amber-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow-xs cursor-pointer">
-                                                    ⭐ {{ __('Set Cover') }}
-                                                </button>
-                                            </template>
+                    <!-- Form -->
+                    <form method="POST" action="{{ route('admin.menuItems.store') }}" enctype="multipart/form-data" class="space-y-4 text-xs">
+                        @csrf
+                        <input type="hidden" name="return_url" value="{{ request()->fullUrl() }}">
 
-                                            <!-- Remove Button -->
-                                            <button type="button" 
-                                                    @click.stop="removeCreatePreview(idx)" 
-                                                    title="{{ __('Remove Photo') }}" 
-                                                    class="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-black flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 cursor-pointer shadow-md">
-                                                ✕
-                                            </button>
-
-                                            <!-- Bottom Reorder Navigation Bar -->
-                                            <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-1.5 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                                                <button type="button" 
-                                                        @click.stop="moveCreateImage(idx, idx - 1)" 
-                                                        :disabled="idx === 0"
-                                                        :class="idx === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/30 cursor-pointer'"
-                                                        class="w-5 h-5 rounded-md bg-black/40 text-white text-[10px] font-bold flex items-center justify-center transition-colors"
-                                                        title="{{ __('Move Left (Earlier)') }}">
-                                                    ◀
-                                                </button>
-                                                
-                                                <span class="text-[9px] text-white/90 font-mono font-bold" x-text="'#' + (idx + 1)"></span>
-
-                                                <button type="button" 
-                                                        @click.stop="moveCreateImage(idx, idx + 1)" 
-                                                        :disabled="idx === createImagePreviews.length - 1"
-                                                        :class="idx === createImagePreviews.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/30 cursor-pointer'"
-                                                        class="w-5 h-5 rounded-md bg-black/40 text-white text-[10px] font-bold flex items-center justify-center transition-colors"
-                                                        title="{{ __('Move Right (Later)') }}">
-                                                    ▶
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </template>
-                                </div>
-                            </div>
-                        </template>
-
-                        <!-- Fallback Single Image URL -->
-                        <div class="pt-1 space-y-1">
-                            <span class="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block">{{ __('Or specify Image URL(s):') }}</span>
+                        <!-- Name -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">
+                                {{ __('Item Name') }} <span class="text-orange-500">*</span>
+                            </label>
                             <input type="text" 
-                                   name="image" 
-                                   x-model="createImageInput" 
-                                   placeholder="https://images.unsplash.com/... (comma separated)" 
-                                   class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 text-slate-900 dark:text-white text-xs rounded-xl px-3.5 py-2.5 focus:ring-0 transition-all placeholder-slate-400">
+                                   name="name" 
+                                   required 
+                                   placeholder="e.g. Pepperoni Feast Pizza, Iced Matcha Latte" 
+                                   class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white text-xs rounded-xl px-3.5 py-2.5 focus:ring-0 transition-all placeholder-slate-400">
                         </div>
-                    </div>
 
-                    <!-- Availability Toggle -->
-                    <div class="pt-1 flex items-center gap-3">
-                        <input type="checkbox" 
-                               id="create_is_available" 
-                               name="is_available" 
-                               value="1" 
-                               checked 
-                               class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-orange-500 focus:ring-0 cursor-pointer">
-                        <label for="create_is_available" class="text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer">
-                            {{ __('Available for customer ordering immediately') }}
-                        </label>
-                    </div>
+                        <!-- Category, Price & Min Stock Level -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">
+                                    {{ __('Category') }} <span class="text-orange-500">*</span>
+                                </label>
+                                <select name="category_id" 
+                                        required 
+                                        class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white text-xs rounded-xl px-2.5 py-2.5 focus:ring-0 transition-all">
+                                    <option value="">{{ __('Select Category') }}</option>
+                                    @foreach($categories as $cat)
+                                        <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
 
-                    <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100 dark:border-slate-800">
-                        <button type="button" @click="createModalOpen = false" class="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-all cursor-pointer">
-                            {{ __('Cancel') }}
-                        </button>
-                        <button type="submit" class="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-orange-500/25 transition-all cursor-pointer">
-                            {{ __('Create Food Item') }}
-                        </button>
-                    </div>
-                </form>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">
+                                    {{ __('Price (MMK)') }} <span class="text-orange-500">*</span>
+                                </label>
+                                <input type="number" 
+                                       name="price" 
+                                       step="1" 
+                                       min="0" 
+                                       required 
+                                       placeholder="15000" 
+                                       class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white text-xs rounded-xl px-3 py-2.5 focus:ring-0 transition-all placeholder-slate-400">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">
+                                    {{ __('Min Stock Alert') }}
+                                </label>
+                                <input type="number" 
+                                       name="min_stock_level" 
+                                       min="0" 
+                                       value="10" 
+                                       placeholder="10" 
+                                       class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white text-xs rounded-xl px-3 py-2.5 focus:ring-0 transition-all placeholder-slate-400"
+                                       title="{{ __('Threshold when low-stock warning triggers in Inventory') }}">
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">{{ __('Description') }}</label>
+                            <textarea name="description" 
+                                      rows="2" 
+                                      placeholder="Brief description of ingredients, flavor profile..." 
+                                      class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white text-xs rounded-xl px-3.5 py-2.5 focus:ring-0 transition-all placeholder-slate-400"></textarea>
+                        </div>
+
+                        <!-- Multiple Photos Upload & Live Gallery Preview -->
+                        <div class="space-y-2.5 p-3.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl">
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                                    <span>📸</span>
+                                    <span>{{ __('Upload Multiple Photos (ဓာတ်ပုံများ)') }}</span>
+                                </label>
+                                <span class="text-[10px] text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/50 font-bold px-2 py-0.5 rounded-full"
+                                      x-text="(createImagePreviews.length > 0 ? createImagePreviews.length + ' Photos Selected' : (createImageInput ? '1 Photo via URL' : 'Multiple Allowed'))">
+                                </span>
+                            </div>
+
+                            <!-- Multiple Files Picker Box -->
+                            <div class="relative border-2 border-dashed border-slate-300 dark:border-slate-600 hover:border-orange-500 rounded-xl p-3 text-center transition-all bg-white dark:bg-slate-800 cursor-pointer group">
+                                <input type="file" 
+                                       name="image_files[]" 
+                                       multiple 
+                                       accept="image/*" 
+                                       @change="handleCreateFiles($event)" 
+                                       class="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10">
+                                <div class="py-1 space-y-0.5 pointer-events-none">
+                                    <div class="w-8 h-8 rounded-lg bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400 flex items-center justify-center mx-auto text-base group-hover:scale-110 transition-transform">
+                                        🖼️
+                                    </div>
+                                    <p class="text-xs font-bold text-slate-800 dark:text-slate-200">{{ __('Click to Select Multiple Photos') }}</p>
+                                    <p class="text-[10px] text-slate-500 dark:text-slate-400">{{ __('Select dish images (JPG, PNG, WEBP)') }}</p>
+                                </div>
+                            </div>
+
+                            <!-- Live Photo Gallery Preview Grid with Reordering -->
+                            <template x-if="createImagePreviews.length > 0">
+                                <div class="space-y-1.5 pt-1.5 border-t border-slate-200/80 dark:border-slate-700">
+                                    <div class="flex items-center justify-between text-[10px]">
+                                        <span class="font-bold text-slate-700 dark:text-slate-300">{{ __('Selected Photos (Drag or use ◀ ▶ arrows to rearrange):') }}</span>
+                                        <span class="text-amber-600 dark:text-amber-400 font-bold">{{ __('First = Main Cover') }}</span>
+                                    </div>
+                                    <div class="grid grid-cols-4 gap-2">
+                                        <template x-for="(src, idx) in createImagePreviews" :key="'create-' + idx">
+                                            <div class="relative group rounded-xl overflow-hidden border-2 transition-all bg-white dark:bg-slate-800 aspect-square shadow-xs cursor-grab active:cursor-grabbing"
+                                                 :class="idx === 0 ? 'border-amber-400 ring-2 ring-amber-400/20' : 'border-slate-200 dark:border-slate-700 hover:border-orange-400'"
+                                                 draggable="true"
+                                                 @dragstart="draggedIdx = idx"
+                                                 @dragover.prevent=""
+                                                 @drop.prevent="handleDrop(idx, 'create')">
+                                                
+                                                <img :src="src" class="w-full h-full object-cover select-none pointer-events-none">
+                                                
+                                                <!-- Top Badges / Set Cover Action -->
+                                                <template x-if="idx === 0">
+                                                    <span class="absolute top-1 left-1 bg-amber-500 text-white text-[8px] font-black px-1 py-0.5 rounded shadow-xs flex items-center gap-0.5 z-10 pointer-events-none">
+                                                        ⭐ Cover
+                                                    </span>
+                                                </template>
+                                                <template x-if="idx > 0">
+                                                    <button type="button" 
+                                                            @click.stop="setAsCoverCreateImage(idx)" 
+                                                            title="{{ __('Set as Cover Photo') }}" 
+                                                            class="absolute top-1 left-1 bg-black/75 hover:bg-amber-500 text-white text-[8px] font-bold px-1 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow-xs cursor-pointer">
+                                                        ⭐ {{ __('Set Cover') }}
+                                                    </button>
+                                                </template>
+
+                                                <!-- Remove Button -->
+                                                <button type="button" 
+                                                        @click.stop="removeCreatePreview(idx)" 
+                                                        title="{{ __('Remove Photo') }}" 
+                                                        class="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-600 hover:bg-red-700 text-white text-[10px] font-black flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 cursor-pointer shadow-md">
+                                                    ✕
+                                                </button>
+
+                                                <!-- Bottom Reorder Navigation Bar -->
+                                                <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-1 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                                    <button type="button" 
+                                                            @click.stop="moveCreateImage(idx, idx - 1)" 
+                                                            :disabled="idx === 0"
+                                                            :class="idx === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/30 cursor-pointer'"
+                                                            class="w-4 h-4 rounded bg-black/40 text-white text-[9px] font-bold flex items-center justify-center transition-colors">
+                                                        ◀
+                                                    </button>
+                                                    
+                                                    <span class="text-[8px] text-white/90 font-mono font-bold" x-text="'#' + (idx + 1)"></span>
+
+                                                    <button type="button" 
+                                                            @click.stop="moveCreateImage(idx, idx + 1)" 
+                                                            :disabled="idx === createImagePreviews.length - 1"
+                                                            :class="idx === createImagePreviews.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/30 cursor-pointer'"
+                                                            class="w-4 h-4 rounded bg-black/40 text-white text-[9px] font-bold flex items-center justify-center transition-colors">
+                                                        ▶
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <!-- Fallback Single Image URL -->
+                            <div class="pt-0.5 space-y-0.5">
+                                <span class="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block">{{ __('Or specify Image URL(s):') }}</span>
+                                <input type="text" 
+                                       name="image" 
+                                       x-model="createImageInput" 
+                                       placeholder="https://images.unsplash.com/... (comma separated)" 
+                                       class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 text-slate-900 dark:text-white text-xs rounded-xl px-3 py-1.5 focus:ring-0 transition-all placeholder-slate-400">
+                            </div>
+                        </div>
+
+                        <!-- Availability Toggle -->
+                        <div class="pt-1 flex items-center gap-2.5">
+                            <input type="checkbox" 
+                                   id="create_is_available" 
+                                   name="is_available" 
+                                   value="1" 
+                                   checked 
+                                   class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-orange-500 focus:ring-0 cursor-pointer">
+                            <label for="create_is_available" class="text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer">
+                                {{ __('Available for customer ordering immediately') }}
+                            </label>
+                        </div>
+
+                        <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100 dark:border-slate-800">
+                            <button type="button" @click="createModalOpen = false" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-all cursor-pointer">
+                                {{ __('Cancel') }}
+                            </button>
+                            <button type="submit" class="px-5 py-2 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-orange-500/25 transition-all cursor-pointer">
+                                {{ __('Create Food Item') }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-        </div>
+        </template>
 
         <!-- ================= EDIT ITEM MODAL ================= -->
-        <div x-show="editModalOpen" 
-             x-cloak
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0"
-             x-transition:enter-end="opacity-100"
-             x-transition:leave="transition ease-in duration-150"
-             x-transition:leave-start="opacity-100"
-             x-transition:leave-end="opacity-0"
-             class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            
-            <div @click.outside="editModalOpen = false" 
-                 class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 max-w-xl w-full shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+        <template x-teleport="body">
+            <div x-show="editModalOpen" 
+                 x-cloak
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                 
-                <!-- Modal Header -->
-                <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400 flex items-center justify-center text-lg font-bold border border-orange-100 dark:border-orange-900">
-                            ✏️
+                <div @click.outside="editModalOpen = false" 
+                     class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-7 max-w-xl w-full shadow-2xl space-y-5 max-h-[88vh] overflow-y-auto no-scrollbar">
+                    
+                    <!-- Modal Header -->
+                    <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3.5">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400 flex items-center justify-center text-lg font-bold border border-orange-100 dark:border-orange-900">
+                                ✏️
+                            </div>
+                            <div>
+                                <h3 class="text-base font-black text-slate-900 dark:text-white">{{ __('Edit Food Item') }}</h3>
+                                <p class="text-slate-500 dark:text-slate-400 text-xs">{{ __('Update details, photos, prices, and stock settings') }}</p>
+                            </div>
                         </div>
-                        <div>
-                            <h3 class="text-lg font-black text-slate-900 dark:text-white">{{ __('Edit Food Item') }}</h3>
-                            <p class="text-slate-500 dark:text-slate-400 text-xs">{{ __('Update details, photos, prices, and stock settings') }}</p>
-                        </div>
-                    </div>
-                    <button @click="editModalOpen = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 text-lg font-bold">✕</button>
-                </div>
-
-                <!-- Edit Form -->
-                <form method="POST" :action="editItemUrl" enctype="multipart/form-data" class="space-y-4">
-                    @csrf
-                    @method('PUT')
-                    <input type="hidden" name="return_url" value="{{ request()->fullUrl() }}">
-                    <input type="hidden" name="edit_item_id" :value="editItemId">
-                    <input type="hidden" name="edit_item_url" :value="editItemUrl">
-
-                    <!-- Serialized Existing Images Array to preserve order and deletions -->
-                    <template x-for="(img, idx) in editExistingImages" :key="'hidden-img-' + idx">
-                        <input type="hidden" name="existing_images[]" :value="img">
-                    </template>
-
-                    <!-- Name -->
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
-                            {{ __('Item Name') }} <span class="text-orange-500">*</span>
-                        </label>
-                        <input type="text" 
-                               name="name" 
-                               x-model="editItemName" 
-                               required 
-                               class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white text-sm rounded-xl px-4 py-3 focus:ring-0 transition-all">
+                        <button @click="editModalOpen = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 text-base font-bold cursor-pointer">✕</button>
                     </div>
 
-                    <!-- Category, Price & Min Stock Level -->
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
-                                {{ __('Category') }} <span class="text-orange-500">*</span>
-                            </label>
-                            <select name="category_id" 
-                                    x-model="editItemCategoryId" 
-                                    required 
-                                    class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white text-sm rounded-xl px-3 py-3 focus:ring-0 transition-all">
-                                @foreach($categories as $cat)
-                                    <option value="{{ $cat->id }}">{{ $cat->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
+                    <!-- Edit Form -->
+                    <form method="POST" :action="editItemUrl" enctype="multipart/form-data" class="space-y-4 text-xs">
+                        @csrf
+                        @method('PUT')
+                        <input type="hidden" name="return_url" value="{{ request()->fullUrl() }}">
+                        <input type="hidden" name="edit_item_id" :value="editItemId">
+                        <input type="hidden" name="edit_item_url" :value="editItemUrl">
 
+                        <!-- Serialized Existing Images Array to preserve order and deletions -->
+                        <template x-for="(img, idx) in editExistingImages" :key="'hidden-img-' + idx">
+                            <input type="hidden" name="existing_images[]" :value="img">
+                        </template>
+
+                        <!-- Name -->
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
-                                {{ __('Price (MMK)') }} <span class="text-orange-500">*</span>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">
+                                {{ __('Item Name') }} <span class="text-orange-500">*</span>
                             </label>
-                            <input type="number" 
-                                   name="price" 
-                                   step="1" 
-                                   min="0" 
-                                   x-model="editItemPrice" 
+                            <input type="text" 
+                                   name="name" 
+                                   x-model="editItemName" 
                                    required 
-                                   class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white text-sm rounded-xl px-3 py-3 focus:ring-0 transition-all">
+                                   class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white text-xs rounded-xl px-3.5 py-2.5 focus:ring-0 transition-all">
                         </div>
 
+                        <!-- Category, Price & Min Stock Level -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">
+                                    {{ __('Category') }} <span class="text-orange-500">*</span>
+                                </label>
+                                <select name="category_id" 
+                                        x-model="editItemCategoryId" 
+                                        required 
+                                        class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white text-xs rounded-xl px-2.5 py-2.5 focus:ring-0 transition-all">
+                                    @foreach($categories as $cat)
+                                        <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">
+                                    {{ __('Price (MMK)') }} <span class="text-orange-500">*</span>
+                                </label>
+                                <input type="number" 
+                                       name="price" 
+                                       step="1" 
+                                       min="0" 
+                                       x-model="editItemPrice" 
+                                       required 
+                                       class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white text-xs rounded-xl px-3 py-2.5 focus:ring-0 transition-all">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">
+                                    {{ __('Min Stock Alert') }}
+                                </label>
+                                <input type="number" 
+                                       name="min_stock_level" 
+                                       min="0" 
+                                       x-model="editItemMinStock" 
+                                       class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white text-xs rounded-xl px-3 py-2.5 focus:ring-0 transition-all">
+                            </div>
+                        </div>
+
+                        <!-- Description -->
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
-                                {{ __('Min Stock Alert') }}
-                            </label>
-                            <input type="number" 
-                                   name="min_stock_level" 
-                                   min="0" 
-                                   x-model="editItemMinStock" 
-                                   class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white text-sm rounded-xl px-3 py-3 focus:ring-0 transition-all"
-                                   title="{{ __('Threshold when low-stock warning triggers in Inventory') }}">
-                        </div>
-                    </div>
-
-                    <!-- Description -->
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">{{ __('Description') }}</label>
-                        <textarea name="description" 
-                                  x-model="editItemDescription" 
-                                  rows="3" 
-                                  class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white text-sm rounded-xl px-4 py-3 focus:ring-0 transition-all"></textarea>
-                    </div>
-
-                    <!-- Photo Management (Current Gallery + Upload More) -->
-                    <div class="space-y-3 p-4 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl">
-                        <div class="flex items-center justify-between">
-                            <label class="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
-                                <span>📸</span>
-                                <span>{{ __('Photos & Gallery (Drag to Reorder)') }}</span>
-                            </label>
-                            <span class="text-[10px] text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/50 font-bold px-2 py-0.5 rounded-full"
-                                  x-text="editExistingImages.length + ' Saved Photos'">
-                            </span>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">{{ __('Description') }}</label>
+                            <textarea name="description" 
+                                      x-model="editItemDescription" 
+                                      rows="2" 
+                                      class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-white text-xs rounded-xl px-3.5 py-2.5 focus:ring-0 transition-all"></textarea>
                         </div>
 
-                        <!-- Current Photos Grid with Drag & Drop Reordering and Cover selection -->
-                        <template x-if="editExistingImages.length > 0">
-                            <div class="space-y-2">
-                                <div class="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
-                                    <template x-for="(imgPath, idx) in editExistingImages" :key="'edit-exist-' + idx">
-                                        <div class="relative group rounded-2xl overflow-hidden border-2 transition-all bg-white dark:bg-slate-800 aspect-square shadow-xs cursor-grab active:cursor-grabbing"
-                                             :class="idx === 0 ? 'border-amber-400 ring-2 ring-amber-400/20' : 'border-slate-200 dark:border-slate-700 hover:border-orange-400'"
-                                             draggable="true"
-                                             @dragstart="draggedIdx = idx"
-                                             @dragover.prevent=""
-                                             @drop.prevent="handleDrop(idx, 'edit')">
-                                            
-                                            <img :src="resolveImageSrc(imgPath)" class="w-full h-full object-cover select-none pointer-events-none">
-                                            
-                                            <!-- Top Badges / Set Cover Action -->
-                                            <template x-if="idx === 0">
-                                                <span class="absolute top-1.5 left-1.5 bg-amber-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-lg shadow-xs flex items-center gap-0.5 z-10 pointer-events-none">
-                                                    ⭐ Cover
-                                                </span>
-                                            </template>
-                                            <template x-if="idx > 0">
-                                                <button type="button" 
-                                                        @click.stop="setAsCoverExistingImage(idx)" 
-                                                        title="{{ __('Set as Cover Photo') }}" 
-                                                        class="absolute top-1.5 left-1.5 bg-black/75 hover:bg-amber-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow-xs cursor-pointer">
-                                                    ⭐ {{ __('Set Cover') }}
-                                                </button>
-                                            </template>
+                        <!-- Photo Management (Current Gallery + Upload More) -->
+                        <div class="space-y-2.5 p-3.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl">
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                                    <span>📸</span>
+                                    <span>{{ __('Photos & Gallery') }}</span>
+                                </label>
+                                <span class="text-[10px] text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/50 font-bold px-2 py-0.5 rounded-full"
+                                      x-text="editExistingImages.length + ' Photos'">
+                                </span>
+                            </div>
 
-                                            <!-- Remove Photo Button -->
-                                            <button type="button" 
-                                                    @click.stop="removeExistingImage(idx)" 
-                                                    title="{{ __('Remove photo') }}" 
-                                                    class="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-black flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 cursor-pointer shadow-md">
-                                                ✕
-                                            </button>
-
-                                            <!-- Bottom Reorder Navigation Bar -->
-                                            <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-1.5 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                                                <button type="button" 
-                                                        @click.stop="moveExistingImage(idx, idx - 1)" 
-                                                        :disabled="idx === 0"
-                                                        :class="idx === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/30 cursor-pointer'"
-                                                        class="w-5 h-5 rounded-md bg-black/40 text-white text-[10px] font-bold flex items-center justify-center transition-colors"
-                                                        title="{{ __('Move Left (Earlier)') }}">
-                                                    ◀
-                                                </button>
+                            <!-- Current Photos Grid with Drag & Drop Reordering and Cover selection -->
+                            <template x-if="editExistingImages.length > 0">
+                                <div class="space-y-1.5">
+                                    <div class="grid grid-cols-4 gap-2">
+                                        <template x-for="(imgPath, idx) in editExistingImages" :key="'edit-exist-' + idx">
+                                            <div class="relative group rounded-xl overflow-hidden border-2 transition-all bg-white dark:bg-slate-800 aspect-square shadow-xs cursor-grab active:cursor-grabbing"
+                                                 :class="idx === 0 ? 'border-amber-400 ring-2 ring-amber-400/20' : 'border-slate-200 dark:border-slate-700 hover:border-orange-400'"
+                                                 draggable="true"
+                                                 @dragstart="draggedIdx = idx"
+                                                 @dragover.prevent=""
+                                                 @drop.prevent="handleDrop(idx, 'edit')">
                                                 
-                                                <span class="text-[9px] text-white/90 font-mono font-bold" x-text="'#' + (idx + 1)"></span>
+                                                <img :src="resolveImageSrc(imgPath)" class="w-full h-full object-cover select-none pointer-events-none">
+                                                
+                                                <!-- Top Badges / Set Cover Action -->
+                                                <template x-if="idx === 0">
+                                                    <span class="absolute top-1 left-1 bg-amber-500 text-white text-[8px] font-black px-1 py-0.5 rounded shadow-xs flex items-center gap-0.5 z-10 pointer-events-none">
+                                                        ⭐ Cover
+                                                    </span>
+                                                </template>
+                                                <template x-if="idx > 0">
+                                                    <button type="button" 
+                                                            @click.stop="setAsCoverExistingImage(idx)" 
+                                                            title="{{ __('Set as Cover Photo') }}" 
+                                                            class="absolute top-1 left-1 bg-black/75 hover:bg-amber-500 text-white text-[8px] font-bold px-1 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow-xs cursor-pointer">
+                                                        ⭐ {{ __('Set Cover') }}
+                                                    </button>
+                                                </template>
 
+                                                <!-- Remove Photo Button -->
                                                 <button type="button" 
-                                                        @click.stop="moveExistingImage(idx, idx + 1)" 
-                                                        :disabled="idx === editExistingImages.length - 1"
-                                                        :class="idx === editExistingImages.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/30 cursor-pointer'"
-                                                        class="w-5 h-5 rounded-md bg-black/40 text-white text-[10px] font-bold flex items-center justify-center transition-colors"
-                                                        title="{{ __('Move Right (Later)') }}">
-                                                    ▶
+                                                        @click.stop="removeExistingImage(idx)" 
+                                                        title="{{ __('Remove photo') }}" 
+                                                        class="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-600 hover:bg-red-700 text-white text-[10px] font-black flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 cursor-pointer shadow-md">
+                                                    ✕
+                                                </button>
+
+                                                <!-- Bottom Reorder Navigation Bar -->
+                                                <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-1 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                                    <button type="button" 
+                                                            @click.stop="moveExistingImage(idx, idx - 1)" 
+                                                            :disabled="idx === 0"
+                                                            :class="idx === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/30 cursor-pointer'"
+                                                            class="w-4 h-4 rounded bg-black/40 text-white text-[9px] font-bold flex items-center justify-center transition-colors">
+                                                        ◀
+                                                    </button>
+                                                    
+                                                    <span class="text-[8px] text-white/90 font-mono font-bold" x-text="'#' + (idx + 1)"></span>
+
+                                                    <button type="button" 
+                                                            @click.stop="moveExistingImage(idx, idx + 1)" 
+                                                            :disabled="idx === editExistingImages.length - 1"
+                                                            :class="idx === editExistingImages.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/30 cursor-pointer'"
+                                                            class="w-4 h-4 rounded bg-black/40 text-white text-[9px] font-bold flex items-center justify-center transition-colors">
+                                                        ▶
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <!-- Newly Selected Files Preview -->
+                            <template x-if="editNewImagePreviews.length > 0">
+                                <div class="space-y-1 pt-1 border-t border-slate-200/80 dark:border-slate-700">
+                                    <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block">+ {{ __('New Photos to Upload:') }}</span>
+                                    <div class="grid grid-cols-4 gap-2">
+                                        <template x-for="(src, idx) in editNewImagePreviews" :key="'new-' + idx">
+                                            <div class="relative group rounded-xl overflow-hidden border border-emerald-300 dark:border-emerald-700 bg-white dark:bg-slate-800 aspect-square shadow-xs">
+                                                <img :src="src" class="w-full h-full object-cover">
+                                                <button type="button" @click="removeEditNewPreview(idx)" class="absolute top-1 right-1 w-4 h-4 rounded-full bg-red-600 text-white text-[9px] font-bold flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                                                    ✕
                                                 </button>
                                             </div>
-                                        </div>
-                                    </template>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <!-- Add More / Replace Files Button -->
+                            <div class="relative border-2 border-dashed border-slate-300 dark:border-slate-600 hover:border-orange-500 rounded-xl p-2.5 text-center transition-all bg-white dark:bg-slate-800 cursor-pointer group">
+                                <input type="file" 
+                                       name="image_files[]" 
+                                       multiple 
+                                       accept="image/*" 
+                                       @change="handleEditFiles($event)" 
+                                       class="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10">
+                                <div class="py-0.5 space-y-0.5 pointer-events-none">
+                                    <p class="text-xs font-bold text-slate-800 dark:text-slate-200">📷 {{ __('Add More Photos') }}</p>
+                                    <p class="text-[10px] text-slate-500 dark:text-slate-400">{{ __('Hold Ctrl/Shift to pick multiple') }}</p>
                                 </div>
                             </div>
-                        </template>
 
-                        <!-- Newly Selected Files Preview -->
-                        <template x-if="editNewImagePreviews.length > 0">
-                            <div class="space-y-1.5 pt-2 border-t border-slate-200/80 dark:border-slate-700">
-                                <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block">+ {{ __('New Photos to Upload:') }}</span>
-                                <div class="grid grid-cols-4 gap-2">
-                                    <template x-for="(src, idx) in editNewImagePreviews" :key="'new-' + idx">
-                                        <div class="relative group rounded-xl overflow-hidden border border-emerald-300 dark:border-emerald-700 bg-white dark:bg-slate-800 aspect-square shadow-xs">
-                                            <img :src="src" class="w-full h-full object-cover">
-                                            <button type="button" @click="removeEditNewPreview(idx)" class="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-600 text-white text-[10px] font-bold flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                                                ✕
-                                            </button>
-                                        </div>
-                                    </template>
-                                </div>
-                            </div>
-                        </template>
-
-                        <!-- Add More / Replace Files Button -->
-                        <div class="relative border-2 border-dashed border-slate-300 dark:border-slate-600 hover:border-orange-500 rounded-2xl p-3 text-center transition-all bg-white dark:bg-slate-800 cursor-pointer group">
-                            <input type="file" 
-                                   name="image_files[]" 
-                                   multiple 
-                                   accept="image/*" 
-                                   @change="handleEditFiles($event)" 
-                                   class="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10">
-                            <div class="py-1 space-y-0.5 pointer-events-none">
-                                <p class="text-xs font-bold text-slate-800 dark:text-slate-200">📷 {{ __('Add More Photos') }}</p>
-                                <p class="text-[10px] text-slate-500 dark:text-slate-400">{{ __('Hold Ctrl/Shift to pick multiple new images') }}</p>
+                            <!-- Image URL input -->
+                            <div class="pt-0.5 space-y-0.5">
+                                <span class="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block">{{ __('Or Image URL(s):') }}</span>
+                                <input type="text" 
+                                       name="image" 
+                                       x-model="editItemImage" 
+                                       placeholder="https://... (comma separated)" 
+                                       class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 text-slate-900 dark:text-white text-xs rounded-xl px-3 py-1.5 focus:ring-0 transition-all placeholder-slate-400">
                             </div>
                         </div>
 
-                        <!-- Image URL input -->
-                        <div class="pt-1 space-y-1">
-                            <span class="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block">{{ __('Or add via Image URL(s):') }}</span>
-                            <input type="text" 
-                                   name="image" 
-                                   x-model="editItemImage" 
-                                   placeholder="https://... (comma separated)" 
-                                   class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 text-slate-900 dark:text-white text-xs rounded-xl px-3.5 py-2.5 focus:ring-0 transition-all placeholder-slate-400">
+                        <!-- Availability Toggle -->
+                        <div class="pt-1 flex items-center gap-2.5">
+                            <input type="checkbox" 
+                                   id="edit_is_available" 
+                                   name="is_available" 
+                                   value="1" 
+                                   x-model="editItemIsAvailable" 
+                                   class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-orange-500 focus:ring-0 cursor-pointer">
+                            <label for="edit_is_available" class="text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer">
+                                {{ __('Available for customer ordering') }}
+                            </label>
                         </div>
-                    </div>
 
-                    <!-- Availability Toggle -->
-                    <div class="pt-1 flex items-center gap-3">
-                        <input type="checkbox" 
-                               id="edit_is_available" 
-                               name="is_available" 
-                               value="1" 
-                               x-model="editItemIsAvailable" 
-                               class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-orange-500 focus:ring-0 cursor-pointer">
-                        <label for="edit_is_available" class="text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer">
-                            {{ __('Available for customer ordering') }}
-                        </label>
-                    </div>
-
-                    <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100 dark:border-slate-800">
-                        <button type="button" @click="editModalOpen = false" class="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-all cursor-pointer">
-                            {{ __('Cancel') }}
-                        </button>
-                        <button type="submit" class="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-orange-500/25 transition-all cursor-pointer">
-                            {{ __('Save Changes') }}
-                        </button>
-                    </div>
-                </form>
+                        <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100 dark:border-slate-800">
+                            <button type="button" @click="editModalOpen = false" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-all cursor-pointer">
+                                {{ __('Cancel') }}
+                            </button>
+                            <button type="submit" class="px-5 py-2 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-orange-500/25 transition-all cursor-pointer">
+                                {{ __('Save Changes') }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-        </div>
+        </template>
 
     </div>
 
