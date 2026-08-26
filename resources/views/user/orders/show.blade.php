@@ -44,6 +44,13 @@
                 isInitialLoad: true,
                 chatBoxOpen: false,
 
+                canChat: function() {
+                    return this.currentStatus !== 'pending' && 
+                           this.currentStatus !== 'completed' && 
+                           this.currentStatus !== 'cancelled' && 
+                           Boolean(this.currentRiderName);
+                },
+
                 toggleTheme: function() {
                     this.darkMode = !this.darkMode;
                     if (this.darkMode) {
@@ -56,6 +63,7 @@
                 },
 
                 toggleChatBox: function(forceState) {
+                    if (!this.canChat()) return;
                     if (forceState !== undefined) {
                         this.chatBoxOpen = forceState;
                     } else {
@@ -80,6 +88,7 @@
                 },
 
                 fetchMessages: function() {
+                    if (!this.canChat()) return;
                     const self = this;
                     fetch(this.messagesUrl)
                         .then(r => r.json())
@@ -341,11 +350,11 @@
                     <!-- Dynamic Payment Status Badge -->
                     <span class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all"
                         :class="{
-                            'bg-green-100 text-green-700 border border-green-200': currentPaymentStatus === 'paid',
+                            'bg-green-100 text-green-700 border border-green-200 shadow-xs': currentPaymentStatus === 'paid',
                             'bg-purple-100 text-purple-700 border border-purple-200': currentPaymentStatus === 'pending_verification',
-                            'bg-orange-100 text-orange-700 border border-orange-200': currentPaymentStatus === 'unpaid'
+                            'bg-amber-100 text-amber-700 border border-amber-200': currentPaymentStatus === 'unpaid'
                         }">
-                        Payment: <span x-text="currentPaymentStatus.replace('_', ' ').toUpperCase()"></span>
+                        Payment: <span x-text="currentPaymentStatus === 'paid' ? (('{{ $order->payment_method }}' === 'cod') ? 'PAID (CASH) ✓' : 'PAID (ONLINE) ✓') : (('{{ $order->payment_method }}' === 'cod') ? 'PAY ON DELIVERY (UNPAID)' : 'VERIFYING SLIP ⏳')"></span>
                     </span>
                 </div>
             </div>
@@ -365,14 +374,17 @@
                     <div>
                         <div class="flex items-center justify-between mb-2">
                             <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">💳 Payment Method</p>
-                            <a href="{{ route('orders.payslip', $order) }}" target="_blank" class="text-[11px] font-bold text-[#D70F64] hover:underline flex items-center gap-1">
-                                <span>🧾 Foodpanda Payslip &rarr;</span>
-                            </a>
+                            <!-- ONLY SHOW DIGITAL SLIP LINK IF ADMIN HAS APPROVED (status !== 'pending') -->
+                            <template x-if="currentStatus !== 'pending' && (('{{ $order->payment_method }}' !== 'cod') || currentPaymentStatus === 'paid')">
+                                <a href="{{ route('orders.payslip', $order) }}" target="_blank" class="text-[11px] font-bold text-[#D70F64] hover:underline flex items-center gap-1">
+                                    <span>🧾 Digital Slip &rarr;</span>
+                                </a>
+                            </template>
                         </div>
                         <p class="font-black text-slate-900 dark:text-white uppercase text-base mb-1">
                             @if($order->payment_method === 'cod') 💵 Cash on Delivery
-                            @elseif($order->payment_method === 'kbzpay') 📱 KBZPay
-                            @elseif($order->payment_method === 'wavepay') 🌊 WavePay
+                            @elseif($order->payment_method === 'kbzpay') 📱 KBZPay Online
+                            @elseif($order->payment_method === 'wavepay') 🌊 WavePay Online
                             @else {{ $order->payment_method }} @endif
                         </p>
                         
@@ -389,24 +401,62 @@
                                 <p class="text-xs text-amber-600 dark:text-amber-400 font-bold mt-1">⚠️ No transfer screenshot uploaded yet</p>
                             @endif
                         @else
-                            <p class="text-xs text-slate-500 dark:text-slate-400">Pay cash upon delivery (COD)</p>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                                <span x-show="currentPaymentStatus !== 'paid'">💵 Pay {{ number_format($order->total_amount) }} MMK cash upon delivery</span>
+                                <span x-show="currentPaymentStatus === 'paid'" class="text-emerald-600 font-bold">✓ Cash Paid to Rider &amp; Confirmed</span>
+                            </p>
                         @endif
                     </div>
 
                     <div class="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-700/60 flex flex-col gap-2">
-                        <!-- Direct Link to Foodpanda Official Printable Payslip -->
-                        <a href="{{ route('orders.payslip', $order) }}" target="_blank"
-                           class="w-full py-2 bg-gradient-to-r from-[#D70F64] to-[#E21B70] hover:from-[#c20d5a] hover:to-[#cb1864] text-white font-bold rounded-xl text-xs shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95">
-                            <span>🧾</span>
-                            <span>Official Foodpanda Payslip / Receipt</span>
-                        </a>
+                        <!-- BEFORE APPROVE ADMIN: NO VIEW DIGITAL ORDER SLIP -->
+                        <template x-if="currentStatus === 'pending'">
+                            <div class="w-full py-2.5 px-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-xl text-center">
+                                <span class="text-[11px] font-bold text-amber-800 dark:text-amber-300 flex items-center justify-center gap-1.5">
+                                    <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                                    <span>Admin စစ်ဆေးအတည်ပြုပြီးမှ ဒစ်ဂျစ်တယ်ပြေစာ ထွက်ပေါ်မည်</span>
+                                </span>
+                            </div>
+                        </template>
+
+                        <!-- AFTER APPROVE ADMIN: SHOW DIGITAL ORDER SLIP -->
+                        <template x-if="currentStatus !== 'pending'">
+                            <div>
+                                @if($order->payment_method === 'cod')
+                                    <!-- For COD: Show receipt unlocked only when cash paid -->
+                                    <template x-if="currentPaymentStatus === 'paid'">
+                                        <a href="{{ route('orders.payslip', $order) }}" target="_blank"
+                                           class="w-full py-2.5 text-white font-bold rounded-xl text-xs shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-emerald-500/20">
+                                            <span>🧾</span>
+                                            <span>✓ View PAID (CASH) Digital Receipt</span>
+                                        </a>
+                                    </template>
+                                    <template x-if="currentPaymentStatus !== 'paid'">
+                                        <div class="w-full py-2 px-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-center">
+                                            <span class="text-[11px] font-bold text-slate-600 dark:text-slate-400">
+                                                💵 Receipt unlocks when Rider confirms cash delivery
+                                            </span>
+                                        </div>
+                                    </template>
+                                @else
+                                    <!-- For Online Pay: Admin has approved, show PAID Digital Order Slip -->
+                                    <a href="{{ route('orders.payslip', $order) }}" target="_blank"
+                                       class="w-full py-2.5 text-white font-bold rounded-xl text-xs shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-emerald-500/20">
+                                        <span>🧾</span>
+                                        <span>✓ View PAID Digital Order Slip</span>
+                                    </a>
+                                @endif
+                            </div>
+                        </template>
 
                         @if(in_array($order->payment_method, ['kbzpay', 'wavepay']))
-                            <button type="button" @click="uploadSlipModal = true" 
-                                    class="w-full py-1.5 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer">
-                                <span>📸</span>
-                                <span>{{ $order->payment_screenshot ? 'Update Transfer Slip' : 'Upload Transfer Slip' }}</span>
-                            </button>
+                            <template x-if="currentStatus === 'pending'">
+                                <button type="button" @click="uploadSlipModal = true" 
+                                        class="w-full py-1.5 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                                    <span>📸</span>
+                                    <span>{{ $order->payment_screenshot ? 'Update Transfer Slip' : 'Upload Transfer Slip' }}</span>
+                                </button>
+                            </template>
                         @endif
                     </div>
                 </div>
@@ -422,8 +472,8 @@
                         <p class="text-xs text-slate-500 dark:text-slate-400 italic">Waiting for pickup...</p>
                     </div>
 
-                    <!-- Direct Chat Shortcut Button -->
-                    <div class="mt-2.5 flex items-center gap-2">
+                    <!-- Direct Chat Shortcut Button (Only visible when rider is assigned & active) -->
+                    <div class="mt-2.5 flex items-center gap-2" x-show="canChat()">
                         <button type="button" @click="toggleChatBox(true)" 
                                 class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold rounded-xl text-xs shadow-sm transition-all cursor-pointer active:scale-95">
                             <span>💬 View Rider Chat</span>
@@ -441,8 +491,15 @@
             </div>
         </div>
 
-        <!-- ===== LIVE ORDER CHAT & HISTORY (Always accessible, read-only when completed) ===== -->
+        <!-- ===== LIVE ORDER CHAT (Only visible when admin confirmed & rider assigned; disappears when completed or cancelled) ===== -->
         <div id="order-chat-section" 
+             x-show="canChat()"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 translate-y-4"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 translate-y-0"
+             x-transition:leave-end="opacity-0 translate-y-4"
              class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm p-5 sm:p-7 mb-8 transition-colors">
             
             <!-- Interactive Header (Click to Open / Close) -->
@@ -457,22 +514,13 @@
                     <div>
                         <div class="flex items-center gap-2">
                             <h2 class="text-lg font-black text-slate-900 dark:text-white">
-                                <span x-show="currentStatus !== 'completed' && currentStatus !== 'cancelled'">Message Your Rider</span>
-                                <span x-show="currentStatus === 'completed' || currentStatus === 'cancelled'">Rider Chat History</span>
+                                Message Your Rider
                             </h2>
                             
-                            <!-- Live status indicator vs Archived badge -->
-                            <template x-if="currentStatus !== 'completed' && currentStatus !== 'cancelled'">
-                                <span class="px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-700 text-emerald-600 dark:text-emerald-400 font-bold text-[10px] flex items-center gap-1.5 shadow-sm">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                    <span>Live Chat</span>
-                                </span>
-                            </template>
-                            <template x-if="currentStatus === 'completed'">
-                                <span class="px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-700 text-blue-600 dark:text-blue-400 font-bold text-[10px] flex items-center gap-1 shadow-sm">
-                                    <span>✓ Delivered (Chat Archived)</span>
-                                </span>
-                            </template>
+                            <span class="px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-700 text-emerald-600 dark:text-emerald-400 font-bold text-[10px] flex items-center gap-1.5 shadow-sm">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                <span>Live Chat</span>
+                            </span>
 
                             <template x-if="messages.length > 0">
                                 <span class="px-2 py-0.5 rounded-full bg-orange-100 dark:bg-orange-950/80 text-orange-600 dark:text-orange-400 font-bold text-[10px]" x-text="messages.length + ' msgs'"></span>

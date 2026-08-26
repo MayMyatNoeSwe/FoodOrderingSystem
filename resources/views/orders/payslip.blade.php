@@ -46,6 +46,16 @@
             height: 36px;
             width: 180px;
         }
+        .digital-rubber-stamp {
+            border: 3px dashed currentColor;
+            padding: 6px 14px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: 12px;
+            display: inline-block;
+            transform: rotate(-3deg);
+        }
     </style>
 </head>
 <body class="font-sans antialiased text-slate-800 bg-slate-100 min-h-screen py-6 px-3 sm:px-6 selection:bg-[#D70F64] selection:text-white"
@@ -108,21 +118,71 @@
                     </div>
                     <p class="text-xs font-semibold text-white/90 uppercase tracking-widest">Official Food Delivery Receipt &amp; Tax Invoice</p>
                     
-                    <div class="pt-2 flex items-center justify-center gap-2">
+                    <div class="pt-2 flex flex-wrap items-center justify-center gap-2">
                         <span class="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-[11px] font-black tracking-wider uppercase border border-white/30">
                             ✓ CONFIRMED &amp; ACCEPTED
                         </span>
+
                         @if($order->payment_status === 'paid')
-                            <span class="px-3 py-1 bg-emerald-400/90 text-emerald-950 rounded-full text-[11px] font-black tracking-wider uppercase shadow-sm">
-                                💰 PAID
+                            @if($order->payment_method === 'cod')
+                                <span class="px-3 py-1 bg-emerald-400 text-emerald-950 rounded-full text-[11px] font-black tracking-wider uppercase shadow-md flex items-center gap-1">
+                                    <span>💰</span> <span>PAID (CASH) • RIDER CONFIRMED</span>
+                                </span>
+                            @else
+                                <span class="px-3 py-1 bg-emerald-400 text-emerald-950 rounded-full text-[11px] font-black tracking-wider uppercase shadow-md flex items-center gap-1">
+                                    <span>💰</span> <span>PAID • ONLINE PREPAID</span>
+                                </span>
+                            @endif
+                        @elseif($order->payment_method === 'cod')
+                            <span class="px-3 py-1 bg-amber-400 text-amber-950 rounded-full text-[11px] font-black tracking-wider uppercase shadow-sm flex items-center gap-1">
+                                <span>💵</span> <span>PAY ON DELIVERY (UNPAID)</span>
+                            </span>
+                        @else
+                            <span class="px-3 py-1 bg-purple-300 text-purple-950 rounded-full text-[11px] font-black tracking-wider uppercase shadow-sm flex items-center gap-1">
+                                <span>⏳</span> <span>PAYMENT PENDING VERIFICATION</span>
                             </span>
                         @endif
                     </div>
                 </div>
             </div>
 
+            <!-- Authentic Rubber Stamp Area -->
+            <div class="p-4 bg-slate-50 border-b border-slate-100 flex items-center justify-center">
+                @if($order->payment_status === 'paid')
+                    @if($order->payment_method === 'cod')
+                        <div class="digital-rubber-stamp text-emerald-700 border-emerald-600 bg-emerald-100/70 text-center shadow-xs">
+                            <div>★ PAID (CASH) — OFFICIAL RECEIPT ★</div>
+                            <div class="text-[10px] font-bold tracking-normal text-emerald-800 mt-0.5">
+                                ငွေသားလက်ခံရရှိပြီး &bull; Rider Confirmed: {{ $order->updated_at ? $order->updated_at->format('M d, Y • h:i A') : '' }}
+                            </div>
+                        </div>
+                    @else
+                        <div class="digital-rubber-stamp text-emerald-700 border-emerald-600 bg-emerald-100/70 text-center shadow-xs">
+                            <div>★ PAID — ONLINE VERIFIED SLIP ★</div>
+                            <div class="text-[10px] font-bold tracking-normal text-emerald-800 mt-0.5">
+                                အွန်လိုင်းငွေပေးချေပြီး &bull; Verified: {{ $order->updated_at ? $order->updated_at->format('M d, Y • h:i A') : '' }}
+                            </div>
+                        </div>
+                    @endif
+                @elseif($order->payment_method === 'cod')
+                    <div class="digital-rubber-stamp text-amber-800 border-amber-600 bg-amber-100/70 text-center shadow-xs">
+                        <div>★ CASH ON DELIVERY — PENDING PAYMENT ★</div>
+                        <div class="text-[10px] font-bold tracking-normal text-amber-900 mt-0.5">
+                            အစားအသောက်ရောက်ရှိချိန်တွင် Rider ထံ ငွေသား {{ number_format($order->total_amount) }} MMK ပေးချေရန်
+                        </div>
+                    </div>
+                @else
+                    <div class="digital-rubber-stamp text-purple-800 border-purple-600 bg-purple-100/70 text-center shadow-xs">
+                        <div>★ PENDING SLIP VERIFICATION ★</div>
+                        <div class="text-[10px] font-bold tracking-normal text-purple-900 mt-0.5">
+                            Customer ငွေလွှဲပြေစာအား Admin မှ စစ်ဆေးဆဲ ဖြစ်ပါသည်
+                        </div>
+                    </div>
+                @endif
+            </div>
+
             <!-- Receipt Meta Info Box -->
-            <div class="p-6 bg-slate-50 grid grid-cols-2 gap-4 text-xs">
+            <div class="p-6 bg-white grid grid-cols-2 gap-4 text-xs">
                 <div>
                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Order ID</span>
                     <span class="font-black text-[#D70F64] font-mono text-sm">#{{ $order->order_number }}</span>
@@ -219,7 +279,17 @@
                     </div>
                     <div>
                         <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider {{ $order->payment_status === 'paid' ? 'bg-emerald-100 text-emerald-800' : ($order->payment_method === 'cod' ? 'bg-amber-100 text-amber-800' : 'bg-purple-100 text-purple-800') }}">
-                            {{ $order->payment_status === 'paid' ? '✓ Paid' : ($order->payment_method === 'cod' ? 'Pay on Delivery' : 'Verified') }}
+                            @if($order->payment_status === 'paid')
+                                @if($order->payment_method === 'cod')
+                                    ✓ PAID (CASH)
+                                @else
+                                    ✓ PAID (ONLINE)
+                                @endif
+                            @elseif($order->payment_method === 'cod')
+                                💵 PAY ON DELIVERY (UNPAID)
+                            @else
+                                ⏳ PENDING VERIFICATION
+                            @endif
                         </span>
                     </div>
                 </div>

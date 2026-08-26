@@ -84,15 +84,17 @@
                             'cancelled'  => ['bg' => 'bg-red-100',     'text' => 'text-red-700',     'icon' => '❌', 'label' => 'Cancelled'],
                             default      => ['bg' => 'bg-slate-100',   'text' => 'text-slate-700',   'icon' => '📦', 'label' => ucfirst($order->status)],
                         };
-                        $paymentConfig = match($order->payment_status ?? 'unpaid') {
-                            'paid'                 => ['bg' => 'bg-green-100',  'text' => 'text-green-700',  'label' => '✓ Paid'],
-                            'pending_verification' => ['bg' => 'bg-purple-100', 'text' => 'text-purple-700', 'label' => '🔍 Verifying'],
-                            default                => ['bg' => 'bg-orange-100', 'text' => 'text-orange-700', 'label' => '⏳ Unpaid'],
+                        $paymentConfig = match(true) {
+                            $order->payment_status === 'paid' && $order->payment_method === 'cod' => ['bg' => 'bg-emerald-100', 'text' => 'text-emerald-700', 'label' => '✓ Paid (Cash)'],
+                            $order->payment_status === 'paid' => ['bg' => 'bg-emerald-100', 'text' => 'text-emerald-700', 'label' => '✓ Paid (Online)'],
+                            $order->payment_status === 'pending_verification' => ['bg' => 'bg-purple-100', 'text' => 'text-purple-700', 'label' => '🔍 Verifying Slip'],
+                            $order->payment_method === 'cod' => ['bg' => 'bg-amber-100', 'text' => 'text-amber-700', 'label' => '💵 COD (Unpaid)'],
+                            default => ['bg' => 'bg-orange-100', 'text' => 'text-orange-700', 'label' => '⏳ Unpaid'],
                         };
                         $isActive = in_array($order->status, ['pending', 'confirmed', 'preparing', 'delivering']);
                     @endphp
 
-                    <div class="bg-white rounded-2xl border {{ $isActive ? 'border-orange-200' : 'border-slate-100' }} shadow-sm hover:shadow-md transition-all overflow-hidden">
+                    <div class="card-lift bg-white rounded-2xl border {{ $isActive ? 'border-orange-200 shadow-orange-500/10' : 'border-slate-100' }} shadow-sm overflow-hidden">
 
                         <!-- Card Header -->
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 {{ $isActive ? 'bg-orange-50/60' : 'bg-slate-50/60' }} border-b border-slate-100">

@@ -101,10 +101,33 @@
                 },
 
                 copyAccountNumber(num) {
-                    if (navigator.clipboard) {
-                        navigator.clipboard.writeText(num);
+                    if (navigator.clipboard && window.isSecureContext) {
+                        navigator.clipboard.writeText(num).then(() => {
+                            this.copiedAccount = true;
+                            setTimeout(() => { this.copiedAccount = false; }, 2000);
+                        }).catch(() => {
+                            this.fallbackCopyText(num);
+                        });
+                    } else {
+                        this.fallbackCopyText(num);
+                    }
+                },
+
+                fallbackCopyText(text) {
+                    try {
+                        const input = document.createElement('textarea');
+                        input.value = text;
+                        input.style.position = 'fixed';
+                        input.style.opacity = '0';
+                        document.body.appendChild(input);
+                        input.focus();
+                        input.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(input);
                         this.copiedAccount = true;
                         setTimeout(() => { this.copiedAccount = false; }, 2000);
+                    } catch (e) {
+                        console.error('Copy failed:', e);
                     }
                 },
 
@@ -245,7 +268,29 @@
                 removeItem(index) { this.items.splice(index, 1); this.save(); },
 
                 clearCart() {
-                    if (confirm('Are you sure you want to clear all items from your cart?')) { this.items = []; this.save(); }
+                    Swal.fire({
+                        title: 'Clear Cart?',
+                        text: 'Are you sure you want to remove all items from your cart?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#ef4444',
+                        cancelButtonColor: '#64748b',
+                        confirmButtonText: 'Yes, Clear All',
+                        cancelButtonText: 'Cancel',
+                        background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#ffffff',
+                        color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#0f172a',
+                        customClass: {
+                            popup: 'border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl',
+                            title: 'text-slate-900 dark:text-white font-black text-lg',
+                            confirmButton: 'px-5 py-2.5 rounded-xl font-bold text-xs shadow-lg shadow-red-500/20 cursor-pointer',
+                            cancelButton: 'px-5 py-2.5 rounded-xl font-bold text-xs cursor-pointer'
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            this.items = [];
+                            this.save();
+                        }
+                    });
                 },
 
                 taxRate: 0.05,
@@ -343,6 +388,7 @@
         };
     </script>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="font-sans antialiased bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 selection:bg-orange-500 selection:text-white min-h-screen">
@@ -681,7 +727,7 @@
                             <!-- COD Option -->
                             <button type="button" 
                                     @click="paymentMethod = 'cod'; saveDeliveryInfo();"
-                                    class="p-3 rounded-2xl border-2 text-left transition-all flex flex-col justify-between gap-2 cursor-pointer"
+                                    class="card-interactive p-3 rounded-2xl border-2 text-left flex flex-col justify-between gap-2 cursor-pointer"
                                     :class="paymentMethod === 'cod' 
                                         ? 'border-green-500 bg-green-50/70 dark:bg-green-950/40 text-green-900 dark:text-green-200 shadow-sm' 
                                         : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300'">
@@ -698,7 +744,7 @@
                             <!-- KBZPay Option -->
                             <button type="button" 
                                     @click="paymentMethod = 'kbzpay'; saveDeliveryInfo();"
-                                    class="p-3 rounded-2xl border-2 text-left transition-all flex flex-col justify-between gap-2 cursor-pointer"
+                                    class="card-interactive p-3 rounded-2xl border-2 text-left flex flex-col justify-between gap-2 cursor-pointer"
                                     :class="paymentMethod === 'kbzpay' 
                                         ? 'border-blue-500 bg-blue-50/70 dark:bg-blue-950/40 text-blue-900 dark:text-blue-200 shadow-sm' 
                                         : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300'">
@@ -715,7 +761,7 @@
                             <!-- WavePay Option -->
                             <button type="button" 
                                     @click="paymentMethod = 'wavepay'; saveDeliveryInfo();"
-                                    class="p-3 rounded-2xl border-2 text-left transition-all flex flex-col justify-between gap-2 cursor-pointer"
+                                    class="card-interactive p-3 rounded-2xl border-2 text-left flex flex-col justify-between gap-2 cursor-pointer"
                                     :class="paymentMethod === 'wavepay' 
                                         ? 'border-amber-500 bg-amber-50/70 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 shadow-sm' 
                                         : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300'">
@@ -758,17 +804,20 @@
                                     </span>
                                 </div>
 
-                                <div class="grid grid-cols-2 gap-2 pt-2.5">
-                                    <div>
+                                <div class="flex items-center justify-between gap-3 pt-2.5 flex-wrap sm:flex-nowrap">
+                                    <div class="min-w-0">
                                         <p class="text-[10px] opacity-70 font-semibold uppercase">Account Name</p>
-                                        <p class="font-black text-slate-900 dark:text-white">Food Express MM</p>
+                                        <p class="font-black text-slate-900 dark:text-white whitespace-nowrap">Food Express MM</p>
                                     </div>
-                                    <div>
+                                    <div class="shrink-0">
                                         <p class="text-[10px] opacity-70 font-semibold uppercase">Account Phone</p>
                                         <div class="flex items-center gap-1.5 font-black text-slate-900 dark:text-white font-mono">
-                                            <span>09-987654321</span>
-                                            <button type="button" @click="copyAccountNumber('09987654321')" class="text-[10px] px-1.5 py-0.5 bg-white dark:bg-slate-800 rounded-md border shadow-xs hover:scale-105 transition-transform cursor-pointer">
-                                                <span x-text="copiedAccount ? 'Copied! ✓' : 'Copy 📋'"></span>
+                                            <span class="whitespace-nowrap select-all tracking-wide">09-987654321</span>
+                                            <button type="button" 
+                                                    @click="copyAccountNumber('09987654321')" 
+                                                    class="text-[10px] px-2 py-0.5 bg-white dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700 shadow-xs hover:scale-105 transition-all cursor-pointer whitespace-nowrap shrink-0 inline-flex items-center justify-center font-sans font-bold"
+                                                    title="Copy phone number">
+                                                <span class="whitespace-nowrap" x-text="copiedAccount ? 'Copied! ✓' : 'Copy 📋'"></span>
                                             </button>
                                         </div>
                                     </div>

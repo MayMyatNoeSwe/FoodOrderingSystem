@@ -110,6 +110,7 @@ class RiderDashboardController extends Controller
 
     /**
      * Mark an order as completed & paid upon successful delivery with proof of delivery photo.
+     * For COD orders, confirms cash collection and triggers digital receipt issuance for customer.
      */
     public function completeDelivery(Request $request, Order $order)
     {
@@ -123,8 +124,16 @@ class RiderDashboardController extends Controller
             return redirect()->route('home')->with('error', 'Access denied.');
         }
 
-        $request->validate([
+        $rules = [
             'delivery_proof_photo' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:8192',
+        ];
+
+        if ($order->payment_method === 'cod') {
+            $rules['confirm_cash_collected'] = 'required';
+        }
+
+        $request->validate($rules, [
+            'confirm_cash_collected.required' => 'ကျေးဇူးပြု၍ Customer ထံမှ ငွေလက်ခံရရှိကြောင်း အမှန်ခြစ် ပေးပါ (Please confirm cash collection from customer).',
         ]);
 
         $proofPath = null;
@@ -151,6 +160,12 @@ class RiderDashboardController extends Controller
 
         $order->update($updateData);
 
-        return back()->with('success', "Order #{$order->order_number} Delivered & Photo Proof Verified! 📸✅🎉");
+        if ($order->payment_method === 'cod') {
+            $message = "Order #{$order->order_number} Delivered & Cash Received (" . number_format($order->total_amount) . " MMK) Confirmed! 💵 Customer app now displays PAID (CASH) Digital Receipt! 🎉";
+        } else {
+            $message = "Order #{$order->order_number} Delivered & Verified! 📸 Customer notified successfully. 🎉";
+        }
+
+        return back()->with('success', $message);
     }
 }

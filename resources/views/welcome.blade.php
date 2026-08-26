@@ -247,17 +247,17 @@
                         <!-- Stats & Trust Badges Strip -->
                         <div class="pt-4 grid grid-cols-3 gap-3 sm:gap-6 max-w-xl mx-auto lg:mx-0">
                             <!-- Stat 1 -->
-                            <div class="glass-card p-3 sm:p-4 rounded-2xl border border-slate-200/60 dark:border-slate-800/80 shadow-sm text-center lg:text-left transition-all duration-300 hover:scale-[1.02]">
+                            <div class="glass-card card-interactive p-3 sm:p-4 rounded-2xl border border-slate-200/60 dark:border-slate-800/80 shadow-sm text-center lg:text-left cursor-default">
                                 <div class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">10k+</div>
                                 <div class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">{{ __('Active Foodies') }}</div>
                             </div>
                             <!-- Stat 2 -->
-                            <div class="glass-card p-3 sm:p-4 rounded-2xl border border-slate-200/60 dark:border-slate-800/80 shadow-sm text-center lg:text-left transition-all duration-300 hover:scale-[1.02]">
+                            <div class="glass-card card-interactive p-3 sm:p-4 rounded-2xl border border-slate-200/60 dark:border-slate-800/80 shadow-sm text-center lg:text-left cursor-default">
                                 <div class="text-xl sm:text-2xl font-black text-orange-500 tracking-tight">30 Min</div>
                                 <div class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">{{ __('15-30 Min Delivery') }}</div>
                             </div>
                             <!-- Stat 3 -->
-                            <div class="glass-card p-3 sm:p-4 rounded-2xl border border-slate-200/60 dark:border-slate-800/80 shadow-sm text-center lg:text-left transition-all duration-300 hover:scale-[1.02]">
+                            <div class="glass-card card-interactive p-3 sm:p-4 rounded-2xl border border-slate-200/60 dark:border-slate-800/80 shadow-sm text-center lg:text-left cursor-default">
                                 <div class="text-xl sm:text-2xl font-black text-amber-500 tracking-tight">4.9 ★</div>
                                 <div class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">{{ __('Top Rated') }}</div>
                             </div>
@@ -423,12 +423,12 @@
                         @endphp
 
                         <div x-show="(searchQuery.trim() !== '' || activeCategory === 'all' || activeCategory === '{{ $catSlug }}') && matchesSearch(@js($item->name), @js($item->description ?? ''), @js($catName))"
-                             x-transition:enter="transition cubic-bezier(0.34, 1.56, 0.64, 1) duration-400 transform"
+                             x-transition:enter="transition cubic-bezier(0.16, 1, 0.3, 1) duration-400 transform"
                              x-transition:enter-start="opacity-0 translate-y-6 scale-95"
                              x-transition:enter-end="opacity-100 translate-y-0 scale-100"
                              x-transition:leave="transition cubic-bezier(0.4, 0, 0.2, 1) duration-200 transform"
                              x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-                             x-transition:leave-end="opacity-0 translate-y-4 scale-90"
+                             x-transition:leave-end="opacity-0 translate-y-4 scale-95"
                              data-reveal="zoom-fade" data-reveal-delay="{{ ($loop->index % 4) * 80 }}"
                              class="card-food-item card-shimmer group relative flex flex-col justify-between rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/90 shadow-sm hover:border-orange-400/80 dark:hover:border-orange-500/50 overflow-hidden">
                             
@@ -436,7 +436,7 @@
                                 <!-- Food Image Showcase -->
                                 <div class="relative h-48 sm:h-52 overflow-hidden bg-slate-100 dark:bg-slate-800"
                                      x-data="{ currentImg: '{{ $item->image_url }}', allImgs: {{ json_encode($item->all_images) }} }">
-                                    <img :src="currentImg" alt="{{ $item->name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out">
+                                    <img :src="currentImg" alt="{{ $item->name }}" class="w-full h-full object-cover group-hover:scale-108 group-hover:brightness-[1.03] transition-all duration-700 ease-out">
                                     <div class="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-black/20 pointer-events-none"></div>
                                     
                                     <!-- Category Pill Tag -->
@@ -571,8 +571,8 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
                     
                     <!-- Feature Card 1 -->
-                    <div data-reveal="fade-up" data-reveal-delay="0" class="group relative p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-2xl hover:shadow-orange-500/10 hover:border-orange-300 dark:hover:border-orange-700/60 hover:-translate-y-1.5 transition-all duration-300 text-center flex flex-col items-center">
-                        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-400 text-white flex items-center justify-center text-3xl mb-6 shadow-lg shadow-orange-500/30 group-hover:scale-110 transition-transform duration-300">
+                    <div data-reveal="fade-up" data-reveal-delay="0" class="feature-card card-shimmer group relative p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:border-orange-300 dark:hover:border-orange-700/60 text-center flex flex-col items-center cursor-default">
+                        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-400 text-white flex items-center justify-center text-3xl mb-6 shadow-lg shadow-orange-500/30 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
                             📱
                         </div>
                         <h3 class="text-xl font-black text-slate-900 dark:text-white tracking-tight">{{ __('Finest Ingredients') }}</h3>
@@ -580,8 +580,8 @@
                     </div>
 
                     <!-- Feature Card 2 -->
-                    <div data-reveal="fade-up" data-reveal-delay="130" class="group relative p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-2xl hover:shadow-orange-500/10 hover:border-orange-300 dark:hover:border-orange-700/60 hover:-translate-y-1.5 transition-all duration-300 text-center flex flex-col items-center">
-                        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white flex items-center justify-center text-3xl mb-6 shadow-lg shadow-amber-500/30 group-hover:scale-110 transition-transform duration-300">
+                    <div data-reveal="fade-up" data-reveal-delay="130" class="feature-card card-shimmer group relative p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:border-orange-300 dark:hover:border-orange-700/60 text-center flex flex-col items-center cursor-default">
+                        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white flex items-center justify-center text-3xl mb-6 shadow-lg shadow-amber-500/30 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
                             🚚
                         </div>
                         <h3 class="text-xl font-black text-slate-900 dark:text-white tracking-tight">{{ __('Ultra Fast Delivery') }}</h3>
@@ -589,8 +589,8 @@
                     </div>
 
                     <!-- Feature Card 3 -->
-                    <div data-reveal="fade-up" data-reveal-delay="260" class="group relative p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-2xl hover:shadow-orange-500/10 hover:border-orange-300 dark:hover:border-orange-700/60 hover:-translate-y-1.5 transition-all duration-300 text-center flex flex-col items-center">
-                        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-rose-500 to-orange-500 text-white flex items-center justify-center text-3xl mb-6 shadow-lg shadow-rose-500/30 group-hover:scale-110 transition-transform duration-300">
+                    <div data-reveal="fade-up" data-reveal-delay="260" class="feature-card card-shimmer group relative p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:border-orange-300 dark:hover:border-orange-700/60 text-center flex flex-col items-center cursor-default">
+                        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-rose-500 to-orange-500 text-white flex items-center justify-center text-3xl mb-6 shadow-lg shadow-rose-500/30 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
                             💳
                         </div>
                         <h3 class="text-xl font-black text-slate-900 dark:text-white tracking-tight">{{ __('Multi-Channel Payment') }}</h3>

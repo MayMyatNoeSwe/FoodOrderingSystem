@@ -270,15 +270,31 @@ html.page-leaving {
 .hero-delay-800 { animation-delay: 0.80s; }
 
 /* =============================================
-   CARD HOVER lift effect — reusable
+   CARD HOVER LIFT & TRANSITION SYSTEM
    ============================================= */
+
+/* Universal smooth card lift with physics-based spring curves */
 .card-lift {
-    transition: transform 0.25s cubic-bezier(0.22,1,0.36,1),
-                box-shadow 0.25s cubic-bezier(0.22,1,0.36,1);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                background-color 0.25s ease;
+    will-change: transform, box-shadow;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
 }
 .card-lift:hover {
-    transform: translateY(-4px) scale(1.01);
-    box-shadow: 0 20px 40px -12px rgba(0,0,0,0.12);
+    transform: translateY(-6px) scale(1.012);
+    box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.08),
+                0 10px 15px -5px rgba(0, 0, 0, 0.04);
+}
+.dark .card-lift:hover {
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6),
+                0 0 20px 1px rgba(249, 115, 22, 0.12);
+}
+.card-lift:active {
+    transform: translateY(-2px) scale(0.992);
+    transition-duration: 0.15s;
 }
 
 /* =============================================
@@ -305,27 +321,35 @@ html.page-leaving {
 }
 
 /* =============================================
-   FOOD MENU CARDS — LUXURY ANIMATIONS
+   FOOD MENU CARDS — LUXURY SPRING & GLOW ANIMATIONS
    ============================================= */
 .card-food-item {
-    transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1),
-                box-shadow 0.38s cubic-bezier(0.22, 1, 0.36, 1),
-                border-color 0.25s ease,
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
                 background-color 0.25s ease;
     will-change: transform, box-shadow;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
+    transform-style: preserve-3d;
 }
 
 .card-food-item:hover {
-    transform: translateY(-8px) scale(1.012);
-    box-shadow: 0 22px 42px -10px rgba(249, 115, 22, 0.20),
-                0 10px 20px -5px rgba(0, 0, 0, 0.06);
+    transform: translateY(-8px) scale(1.018);
+    box-shadow: 0 24px 44px -10px rgba(249, 115, 22, 0.24),
+                0 12px 24px -6px rgba(0, 0, 0, 0.08),
+                0 0 0 1px rgba(249, 115, 22, 0.18);
 }
 
 .dark .card-food-item:hover {
-    box-shadow: 0 24px 46px -10px rgba(249, 115, 22, 0.24),
-                0 12px 28px -5px rgba(0, 0, 0, 0.7);
+    box-shadow: 0 26px 48px -10px rgba(249, 115, 22, 0.32),
+                0 14px 30px -6px rgba(0, 0, 0, 0.75),
+                0 0 0 1px rgba(249, 115, 22, 0.3);
+}
+
+.card-food-item:active {
+    transform: translateY(-3px) scale(0.99);
+    transition-duration: 0.15s;
 }
 
 /* Diagonal glass light-sweep on card hover */
@@ -338,17 +362,17 @@ html.page-leaving {
     content: '';
     position: absolute;
     top: 0;
-    left: -120%;
-    width: 60%;
+    left: -140%;
+    width: 70%;
     height: 100%;
     background: linear-gradient(
         90deg,
         transparent 0%,
-        rgba(255, 255, 255, 0.24) 50%,
+        rgba(255, 255, 255, 0.3) 50%,
         transparent 100%
     );
-    transform: skewX(-22deg);
-    transition: left 0.75s ease;
+    transform: skewX(-20deg);
+    transition: left 0.85s cubic-bezier(0.16, 1, 0.3, 1);
     pointer-events: none;
     z-index: 15;
 }
@@ -357,28 +381,70 @@ html.page-leaving {
     background: linear-gradient(
         90deg,
         transparent 0%,
-        rgba(255, 255, 255, 0.08) 50%,
+        rgba(255, 255, 255, 0.12) 50%,
         transparent 100%
     );
 }
 
 .card-food-item:hover.card-shimmer::before,
-.card-food-item:hover .card-shimmer::before {
-    left: 180%;
+.card-food-item:hover .card-shimmer::before,
+.card-lift:hover.card-shimmer::before {
+    left: 190%;
 }
 
-/* Category Pill Interaction */
+/* =============================================
+   GLASS CARDS & INTERACTIVE DASHBOARD STAT CARDS
+   ============================================= */
+.card-interactive {
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 0.25s ease,
+                background-color 0.25s ease;
+    will-change: transform, box-shadow;
+}
+.card-interactive:hover {
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 0 16px 30px -8px rgba(0, 0, 0, 0.08);
+}
+.dark .card-interactive:hover {
+    box-shadow: 0 16px 32px -8px rgba(0, 0, 0, 0.5),
+                0 0 15px rgba(249, 115, 22, 0.08);
+}
+.card-interactive:active {
+    transform: translateY(-1px) scale(0.995);
+    transition-duration: 0.15s;
+}
+
+/* Category Pill Interaction with smooth spring */
 .category-pill {
-    transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
-                box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1),
                 background-color 0.2s ease,
                 border-color 0.2s ease;
 }
 .category-pill:hover {
-    transform: translateY(-2px) scale(1.03);
+    transform: translateY(-3px) scale(1.035);
+    box-shadow: 0 8px 20px -4px rgba(249, 115, 22, 0.2);
 }
 .category-pill:active {
-    transform: scale(0.96);
+    transform: scale(0.95);
+}
+
+/* Feature cards lift & bounce */
+.feature-card {
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 0.3s ease,
+                background-color 0.25s ease;
+    will-change: transform, box-shadow;
+}
+.feature-card:hover {
+    transform: translateY(-8px) scale(1.015);
+    box-shadow: 0 25px 45px -12px rgba(249, 115, 22, 0.16),
+                0 10px 20px -5px rgba(0, 0, 0, 0.04);
+}
+.feature-card:active {
+    transform: translateY(-2px) scale(0.995);
 }
 
 /* =============================================

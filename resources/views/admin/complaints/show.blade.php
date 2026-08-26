@@ -4,6 +4,36 @@
     heading="{{ __('Investigate Complaint') }} #{{ $complaint->ticket_number }}"
     subheading="{{ __('Review customer complaint details, inspect evidence attachments, and record resolution') }}">
 
+    <x-slot:head>
+        <script>
+            function confirmDeleteComplaint(form, ticketNumber) {
+                Swal.fire({
+                    title: 'Delete Complaint Ticket?',
+                    html: `Are you sure you want to delete complaint ticket <strong class="text-orange-500 font-mono">#${ticketNumber}</strong>?<br><span class="text-xs text-slate-500 dark:text-slate-400 mt-1.5 block">This action is permanent and cannot be undone.</span>`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: 'Yes, Delete Ticket',
+                    cancelButtonText: 'Cancel',
+                    background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#ffffff',
+                    color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#0f172a',
+                    customClass: {
+                        popup: 'border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl',
+                        title: 'text-slate-900 dark:text-white font-black text-lg',
+                        confirmButton: 'px-5 py-2.5 rounded-xl font-bold text-xs shadow-lg shadow-red-500/20 cursor-pointer',
+                        cancelButton: 'px-5 py-2.5 rounded-xl font-bold text-xs cursor-pointer'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+                return false;
+            }
+        </script>
+    </x-slot:head>
+
     <x-slot:breadcrumbs>
         <a href="{{ route('admin.complaints.index') }}" class="hover:text-orange-500 transition-colors">{{ __('Complaints') }}</a>
         <span>/</span>
@@ -235,7 +265,7 @@
                     <!-- Danger Zone: Delete Ticket -->
                     <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                         <span class="text-xs text-slate-400">{{ __('Permanently remove ticket') }}</span>
-                        <form action="{{ route('admin.complaints.destroy', $complaint) }}" method="POST" onsubmit="return confirm('Are you sure you want to permanently delete this complaint?');">
+                        <form action="{{ route('admin.complaints.destroy', $complaint) }}" method="POST" onsubmit="return confirmDeleteComplaint(this, '{{ $complaint->ticket_number }}');">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="text-xs text-rose-600 hover:underline font-bold cursor-pointer">

@@ -6,32 +6,6 @@
 
     <x-slot:head>
         <script>
-            function confirmDeleteOrder(form, orderNumber) {
-                Swal.fire({
-                    title: 'Delete Order #' + orderNumber + '?',
-                    text: "Are you sure you want to delete this order? All related order items and invoices will also be removed permanently.",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#ef4444',
-                    cancelButtonColor: '#64748b',
-                    confirmButtonText: 'Yes, Delete Order',
-                    cancelButtonText: 'Cancel',
-                    background: '#ffffff',
-                    color: '#0f172a',
-                    customClass: {
-                        popup: 'border border-slate-200 rounded-3xl shadow-2xl',
-                        title: 'text-slate-900 font-bold text-lg',
-                        confirmButton: 'px-5 py-2.5 rounded-xl font-bold text-xs shadow-lg shadow-red-500/20 cursor-pointer',
-                        cancelButton: 'px-5 py-2.5 rounded-xl font-bold text-xs cursor-pointer'
-                    }
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        form.submit();
-                    }
-                });
-                return false;
-            }
-
             function adminOrderPoller() {
                 return {
                     nowMs: Date.now(),
@@ -701,11 +675,12 @@
                                     <div class="flex flex-col items-center justify-center gap-1.5">
                                         @if($order->status === 'pending')
                                             <!-- Accept Form -->
-                                            <form method="POST" action="{{ route('admin.orders.accept', $order) }}" class="w-full max-w-[90px]">
+                                            <form method="POST" action="{{ route('admin.orders.accept', $order) }}" class="w-full max-w-[120px]">
                                                 @csrf
-                                                <button type="submit" class="w-full px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white font-bold text-[11px] rounded-lg shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-1 cursor-pointer">
+                                                <button type="submit" class="w-full px-2.5 py-1.5 bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white font-bold text-[11px] rounded-lg shadow-md shadow-emerald-500/20 transition-all flex items-center justify-center gap-1 cursor-pointer"
+                                                        title="{{ in_array($order->payment_method, ['kbzpay', 'wavepay']) ? 'Approve Payment Slip & Generate PAID Digital Slip' : 'Confirm Cash on Delivery Order' }}">
                                                     <span>✓</span>
-                                                    <span>{{ __('Accept') }}</span>
+                                                    <span>{{ in_array($order->payment_method, ['kbzpay', 'wavepay']) ? __('Approve & Paid') : __('Accept COD') }}</span>
                                                 </button>
                                             </form>
 
@@ -756,12 +731,14 @@
                                             </button>
                                         @endif
 
-                                        <!-- Foodpanda Payslip & Tax Invoice Button -->
-                                        <a href="{{ route('orders.payslip', $order) }}" target="_blank" title="{{ __('View & Print Official Payslip') }}"
-                                           class="px-2.5 py-1.5 bg-pink-50 dark:bg-pink-950/50 hover:bg-pink-100 dark:hover:bg-pink-900/50 text-[#D70F64] text-xs font-bold rounded-xl border border-pink-200 dark:border-pink-800 transition-all flex items-center gap-1 cursor-pointer shadow-xs">
-                                            <span>🧾</span>
-                                            <span class="hidden xl:inline text-[11px]">{{ __('Payslip') }}</span>
-                                        </a>
+                                        <!-- Foodpanda Payslip & Tax Invoice Button (Only after approved) -->
+                                        @if($order->status !== 'pending')
+                                            <a href="{{ route('orders.payslip', $order) }}" target="_blank" title="{{ __('View & Print Official Payslip') }}"
+                                               class="px-2.5 py-1.5 bg-pink-50 dark:bg-pink-950/50 hover:bg-pink-100 dark:hover:bg-pink-900/50 text-[#D70F64] text-xs font-bold rounded-xl border border-pink-200 dark:border-pink-800 transition-all flex items-center gap-1 cursor-pointer shadow-xs">
+                                                <span>🧾</span>
+                                                <span class="hidden xl:inline text-[11px]">{{ __('Payslip') }}</span>
+                                            </a>
+                                        @endif
 
                                         <!-- View Details Button -->
                                         @php
@@ -808,18 +785,6 @@
                                             </svg>
                                             <span>{{ __('Details') }}</span>
                                         </button>
-
-                                        <!-- Delete Order Form -->
-                                        <form method="POST" action="{{ route('admin.orders.destroy', $order) }}" onsubmit="return confirmDeleteOrder(this, '{{ $order->order_number }}')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <input type="hidden" name="return_url" value="{{ request()->fullUrl() }}">
-                                            <button type="submit" title="{{ __('Delete Record') }}" class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-red-100 dark:hover:border-red-900">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                                </svg>
-                                            </button>
-                                        </form>
                                     </div>
                                 </td>
                             </tr>
@@ -860,7 +825,7 @@
                  class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
                 
                 <!-- Modal Header -->
-                <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400 flex items-center justify-center font-bold text-lg border border-orange-100 dark:border-orange-900">
                             🧾
@@ -870,7 +835,17 @@
                             <p class="text-slate-500 dark:text-slate-400 text-xs" x-text="activeOrder ? 'Order #' + activeOrder.order_number + ' • ' + activeOrder.created_at : ''"></p>
                         </div>
                     </div>
-                    <button @click="detailsModalOpen = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 text-lg font-bold">✕</button>
+                    
+                    <div class="flex items-center gap-2">
+                        <template x-if="activeOrder && activeOrder.status !== 'pending'">
+                            <a :href="activeOrder.payslip_url" target="_blank"
+                               class="px-3 py-1.5 bg-gradient-to-r from-[#D70F64] to-[#E21B70] hover:from-[#c20d5a] hover:to-[#cb1864] text-white font-black text-xs rounded-xl shadow-md shadow-[#D70F64]/20 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95">
+                                <span>🧾</span>
+                                <span>{{ __('Digital Slip (ဒစ်ဂျစ်တယ် ပြေစာ)') }}</span>
+                            </a>
+                        </template>
+                        <button @click="detailsModalOpen = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 text-lg font-bold">✕</button>
+                    </div>
                 </div>
 
                 <!-- Modal Content -->
@@ -1093,7 +1068,16 @@
                                     </div>
                                 </div>
                             </div>
-                        </template>
+                        <!-- Modal Footer Action Toolbar -->
+                        <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2">
+                            <a :href="activeOrder.payslip_url" target="_blank" class="px-4 py-2 bg-pink-50 dark:bg-pink-950/50 hover:bg-pink-100 dark:hover:bg-pink-900/50 text-[#D70F64] font-bold text-xs rounded-xl border border-pink-200 dark:border-pink-800 transition-all flex items-center gap-1.5 cursor-pointer">
+                                <span>🧾</span>
+                                <span>{{ __('Print Payslip') }}</span>
+                            </a>
+                            <button type="button" @click="detailsModalOpen = false" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs rounded-xl transition-all cursor-pointer">
+                                {{ __('Close') }}
+                            </button>
+                        </div>
 
                     </div>
                 </template>

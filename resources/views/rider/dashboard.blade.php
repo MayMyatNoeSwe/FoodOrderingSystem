@@ -432,14 +432,22 @@
                         <span class="text-orange-600 font-bold">+{{ number_format($order->delivery_fee) }} MMK Fee</span>
                     </div>
 
-                    <!-- Claim / Pickup CTA Button -->
-                    <form method="POST" action="{{ route('rider.orders.pickup', $order) }}">
-                        @csrf
-                        <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 active:scale-95 text-white font-black text-sm rounded-2xl shadow-lg shadow-orange-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer">
-                            <span class="text-base">🛵</span>
-                            <span>Accept &amp; Pick Up This Order</span>
-                        </button>
-                    </form>
+                    <!-- Action Buttons: Digital Slip + Pickup CTA -->
+                    <div class="flex flex-col sm:flex-row items-center gap-2 pt-1">
+                        <a href="{{ route('orders.payslip', $order) }}" target="_blank"
+                           class="w-full sm:w-auto px-4 py-3.5 bg-pink-50 hover:bg-pink-100 border border-pink-200 text-[#D70F64] font-black text-xs rounded-2xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0">
+                            <span>🧾</span>
+                            <span>{{ __('View Digital Slip (ပြေစာ)') }}</span>
+                        </a>
+
+                        <form method="POST" action="{{ route('rider.orders.pickup', $order) }}" class="flex-1 w-full">
+                            @csrf
+                            <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 active:scale-95 text-white font-black text-sm rounded-2xl shadow-lg shadow-orange-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer">
+                                <span class="text-base">🛵</span>
+                                <span>Accept &amp; Pick Up This Order</span>
+                            </button>
+                        </form>
+                    </div>
 
                 </div>
             @empty
@@ -615,16 +623,54 @@
                                     </div>
                                 </div>
 
-                                <button type="submit" 
-                                        :disabled="isUploading"
-                                        class="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 active:scale-98 text-white font-black text-xs rounded-xl shadow-lg shadow-emerald-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer">
-                                    <template x-if="isUploading">
-                                        <span>⏳ Uploading &amp; Confirming...</span>
-                                    </template>
-                                    <template x-if="!isUploading">
-                                        <span>✅ သုံးစွဲသူထံ အစားအသောက် ရောက်ရှိပြီး အတည်ပြုမည်</span>
-                                    </template>
-                                </button>
+                                @if($order->payment_method === 'cod')
+                                    <!-- Explicit COD Cash Collection Confirmation Card -->
+                                    <div class="p-4 bg-amber-50 border-2 border-amber-300 rounded-2xl space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-xs font-black text-amber-900 uppercase tracking-wide flex items-center gap-1.5">
+                                                <span>💵</span> <span>COD Cash to Collect (ငွေသား ကောက်ခံရန်)</span>
+                                            </span>
+                                            <span class="text-base font-black text-amber-700 font-mono">
+                                                {{ number_format($order->total_amount) }} MMK
+                                            </span>
+                                        </div>
+                                        <label class="flex items-start gap-2.5 text-xs font-bold text-amber-950 cursor-pointer pt-2 border-t border-amber-200">
+                                            <input type="checkbox" name="confirm_cash_collected" value="1" required
+                                                   class="rounded border-amber-400 text-amber-600 focus:ring-amber-500 mt-0.5 w-4 h-4 cursor-pointer">
+                                            <span class="leading-relaxed">Customer ထံမှ ငွေသား {{ number_format($order->total_amount) }} MMK အပြည့်အဝ လက်ခံရရှိပြီးကြောင်း အတည်ပြုပါသည် (I confirm exact cash collected).</span>
+                                        </label>
+                                    </div>
+
+                                    <button type="submit" 
+                                            :disabled="isUploading"
+                                            class="w-full py-3.5 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-700 active:scale-98 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg shadow-orange-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer">
+                                        <template x-if="isUploading">
+                                            <span>⏳ Confirming Cash &amp; Issuing Receipt...</span>
+                                        </template>
+                                        <template x-if="!isUploading">
+                                            <span>💵 Confirm Cash Received &amp; Issue Receipt (ငွေလက်ခံရရှိပြီး ပြေစာထုတ်မည်)</span>
+                                        </template>
+                                    </button>
+                                @else
+                                    <!-- Online Prepaid Status Box -->
+                                    <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-between text-xs font-bold text-emerald-900">
+                                        <span class="flex items-center gap-1.5">
+                                            <span>✅</span> <span>Online Pre-paid ({{ strtoupper($order->payment_method) }}) — Already Paid</span>
+                                        </span>
+                                        <span class="font-mono text-emerald-700 font-black">0 MMK to Collect</span>
+                                    </div>
+
+                                    <button type="submit" 
+                                            :disabled="isUploading"
+                                            class="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 active:scale-98 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg shadow-emerald-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer">
+                                        <template x-if="isUploading">
+                                            <span>⏳ Uploading &amp; Confirming Delivery...</span>
+                                        </template>
+                                        <template x-if="!isUploading">
+                                            <span>✅ Confirm Delivery Complete (အစားအသောက် ပို့ဆောင်မှု ပြီးစီးကြောင်း အတည်ပြုမည်)</span>
+                                        </template>
+                                    </button>
+                                @endif
                             </form>
                         @endif
                     </div>

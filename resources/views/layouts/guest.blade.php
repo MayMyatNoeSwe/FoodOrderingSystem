@@ -38,7 +38,7 @@
             </div>
 
             <!-- 30% Secondary Container: Clean Card -->
-            <div class="w-full sm:max-w-md bg-white dark:bg-slate-900 shadow-xl shadow-slate-200/50 dark:shadow-none border border-pink-100/80 dark:border-slate-800 rounded-2xl p-8 z-10 transition-all duration-300">
+            <div class="card-lift w-full sm:max-w-md bg-white dark:bg-slate-900 shadow-xl shadow-slate-200/50 dark:shadow-none border border-pink-100/80 dark:border-slate-800 rounded-2xl p-8 z-10">
                 {{ $slot }}
             </div>
 

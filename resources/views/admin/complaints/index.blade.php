@@ -4,6 +4,36 @@
     heading="{{ __('Customer Complaints & Help Center') }}"
     subheading="{{ __('Investigate customer issues, reply to tickets, and record resolutions') }}">
 
+    <x-slot:head>
+        <script>
+            function confirmDeleteComplaint(form, ticketNumber) {
+                Swal.fire({
+                    title: 'Delete Complaint Ticket?',
+                    html: `Are you sure you want to delete complaint ticket <strong class="text-orange-500 font-mono">#${ticketNumber}</strong>?<br><span class="text-xs text-slate-500 mt-1.5 block">This action is permanent and cannot be undone.</span>`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: 'Yes, Delete Ticket',
+                    cancelButtonText: 'Cancel',
+                    background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#ffffff',
+                    color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#0f172a',
+                    customClass: {
+                        popup: 'border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl',
+                        title: 'text-slate-900 dark:text-white font-black text-lg',
+                        confirmButton: 'px-5 py-2.5 rounded-xl font-bold text-xs shadow-lg shadow-red-500/20 cursor-pointer',
+                        cancelButton: 'px-5 py-2.5 rounded-xl font-bold text-xs cursor-pointer'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+                return false;
+            }
+        </script>
+    </x-slot:head>
+
     <x-slot:badge>
         @if(($stats['pending'] ?? 0) > 0)
             <span class="bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-xs font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1.5 shadow-xs">
@@ -369,7 +399,7 @@
                                                 🔍 {{ __('Investigate & Reply') }}
                                             </a>
 
-                                            <form action="{{ route('admin.complaints.destroy', $c) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this complaint ticket #{{ $c->ticket_number }}?');">
+                                            <form action="{{ route('admin.complaints.destroy', $c) }}" method="POST" onsubmit="return confirmDeleteComplaint(this, '{{ $c->ticket_number }}');">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" title="{{ __('Delete') }}" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer">

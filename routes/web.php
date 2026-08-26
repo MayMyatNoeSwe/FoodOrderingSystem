@@ -192,6 +192,10 @@ Route::middleware('auth')->group(function () {
             if (!$user->isAdmin() && $order->user_id !== $user->id && $order->rider_id !== $user->id) {
                 abort(403, 'Unauthorized access to this order payslip.');
             }
+            if (!$user->isAdmin() && $order->status === 'pending') {
+                return redirect()->route('customer.orders.show', $order)
+                    ->with('error', 'Admin မှ အတည်မပြုရသေးပါသဖြင့် ဒစ်ဂျစ်တယ်ပြေစာ မထုတ်ပေးသေးပါ (Digital Order Slip is generated only after Admin approves the order).');
+            }
             $order->loadMissing(['orderItems.menuItem.category', 'user', 'rider']);
             return view('orders.payslip', compact('order'));
         })->name('orders.payslip');
@@ -249,6 +253,10 @@ Route::middleware('auth')->group(function () {
         }
         if (!$user->isAdmin() && $order->user_id !== $user->id && $order->rider_id !== $user->id) {
             abort(403, 'Unauthorized access to this order payslip.');
+        }
+        if (!$user->isAdmin() && $order->status === 'pending') {
+            return redirect()->route('customer.orders.show', $order)
+                ->with('error', 'Admin မှ အတည်မပြုရသေးပါသဖြင့် ဒစ်ဂျစ်တယ်ပြေစာ မထုတ်ပေးသေးပါ (Digital Order Slip is generated only after Admin approves the order).');
         }
         $order->loadMissing(['orderItems.menuItem.category', 'user', 'rider']);
         return view('orders.payslip', compact('order'));
@@ -315,12 +323,15 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
     // Quick Action Endpoint: Accept Order & Generate Foodpanda Payslips
     Route::post('/orders/{order}/accept', function (Order $order) {
+        $isOnlinePay = in_array($order->payment_method, ['kbzpay', 'wavepay']);
         $updateData = [
             'status' => 'confirmed',
             'updated_at' => now(),
         ];
-        if (in_array($order->payment_method, ['kbzpay', 'wavepay'])) {
+        if ($isOnlinePay) {
             $updateData['payment_status'] = 'paid';
+        } else {
+            $updateData['payment_status'] = 'unpaid';
         }
         $order->update($updateData);
 
@@ -328,9 +339,15 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         $result = \App\Services\PayslipService::sendOrderAcceptedPayslips($order);
 
         $customerEmail = $order->user->email ?? 'customer';
-        $riderMsg = $order->rider ? " & Rider ({$order->rider->email})" : " (Waiting for rider pickup)";
+        $riderMsg = $order->rider ? " & Rider ({$order->rider->email})" : " (Available in Rider Pickup Pool)";
 
-        return back()->with('success', "Order #{$order->order_number} Accepted! 🧾 Foodpanda Payslip generated & emailed to Customer ({$customerEmail}){$riderMsg} 🎉");
+        if ($isOnlinePay) {
+            $flashMsg = "Order #{$order->order_number} Online Payment Approved! 🧾 Digital Slip with PAID stamp generated & dispatched to Kitchen and Rider App ({$customerEmail}){$riderMsg} 🎉";
+        } else {
+            $flashMsg = "Order #{$order->order_number} Confirmed for Kitchen! 💵 Cash on Delivery (" . number_format($order->total_amount) . " MMK to be collected by Rider). Digital receipt will issue upon rider cash confirmation. 🎉";
+        }
+
+        return back()->with('success', $flashMsg);
     })->name('orders.accept');
 
     // Admin Action: Manual Generate / Resend Payslip Emails
@@ -401,7 +418,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     // Admin Resource Routes
     Route::resource('categories', CategoryController::class)->except(['create', 'show', 'edit']);
     Route::resource('menuItems', MenuItemController::class)->except(['create', 'show', 'edit']);
-    Route::resource('orders', OrderController::class)->except(['create', 'show', 'edit']);
+    Route::resource('orders', OrderController::class)->except(['create', 'show', 'edit', 'destroy']);
     Route::resource('orderItems', OrderItemController::class)->except(['create', 'show', 'edit']);
     // Admin Customer Routes (Ban/Unban status management only)
     Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');

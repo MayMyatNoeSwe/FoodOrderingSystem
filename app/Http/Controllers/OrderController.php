@@ -131,10 +131,16 @@ class OrderController extends Controller
 
         if (!empty($updateData)) {
             $order->update($updateData);
+
+            if (($validated['status'] ?? null) === 'confirmed' || (($validated['payment_status'] ?? null) === 'paid' && $order->status === 'confirmed')) {
+                \App\Services\PayslipService::sendOrderAcceptedPayslips($order);
+            }
         }
 
         if (($validated['status'] ?? null) === 'completed') {
             $message = "Order #{$order->order_number} Completed & Payment marked as Paid! 💰✅";
+        } elseif (($validated['payment_status'] ?? null) === 'paid' && ($validated['status'] ?? null) === 'confirmed') {
+            $message = "Order #{$order->order_number} Payment Approved & Digital Order Slip generated! 🧾🎉";
         } elseif (isset($validated['payment_status']) && empty($validated['status'])) {
             $message = "Order #{$order->order_number} payment status updated to " . strtoupper(str_replace('_', ' ', $validated['payment_status'])) . " successfully!";
         } else {
@@ -143,18 +149,5 @@ class OrderController extends Controller
 
         $returnUrl = $request->input('return_url') ?: url()->previous(route('admin.orders.index'));
         return redirect()->to($returnUrl)->with('success', $message);
-    }
-
-    /**
-     * Delete specified order from storage.
-     */
-    public function destroy(Request $request, Order $order)
-    {
-        $orderNumber = $order->order_number;
-        $order->orderItems()->delete();
-        $order->delete();
-
-        $returnUrl = $request->input('return_url') ?: url()->previous(route('admin.orders.index'));
-        return redirect()->to($returnUrl)->with('success', "Order #{$orderNumber} deleted successfully!");
     }
 }

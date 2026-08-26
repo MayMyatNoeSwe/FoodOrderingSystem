@@ -99,6 +99,13 @@ class OrderMessageController extends Controller
             abort(403);
         }
 
+        if ($order->status === 'pending' || !$order->rider_id) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['error' => 'A rider has not been assigned yet. Chat is not available.'], 422);
+            }
+            return back()->with('error', 'A rider has not been assigned yet. Chat is not available.');
+        }
+
         if ($order->status === 'completed' || $order->status === 'cancelled') {
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json(['error' => 'This order has been completed. Chat session is closed.'], 422);
