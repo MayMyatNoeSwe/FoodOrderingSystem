@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class MenuItem extends Model
@@ -12,6 +13,7 @@ class MenuItem extends Model
     use HasFactory;
 
     protected $fillable = [
+        'shop_id',
         'category_id',
         'name',
         'description',
@@ -33,7 +35,12 @@ class MenuItem extends Model
 
     protected $appends = ['image_url', 'all_images'];
 
-    public function category()
+    public function shop(): BelongsTo
+    {
+        return $this->belongsTo(Shop::class);
+    }
+
+    public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
     }

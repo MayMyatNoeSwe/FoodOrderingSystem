@@ -460,11 +460,22 @@
 
                     </div>
 
-                    <!-- Additional Expandable Column Filters (Rider & Date Range) -->
-                    <div x-show="moreFiltersOpen || '{{ $riderId ?? '' }}' !== '' || '{{ $dateRange ?? '' }}' !== ''" 
+                    <!-- Additional Expandable Column Filters (Rider, Date Range & Shop) -->
+                    <div x-show="moreFiltersOpen || '{{ $riderId ?? '' }}' !== '' || '{{ $dateRange ?? '' }}' !== '' || ('{{ $shopId ?? '' }}' !== '' && '{{ $shopId ?? '' }}' !== 'all')" 
                          x-cloak
-                         class="p-3.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+                         class="p-3.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl grid grid-cols-1 sm:grid-cols-4 gap-2.5 text-xs">
                         
+                        <!-- Shop Column Filter -->
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1">🏪 {{ __('Filter by Shop') }}</label>
+                            <select name="shop_id" onchange="this.form.submit()" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl px-3 py-2 focus:ring-0 cursor-pointer">
+                                <option value="all">{{ __('All Shops') }}</option>
+                                @foreach($shops as $s)
+                                    <option value="{{ $s->id }}" {{ ($shopId ?? '') == $s->id ? 'selected' : '' }}>🏪 {{ $s->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
                         <!-- Rider Column Filter -->
                         <div>
                             <label class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1">🛵 {{ __('Filter by Assigned Rider') }}</label>
@@ -492,11 +503,11 @@
                         <!-- Action Buttons -->
                         <div class="flex items-end gap-2">
                             <button type="submit" class="flex-1 py-2 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl transition-all shadow-xs flex items-center justify-center gap-1 cursor-pointer">
-                                <span>🔍 {{ __('Apply Filter') }}</span>
+                                <span>🔍 {{ __('Apply') }}</span>
                             </button>
-                            @if($search || $status || $paymentMethod || ($paymentStatus ?? null) || ($riderId ?? null) || ($dateRange ?? null))
+                            @if($search || $status || $paymentMethod || ($paymentStatus ?? null) || ($riderId ?? null) || ($dateRange ?? null) || (($shopId ?? null) && $shopId !== 'all'))
                                 <a href="{{ route('admin.orders.index') }}" class="px-3 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold rounded-xl transition-all flex items-center justify-center gap-1">
-                                    <span>✕ {{ __('Clear') }}</span>
+                                    <span>✕</span>
                                 </a>
                             @endif
                         </div>
@@ -564,6 +575,12 @@
                                             <span class="px-1.5 py-0.5 bg-amber-500 text-white font-black text-[9px] uppercase rounded shadow-xs">{{ __('NEW') }}</span>
                                         @endif
                                     </div>
+                                    @if($order->shop)
+                                        <div class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-orange-50 dark:bg-orange-950/50 border border-orange-200/80 dark:border-orange-800/60 rounded text-[10px] font-extrabold text-orange-700 dark:text-orange-300 mt-1">
+                                            <span>🏪</span>
+                                            <span>{{ $order->shop->name }}</span>
+                                        </div>
+                                    @endif
                                     <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
                                         {{ $order->created_at ? $order->created_at->format('M d, Y • h:i A') : 'N/A' }}
                                     </div>

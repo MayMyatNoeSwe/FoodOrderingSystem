@@ -42,7 +42,19 @@
                 <div class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-2">{{ __('Administrative privileges') }}</div>
             </div>
 
-            <!-- Metric 3: Riders -->
+            <!-- Metric 3: Shop Owners -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-5 relative overflow-hidden group hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md transition-all shadow-xs">
+                <div class="flex items-center justify-between">
+                    <span class="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">{{ __('Shop Owners') }}</span>
+                    <div class="w-9 h-9 rounded-xl bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400 flex items-center justify-center font-bold text-base border border-orange-100 dark:border-orange-900">
+                        🏪
+                    </div>
+                </div>
+                <div class="text-3xl font-black text-orange-600 dark:text-orange-400 mt-2">{{ number_format($shopOwnerCount ?? 0) }}</div>
+                <div class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-2">{{ __('Vendor partners') }}</div>
+            </div>
+
+            <!-- Metric 4: Riders -->
             <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-5 relative overflow-hidden group hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md transition-all shadow-xs">
                 <div class="flex items-center justify-between">
                     <span class="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">{{ __('Delivery Riders') }}</span>
@@ -54,7 +66,7 @@
                 <div class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-2">{{ __('Fleet delivery staff') }}</div>
             </div>
 
-            <!-- Metric 4: Customer Accounts -->
+            <!-- Metric 5: Customer Accounts -->
             <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-5 relative overflow-hidden group hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md transition-all shadow-xs">
                 <div class="flex items-center justify-between">
                     <span class="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">{{ __('Customer Accounts') }}</span>
@@ -99,15 +111,25 @@
                         </div>
 
                         <!-- Role Filter Dropdown -->
-                        <select name="role" onchange="this.form.submit()" class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs rounded-xl px-3.5 py-2.5 focus:ring-0 transition-all cursor-pointer font-medium">
+                        <select name="role" onchange="this.form.submit()" class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs rounded-xl px-3 py-2 focus:ring-0 transition-all cursor-pointer font-medium">
                             <option value="" {{ empty($role) ? 'selected' : '' }}>{{ __('All Roles') }}</option>
-                            <option value="admin" {{ $role === 'admin' ? 'selected' : '' }}>👑 {{ __('Admins Only') }}</option>
-                            <option value="rider" {{ $role === 'rider' ? 'selected' : '' }}>🛵 {{ __('Riders Only') }}</option>
-                            <option value="customer" {{ $role === 'customer' ? 'selected' : '' }}>🛒 {{ __('Customers Only') }}</option>
+                            <option value="admin" {{ $role === 'admin' ? 'selected' : '' }}>👑 {{ __('Admins') }}</option>
+                            <option value="shop_owner" {{ $role === 'shop_owner' ? 'selected' : '' }}>🏪 {{ __('Shop Owners') }}</option>
+                            <option value="rider" {{ $role === 'rider' ? 'selected' : '' }}>🛵 {{ __('Riders') }}</option>
+                            <option value="user" {{ ($role === 'user' || $role === 'customer') ? 'selected' : '' }}>🛒 {{ __('Customers') }}</option>
                         </select>
 
-                        @if($search || $role)
-                            <a href="{{ route('admin.users.index') }}" class="px-3.5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-1">
+                        <!-- Sort By Dropdown -->
+                        <select name="sort_by" onchange="this.form.submit()" class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs rounded-xl px-3 py-2 focus:ring-0 transition-all cursor-pointer font-medium">
+                            <option value="latest" {{ ($sortBy ?? '') === 'latest' ? 'selected' : '' }}>Sort: Newest First</option>
+                            <option value="oldest" {{ ($sortBy ?? '') === 'oldest' ? 'selected' : '' }}>Sort: Oldest First</option>
+                            <option value="name_asc" {{ ($sortBy ?? '') === 'name_asc' ? 'selected' : '' }}>Name (A-Z)</option>
+                            <option value="name_desc" {{ ($sortBy ?? '') === 'name_desc' ? 'selected' : '' }}>Name (Z-A)</option>
+                            <option value="orders_desc" {{ ($sortBy ?? '') === 'orders_desc' ? 'selected' : '' }}>Orders Count</option>
+                        </select>
+
+                        @if($search || $role || ($sortBy && $sortBy !== 'latest'))
+                            <a href="{{ route('admin.users.index') }}" class="px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-1">
                                 <span>✕</span>
                                 <span>{{ __('Reset') }}</span>
                             </a>
@@ -162,6 +184,14 @@
                                         <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 rounded-full font-bold text-xs">
                                             <span>👑</span>
                                             <span>{{ __('Administrator') }}</span>
+                                        </span>
+                                    @elseif($user->role === 'shop_owner')
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-orange-50 dark:bg-orange-950/50 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800 rounded-full font-bold text-xs">
+                                            <span>🏪</span>
+                                            <span>{{ __('Shop Owner') }}</span>
+                                            @if($user->ownedShop)
+                                                <span class="text-[10px] text-orange-600 dark:text-orange-400 font-normal">({{ $user->ownedShop->name }})</span>
+                                            @endif
                                         </span>
                                     @elseif($isRider)
                                         <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 rounded-full font-bold text-xs">

@@ -19,7 +19,11 @@ class OrderItemController extends Controller
         $orderId = $request->query('order_id');
         $status = $request->query('status');
 
+        $shopId = $request->query('shop_id');
+        $sortBy = $request->query('sort_by', 'latest');
+
         $categories = Category::orderBy('name', 'asc')->get();
+        $shops = \App\Models\Shop::orderBy('name')->get(['id', 'name']);
 
         // Metrics Summary
         $totalQuantitySold = OrderItem::sum('quantity') ?: 0;
@@ -35,7 +39,7 @@ class OrderItemController extends Controller
 
         $topItemName = $topItemRow && $topItemRow->menuItem ? $topItemRow->menuItem->name : 'N/A';
 
-        $orderItems = OrderItem::with(['order.user', 'menuItem.category'])
+        $query = OrderItem::with(['order.user', 'order.shop', 'menuItem.category', 'menuItem.shop'])
             ->when($search, function ($query, $search) {
                 return $query->whereHas('menuItem', function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%");
@@ -44,6 +48,11 @@ class OrderItemController extends Controller
                       ->orWhereHas('user', function ($u) use ($search) {
                           $u->where('name', 'like', "%{$search}%");
                       });
+                });
+            })
+            ->when($shopId && $shopId !== 'all', function ($query) use ($shopId) {
+                return $query->whereHas('order', function ($q) use ($shopId) {
+                    $q->where('shop_id', $shopId);
                 });
             })
             ->when($categoryId, function ($query, $categoryId) {
@@ -58,18 +67,29 @@ class OrderItemController extends Controller
                 return $query->whereHas('order', function ($q) use ($status) {
                     $q->where('status', $status);
                 });
-            })
-            ->latest()
-            ->paginate(15)
-            ->withQueryString();
+            });
+
+        match ($sortBy) {
+            'oldest'        => $query->oldest(),
+            'subtotal_desc' => $query->orderByDesc('subtotal'),
+            'subtotal_asc'  => $query->orderBy('subtotal', 'asc'),
+            'qty_desc'      => $query->orderByDesc('quantity'),
+            'qty_asc'       => $query->orderBy('quantity', 'asc'),
+            default         => $query->latest(),
+        };
+
+        $orderItems = $query->paginate(15)->withQueryString();
 
         return view('admin.orderItems.index', compact(
             'orderItems',
             'categories',
+            'shops',
             'search',
+            'shopId',
             'categoryId',
             'orderId',
             'status',
+            'sortBy',
             'totalQuantitySold',
             'totalItemsRevenue',
             'uniqueMenuItemsCount',

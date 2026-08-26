@@ -14,6 +14,7 @@ class Order extends Model
     protected $fillable=[
         'order_number',
         'user_id',
+        'shop_id',
         'rider_id',
         'total_amount',
         'delivery_fee',
@@ -29,7 +30,12 @@ class Order extends Model
         'delivery_proof_photo',
         'notes'
     ];
-    public function user() :BelongsTo{
+    public function shop(): BelongsTo
+    {
+        return $this->belongsTo(Shop::class);
+    }
+
+    public function user(): BelongsTo{
         return $this->belongsTo(User::class);
     }
 

@@ -38,7 +38,9 @@ class OrderController extends Controller
         $cancelledCount = (int)($stats->cancelled ?? 0);
         $totalRevenue = (float)(($stats->completed_revenue ?? 0) > 0 ? $stats->completed_revenue : ($stats->total_revenue ?? 0));
 
-        $ordersQuery = Order::with(['user', 'rider', 'orderItems.menuItem'])
+        $shopId = $request->query('shop_id');
+
+        $ordersQuery = Order::with(['user', 'rider', 'shop', 'orderItems.menuItem'])
             ->when($search, function ($query, $search) {
                 return $query->where('order_number', 'like', "%{$search}%")
                              ->orWhere('delivery_phone', 'like', "%{$search}%")
@@ -47,6 +49,9 @@ class OrderController extends Controller
                                  $q->where('name', 'like', "%{$search}%")
                                    ->orWhere('email', 'like', "%{$search}%");
                              });
+            })
+            ->when($shopId && $shopId !== 'all', function ($query) use ($shopId) {
+                return $query->where('shop_id', $shopId);
             })
             ->when($status, function ($query, $status) {
                 return $query->where('status', $status);
@@ -88,11 +93,14 @@ class OrderController extends Controller
 
         $orders = $ordersQuery->paginate(10)->withQueryString();
         $riders = \App\Models\User::where('role', 'rider')->get();
+        $shops = \App\Models\Shop::orderBy('name')->get(['id', 'name']);
 
         return view('admin.orders.index', compact(
             'orders',
             'riders',
+            'shops',
             'search',
+            'shopId',
             'status',
             'paymentMethod',
             'paymentStatus',

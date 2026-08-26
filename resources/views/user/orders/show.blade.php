@@ -327,8 +327,11 @@
         <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 sm:p-8 mb-8 transition-colors">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-6 mb-6">
                 <div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 flex-wrap">
                         <span class="text-xs font-bold px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-full">Order #{{ $order->order_number }}</span>
+                        @if($order->shop)
+                            <span class="text-xs font-bold px-3 py-1 bg-orange-100 dark:bg-orange-950/50 text-orange-700 dark:text-orange-300 rounded-full">🏪 {{ $order->shop->name }}</span>
+                        @endif
                         <span class="text-xs text-slate-400 font-medium">{{ $order->created_at->format('M d, Y • h:i A') }}</span>
                     </div>
                     <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-2">Order Details</h1>

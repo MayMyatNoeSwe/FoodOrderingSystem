@@ -14,21 +14,65 @@ class RiderController extends Controller
     /**
      * Display a listing of all riders.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $riders = User::where('role', 'rider')
+        $search = $request->query('search');
+        $city = $request->query('city');
+        $sortBy = $request->query('sort_by', 'latest');
+        $status = $request->query('status', 'all');
+
+        $cities = User::where('role', 'rider')->whereNotNull('city')->where('city', '!=', '')->distinct()->pluck('city');
+
+        $query = User::where('role', 'rider')
             ->withCount([
-                'assignedDeliveries as active_deliveries_count' => function ($query) {
-                    $query->whereIn('status', ['confirmed', 'preparing', 'delivering']);
+                'assignedDeliveries as active_deliveries_count' => function ($q) {
+                    $q->whereIn('status', ['confirmed', 'preparing', 'delivering']);
                 },
-                'assignedDeliveries as completed_deliveries_count' => function ($query) {
-                    $query->where('status', 'completed');
+                'assignedDeliveries as completed_deliveries_count' => function ($q) {
+                    $q->where('status', 'completed');
                 }
             ])
-            ->latest()
-            ->paginate(15);
+            ->when($search, function ($q, $search) {
+                $q->where(function ($sub) use ($search) {
+                    $sub->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('phone_number', 'like', "%{$search}%")
+                        ->orWhere('city', 'like', "%{$search}%");
+                });
+            })
+            ->when($city && $city !== 'all', function ($q) use ($city) {
+                $q->where('city', $city);
+            })
+            ->when($status === 'active', function ($q) {
+                $q->has('assignedDeliveries', '>=', 1, 'and', function ($delQuery) {
+                    $delQuery->whereIn('status', ['confirmed', 'preparing', 'delivering']);
+                });
+            })
+            ->when($status === 'idle', function ($q) {
+                $q->whereDoesntHave('assignedDeliveries', function ($delQuery) {
+                    $delQuery->whereIn('status', ['confirmed', 'preparing', 'delivering']);
+                });
+            });
 
-        return view('admin.riders.index', compact('riders'));
+        match ($sortBy) {
+            'oldest' => $query->oldest(),
+            'name_asc' => $query->orderBy('name', 'asc'),
+            'name_desc' => $query->orderBy('name', 'desc'),
+            'completed_desc' => $query->orderByDesc('completed_deliveries_count'),
+            'active_desc' => $query->orderByDesc('active_deliveries_count'),
+            default => $query->latest(),
+        };
+
+        $riders = $query->paginate(10)->withQueryString();
+
+        return view('admin.riders.index', compact(
+            'riders',
+            'cities',
+            'search',
+            'city',
+            'status',
+            'sortBy'
+        ));
     }
 
     /**

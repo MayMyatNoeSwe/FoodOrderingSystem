@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\MenuItem;
+use App\Models\Shop;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -16,9 +17,12 @@ class MenuItemController extends Controller
     {
         $search = $request->query('search');
         $categoryId = $request->query('category_id');
+        $shopId = $request->query('shop_id');
         $stockStatus = $request->query('stock_status');
+        $sortBy = $request->query('sort_by', 'latest');
 
         $categories = Category::select('id', 'name')->orderBy('name', 'asc')->get();
+        $shops = Shop::orderBy('name')->get(['id', 'name']);
 
         // Stock stats using single aggregated query
         $stats = MenuItem::selectRaw("
@@ -33,13 +37,16 @@ class MenuItemController extends Controller
         $lowStockCount = (int)($stats->low_stock ?? 0);
         $outOfStockCount = (int)($stats->out_of_stock ?? 0);
 
-        $menuItems = MenuItem::with('category')
+        $query = MenuItem::with(['category', 'shop'])
             ->when($search, function ($query, $search) {
                 $query->where('name', 'like', '%' . $search . '%')
                       ->orWhere('description', 'like', '%' . $search . '%');
             })
             ->when($categoryId, function ($query, $categoryId) {
                 return $query->where('category_id', $categoryId);
+            })
+            ->when($shopId && $shopId !== 'all', function ($query) use ($shopId) {
+                return $query->where('shop_id', $shopId);
             })
             ->when($stockStatus, function ($query, $stockStatus) {
                 if ($stockStatus === 'in_stock') {
@@ -50,17 +57,30 @@ class MenuItemController extends Controller
                     return $query->where('stock', 0);
                 }
                 return $query;
-            })
-            ->latest()
-            ->paginate(10)
-            ->withQueryString();
+            });
+
+        match ($sortBy) {
+            'oldest'     => $query->oldest(),
+            'name_asc'   => $query->orderBy('name', 'asc'),
+            'name_desc'  => $query->orderBy('name', 'desc'),
+            'price_asc'  => $query->orderBy('price', 'asc'),
+            'price_desc' => $query->orderBy('price', 'desc'),
+            'stock_asc'  => $query->orderBy('stock', 'asc'),
+            'stock_desc' => $query->orderBy('stock', 'desc'),
+            default      => $query->latest(),
+        };
+
+        $menuItems = $query->paginate(10)->withQueryString();
 
         return view('admin.menuItems.index', compact(
             'menuItems', 
             'categories', 
+            'shops',
             'search', 
             'categoryId', 
+            'shopId',
             'stockStatus',
+            'sortBy',
             'totalItemsCount',
             'inStockCount',
             'lowStockCount',

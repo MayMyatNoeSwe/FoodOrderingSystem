@@ -375,6 +375,8 @@
                     document.getElementById('tax_amount_input').value        = this.taxAmount();
                     document.getElementById('region_type_input').value       = 'Yangon';
                     document.getElementById('delivery_township_input').value = `Yangon — ${this.selectedTownship}`;
+                    const firstItem = this.items[0];
+                    document.getElementById('shop_id_input').value           = (firstItem && firstItem.shop_id) ? firstItem.shop_id : '';
 
                     this.isSubmitting = true;
                     this.saveDeliveryInfo();
@@ -426,6 +428,15 @@
 
             <!-- ============ LEFT COL: Items + Location ============ -->
             <div class="xl:col-span-2 space-y-5">
+
+                <!-- Shop Indicator Banner -->
+                <template x-if="items.length > 0 && items[0].shop_name">
+                    <div class="flex items-center gap-2 px-4 py-2.5 bg-orange-50 dark:bg-orange-950/40 border border-orange-200/80 dark:border-orange-800/60 rounded-2xl text-xs font-bold text-orange-700 dark:text-orange-300">
+                        <span class="text-sm">🏪</span>
+                        <span>Ordering from:</span>
+                        <span class="font-black text-orange-900 dark:text-orange-200" x-text="items[0].shop_name"></span>
+                    </div>
+                </template>
 
                 <!-- Cart Items Header -->
                 <div class="flex items-center justify-between">
@@ -669,6 +680,7 @@
                     <input type="hidden" name="tax_amount"        id="tax_amount_input">
                     <input type="hidden" name="region_type"       id="region_type_input">
                     <input type="hidden" name="delivery_township" id="delivery_township_input">
+                    <input type="hidden" name="shop_id"           id="shop_id_input">
 
                     <h2 class="text-base font-black text-slate-900 dark:text-white">{{ __('Delivery Information') }}</h2>
 

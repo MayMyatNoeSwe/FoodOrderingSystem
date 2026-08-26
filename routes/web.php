@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\CustomerController;
+use App\Http\Controllers\Admin\ShopController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\MenuItemController;
 use App\Http\Controllers\OrderController;
@@ -10,16 +11,18 @@ use App\Http\Controllers\UserController;
 use App\Models\Category;
 use App\Models\MenuItem;
 use App\Models\Order;
+use App\Models\Shop;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 // Customer Frontstore Index (Home Page)
 Route::get('/', function () {
+    $shops     = Shop::where('status', 'active')->withCount('menuItems')->get();
     $categories = Category::withCount('menuItems')->with('menuItems')->get();
-    $menuItems = MenuItem::with('category')->where('is_available', true)->get();
+    $menuItems = MenuItem::with(['category', 'shop'])->where('is_available', true)->get();
 
-    return view('welcome', compact('categories', 'menuItems'));
+    return view('welcome', compact('shops', 'categories', 'menuItems'));
 })->name('home');
 
 // Language Switcher Route
@@ -57,6 +60,7 @@ Route::middleware('auth')->group(function () {
                 'payment_screenshot' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
                 'region_type'        => 'nullable|string',
                 'delivery_township'  => 'nullable|string',
+                'shop_id'            => 'nullable|exists:shops,id',
             ], [
                 'delivery_phone.regex' => 'Please provide a valid Myanmar phone number starting with +95 9... (တရားဝင် မြန်မာဖုန်းနံပါတ် +95 9... ထည့်သွင်းပေးပါ)',
             ]);
@@ -78,12 +82,19 @@ Route::middleware('auth')->group(function () {
                 return redirect()->route('cart')->with('error', 'Your cart is empty.');
             }
 
-            // Validate backend stock for every cart item
+            // Validate backend stock and shop consistency for every cart item
+            $expectedShopId = $request->shop_id;
             foreach ($cartItems as $cartItem) {
                 $menuItem = MenuItem::find($cartItem['id']);
                 if (!$menuItem || !$menuItem->is_available) {
                     return redirect()->route('cart')->with('error', "Item '" . ($cartItem['name'] ?? 'Item') . "' is currently unavailable.");
                 }
+                
+                // Security check: Ensure all items belong to the same shop as the order
+                if ((string)$menuItem->shop_id !== (string)$expectedShopId) {
+                    return redirect()->route('cart')->with('error', "Your cart contains items from different shops (or items that do not belong to the selected shop). You can only order from one shop at a time. Please clear your cart and try again.");
+                }
+
                 if ($menuItem->stock < $cartItem['qty']) {
                     return redirect()->route('cart')->with('error', "Sorry! Cannot place order because '{$menuItem->name}' has only {$menuItem->stock} unit(s) available in stock (you requested {$cartItem['qty']}). Please adjust your quantity.");
                 }
@@ -113,6 +124,7 @@ Route::middleware('auth')->group(function () {
             $order = Order::create([
                 'order_number'       => 'ORD-' . strtoupper(uniqid()),
                 'user_id'            => Auth::id(),
+                'shop_id'            => $request->shop_id ?? null,
                 'total_amount'       => $request->total_amount,
                 'delivery_fee'       => $request->delivery_fee ?? 0,
                 'tax_amount'         => $request->tax_amount ?? 0,
@@ -427,6 +439,10 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
     // Admin Customer Complaints Management Routes
     Route::resource('complaints', \App\Http\Controllers\Admin\ComplaintController::class)->only(['index', 'show', 'update', 'destroy']);
+
+    // Admin Shop Management Routes
+    Route::resource('shops', ShopController::class)->except(['create', 'show', 'edit']);
+    Route::post('/shops/{shop}/toggle-status', [ShopController::class, 'toggleStatus'])->name('shops.toggle-status');
 });
 
 /*
@@ -442,12 +458,26 @@ Route::middleware(['auth'])->prefix('rider')->as('rider.')->group(function () {
     Route::get('/messages/notifications', [\App\Http\Controllers\OrderMessageController::class, 'riderNotifications'])->name('messages.notifications');
 });
 
+/*
+|--------------------------------------------------------------------------
+| Shop Owner Portal Routes
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth'])->prefix('shop-owner')->name('shop_owner.')->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\ShopOwner\ShopDashboardController::class, 'index'])->name('dashboard');
+    Route::resource('menu-items', \App\Http\Controllers\ShopOwner\ShopMenuItemController::class)->except(['create', 'edit', 'show']);
+    Route::resource('categories', \App\Http\Controllers\ShopOwner\ShopCategoryController::class)->except(['create', 'edit', 'show']);
+});
+
 // Dashboard Redirect Handler (Breeze Default Route)
 Route::get('/dashboard', function () {
     /** @var \App\Models\User $user */
     $user = Auth::user();
     if ($user && $user->isAdmin()) {
         return redirect()->route('admin.dashboard');
+    }
+    if ($user && $user->isShopOwner()) {
+        return redirect()->route('shop_owner.dashboard');
     }
     return redirect()->route('home');
 })->middleware(['auth', 'verified'])->name('dashboard');

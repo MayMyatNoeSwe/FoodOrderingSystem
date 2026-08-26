@@ -17,6 +17,7 @@ class CustomerController extends Controller
     {
         $search = $request->query('search');
         $status = $request->query('status', 'all');
+        $sortBy = $request->query('sort_by', 'latest');
 
         // Customer Statistics in single aggregate query
         $stats = User::where('role', 'user')->selectRaw("
@@ -33,7 +34,7 @@ class CustomerController extends Controller
         })->count();
 
         // Customer Query with order count and total spend
-        $customers = User::where('role', 'user')
+        $query = User::where('role', 'user')
             ->withCount('orders')
             ->withSum('orders as total_spent', 'total_amount')
             ->when($search, function ($query, $search) {
@@ -52,15 +53,24 @@ class CustomerController extends Controller
             })
             ->when($status === 'banned', function ($query) {
                 return $query->where('status', 'banned');
-            })
-            ->latest()
-            ->paginate(10)
-            ->withQueryString();
+            });
+
+        match ($sortBy) {
+            'oldest'      => $query->oldest(),
+            'name_asc'    => $query->orderBy('name', 'asc'),
+            'name_desc'   => $query->orderBy('name', 'desc'),
+            'orders_desc' => $query->orderByDesc('orders_count'),
+            'spent_desc'  => $query->orderByDesc('total_spent'),
+            default       => $query->latest(),
+        };
+
+        $customers = $query->paginate(10)->withQueryString();
 
         return view('admin.customers.index', compact(
             'customers',
             'search',
             'status',
+            'sortBy',
             'totalCustomers',
             'activeCustomers',
             'bannedCustomers',

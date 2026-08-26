@@ -189,6 +189,13 @@ html.page-leaving {
 /* Variant: plain fade */
 [data-reveal="fade"]       { transform: none; }
 
+/* Variant: bounce-left (spring bounce in from right towards left) */
+[data-reveal="bounce-left"] {
+    transform: translateX(48px) scale(0.96);
+    transition: opacity 0.65s cubic-bezier(0.34, 1.56, 0.64, 1),
+                transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
 /* =============================================
    STAGGER DELAYS — use data-reveal-delay="N" in ms
    Pre-built helper delay classes for common stagger
@@ -253,6 +260,29 @@ html.page-leaving {
     animation: contentFadeIn 0.2s ease both;
 }
 
+/* Bounce-Left Entrance & Standalone Keyframes */
+@keyframes bounceLeft {
+    0% {
+        opacity: 0;
+        transform: translateX(48px) scale(0.96);
+    }
+    60% {
+        opacity: 1;
+        transform: translateX(-10px) scale(1.01);
+    }
+    85% {
+        transform: translateX(4px) scale(0.995);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+.animate-bounce-left {
+    animation: bounceLeft 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
 /* Sidebar Smooth Transitions */
 .sidebar-transition {
     transition: width 0.2s ease-in-out,
@@ -275,7 +305,7 @@ html.page-leaving {
 
 /* Universal smooth card lift with physics-based spring curves */
 .card-lift {
-    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
                 box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1),
                 border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1),
                 background-color 0.25s ease;
@@ -284,7 +314,7 @@ html.page-leaving {
     -webkit-backface-visibility: hidden;
 }
 .card-lift:hover {
-    transform: translateY(-6px) scale(1.012);
+    transform: translateX(-5px) translateY(-5px) scale(1.012);
     box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.08),
                 0 10px 15px -5px rgba(0, 0, 0, 0.04);
 }
@@ -293,7 +323,7 @@ html.page-leaving {
                 0 0 20px 1px rgba(249, 115, 22, 0.12);
 }
 .card-lift:active {
-    transform: translateY(-2px) scale(0.992);
+    transform: translateX(-1px) translateY(-1px) scale(0.992);
     transition-duration: 0.15s;
 }
 
@@ -324,7 +354,7 @@ html.page-leaving {
    FOOD MENU CARDS — LUXURY SPRING & GLOW ANIMATIONS
    ============================================= */
 .card-food-item {
-    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
                 box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
                 border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
                 background-color 0.25s ease;
@@ -335,7 +365,7 @@ html.page-leaving {
 }
 
 .card-food-item:hover {
-    transform: translateY(-8px) scale(1.018);
+    transform: translateX(-6px) translateY(-6px) scale(1.018);
     box-shadow: 0 24px 44px -10px rgba(249, 115, 22, 0.24),
                 0 12px 24px -6px rgba(0, 0, 0, 0.08),
                 0 0 0 1px rgba(249, 115, 22, 0.18);
@@ -348,7 +378,7 @@ html.page-leaving {
 }
 
 .card-food-item:active {
-    transform: translateY(-3px) scale(0.99);
+    transform: translateX(-2px) translateY(-2px) scale(0.99);
     transition-duration: 0.15s;
 }
 
@@ -432,19 +462,19 @@ html.page-leaving {
 
 /* Feature cards lift & bounce */
 .feature-card {
-    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
                 box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
                 border-color 0.3s ease,
                 background-color 0.25s ease;
     will-change: transform, box-shadow;
 }
 .feature-card:hover {
-    transform: translateY(-8px) scale(1.015);
+    transform: translateX(-6px) translateY(-6px) scale(1.015);
     box-shadow: 0 25px 45px -12px rgba(249, 115, 22, 0.16),
                 0 10px 20px -5px rgba(0, 0, 0, 0.04);
 }
 .feature-card:active {
-    transform: translateY(-2px) scale(0.995);
+    transform: translateX(-2px) translateY(-1px) scale(0.995);
 }
 
 /* =============================================

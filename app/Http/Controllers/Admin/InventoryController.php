@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\MenuItem;
+use App\Models\Shop;
 use Illuminate\Http\Request;
 
 class InventoryController extends Controller
@@ -16,9 +17,12 @@ class InventoryController extends Controller
     {
         $search = $request->query('search');
         $categoryId = $request->query('category_id');
+        $shopId = $request->query('shop_id');
         $stockStatus = $request->query('stock_status', 'all');
+        $sortBy = $request->query('sort_by', 'stock_asc');
 
         $categories = Category::select('id', 'name')->orderBy('name', 'asc')->get();
+        $shops = Shop::orderBy('name')->get(['id', 'name']);
 
         // Overall metric stats in single aggregate query
         $stats = MenuItem::selectRaw("
@@ -34,7 +38,7 @@ class InventoryController extends Controller
         $outOfStockCount = (int)($stats->out_of_stock ?? 0);
 
         // Query with filters
-        $itemsQuery = MenuItem::with('category')
+        $itemsQuery = MenuItem::with(['category', 'shop'])
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', '%' . $search . '%')
@@ -47,6 +51,9 @@ class InventoryController extends Controller
             ->when($categoryId, function ($query, $categoryId) {
                 return $query->where('category_id', $categoryId);
             })
+            ->when($shopId && $shopId !== 'all', function ($query) use ($shopId) {
+                return $query->where('shop_id', $shopId);
+            })
             ->when($stockStatus && $stockStatus !== 'all', function ($query) use ($stockStatus) {
                 if ($stockStatus === 'available') {
                     return $query->where('is_available', true)->where('stock', '>', 0);
@@ -57,14 +64,27 @@ class InventoryController extends Controller
                 }
             });
 
-        $menuItems = $itemsQuery->orderBy('name', 'asc')->get();
+        match ($sortBy) {
+            'name_asc'   => $itemsQuery->orderBy('name', 'asc'),
+            'name_desc'  => $itemsQuery->orderBy('name', 'desc'),
+            'stock_desc' => $itemsQuery->orderByDesc('stock'),
+            'price_asc'  => $itemsQuery->orderBy('price', 'asc'),
+            'price_desc' => $itemsQuery->orderByDesc('price'),
+            'latest'     => $itemsQuery->latest(),
+            default      => $itemsQuery->orderBy('stock', 'asc'),
+        };
+
+        $menuItems = $itemsQuery->paginate(15)->withQueryString();
 
         return view('admin.inventory.index', compact(
             'menuItems',
             'categories',
+            'shops',
             'search',
             'categoryId',
+            'shopId',
             'stockStatus',
+            'sortBy',
             'totalItemsCount',
             'inStockCount',
             'lowStockCount',

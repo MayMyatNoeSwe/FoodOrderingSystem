@@ -102,6 +102,12 @@
                                 <!-- Order Number -->
                                 <span class="font-mono font-black text-slate-900 dark:text-white text-base tracking-tight">#{{ $order->order_number }}</span>
 
+                                @if($order->shop)
+                                    <span class="px-2 py-0.5 rounded-lg text-xs font-bold bg-orange-100 dark:bg-orange-950/50 text-orange-700 dark:text-orange-300">
+                                        🏪 {{ $order->shop->name }}
+                                    </span>
+                                @endif
+
                                 <!-- Live pulse for active orders -->
                                 @if($isActive)
                                     <span class="flex items-center gap-1.5 text-xs font-bold text-orange-600">

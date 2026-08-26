@@ -17,11 +17,13 @@ class UserController extends Controller
     {
         $search = $request->query('search');
         $role = $request->query('role');
+        $sortBy = $request->query('sort_by', 'latest');
 
         // User Statistics in single aggregate query
         $stats = User::selectRaw("
             COUNT(*) as total,
             SUM(CASE WHEN role = 'admin' THEN 1 ELSE 0 END) as admin_count,
+            SUM(CASE WHEN role = 'shop_owner' THEN 1 ELSE 0 END) as shop_owner_count,
             SUM(CASE WHEN role = 'rider' THEN 1 ELSE 0 END) as rider_count,
             SUM(CASE WHEN role = 'user' THEN 1 ELSE 0 END) as customer_count,
             SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as new_this_month
@@ -29,28 +31,39 @@ class UserController extends Controller
 
         $totalUsersCount = (int)($stats->total ?? 0);
         $adminCount = (int)($stats->admin_count ?? 0);
+        $shopOwnerCount = (int)($stats->shop_owner_count ?? 0);
         $riderCount = (int)($stats->rider_count ?? 0);
         $customerCount = (int)($stats->customer_count ?? 0);
         $newThisMonthCount = (int)($stats->new_this_month ?? 0);
 
-        $users = User::withCount('orders')
+        $query = User::withCount('orders')
+            ->with('ownedShop')
             ->when($search, function ($query, $search) {
                 return $query->where('name', 'like', "%{$search}%")
                              ->orWhere('email', 'like', "%{$search}%");
             })
-            ->when($role, function ($query, $role) {
+            ->when($role && $role !== 'all', function ($query) use ($role) {
                 return $query->where('role', $role);
-            })
-            ->latest()
-            ->paginate(10)
-            ->withQueryString();
+            });
+
+        match ($sortBy) {
+            'oldest'      => $query->oldest(),
+            'name_asc'    => $query->orderBy('name', 'asc'),
+            'name_desc'   => $query->orderBy('name', 'desc'),
+            'orders_desc' => $query->orderByDesc('orders_count'),
+            default       => $query->latest(),
+        };
+
+        $users = $query->paginate(10)->withQueryString();
 
         return view('admin.users.index', compact(
             'users',
             'search',
             'role',
+            'sortBy',
             'totalUsersCount',
             'adminCount',
+            'shopOwnerCount',
             'riderCount',
             'customerCount',
             'newThisMonthCount'

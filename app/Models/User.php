@@ -6,6 +6,7 @@ use App\Models\Order;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -62,6 +63,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if user has shop_owner role
+     */
+    public function isShopOwner(): bool
+    {
+        return isset($this->role) && $this->role === 'shop_owner';
+    }
+
+    /**
      * Check if user has rider role
      */
     public function isRider(): bool
@@ -99,6 +108,14 @@ class User extends Authenticatable
     public function assignedDeliveries(): HasMany
     {
         return $this->hasMany(Order::class, 'rider_id');
+    }
+
+    /**
+     * Get the shop owned by this user (if shop_owner role).
+     */
+    public function ownedShop(): HasOne
+    {
+        return $this->hasOne(Shop::class, 'owner_id');
     }
 
     /**

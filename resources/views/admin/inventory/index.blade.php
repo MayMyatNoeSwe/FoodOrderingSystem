@@ -214,66 +214,78 @@
             </div>
 
             <!-- Search & Filter Controls Bar -->
-            <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-slate-50/80 dark:bg-slate-800/60 p-3 rounded-2xl border border-slate-200/80 dark:border-slate-700">
+            <form method="GET" action="{{ route('admin.inventory.index') }}" class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5 bg-slate-50/80 dark:bg-slate-800/60 p-3 rounded-2xl border border-slate-200/80 dark:border-slate-700 flex-wrap">
                 
                 <!-- Search Box -->
-                <div class="relative flex-1 min-w-[200px]">
+                <div class="relative flex-1 min-w-[170px]">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
                     </div>
                     <input type="text" 
-                           x-model="searchQuery" 
-                           placeholder="{{ __('Filter dishes by name or keyword...') }}"
+                           name="search"
+                           value="{{ $search ?? '' }}" 
+                           placeholder="{{ __('Search dishes by name...') }}"
                            class="w-full pl-9 pr-8 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
-                    <button x-show="searchQuery" @click="searchQuery = ''" class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-white">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
+                    @if(!empty($search))
+                        <a href="{{ route('admin.inventory.index', request()->except('search')) }}" class="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 text-xs font-bold">✕</a>
+                    @endif
                 </div>
 
-                <!-- Category Selector -->
-                <div class="w-full md:w-48 shrink-0">
-                    <select x-model="selectedCategory" 
-                            class="w-full py-2 px-3 text-xs rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 bg-white dark:bg-slate-800 font-medium text-slate-700 dark:text-slate-200">
-                        <option value="all">🍽️ {{ __('All Categories') }}</option>
-                        @foreach($categories as $cat)
-                            <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                <!-- Shop Selector -->
+                <div class="w-full md:w-36 shrink-0">
+                    <select name="shop_id" onchange="this.form.submit()"
+                            class="w-full py-2 px-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 focus:border-orange-500 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
+                        <option value="all">Shop: All</option>
+                        @foreach($shops as $s)
+                            <option value="{{ $s->id }}" {{ ($shopId ?? '') == $s->id ? 'selected' : '' }}>🏪 {{ $s->name }}</option>
                         @endforeach
                     </select>
                 </div>
 
-                <!-- Stock Status Tabs -->
-                <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 md:pb-0">
-                    <button @click="activeStockTab = 'all'" 
-                            type="button"
-                            :class="activeStockTab === 'all' ? 'bg-orange-500 text-white font-bold shadow shadow-orange-500/20' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700'"
-                            class="px-3 py-2 text-xs rounded-xl transition-all cursor-pointer shrink-0">
-                        {{ __('All') }} ({{ count($menuItems) }})
-                    </button>
-                    <button @click="activeStockTab = 'available'" 
-                            type="button"
-                            :class="activeStockTab === 'available' ? 'bg-emerald-600 text-white font-bold shadow shadow-emerald-600/20' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700'"
-                            class="px-3 py-2 text-xs rounded-xl transition-all cursor-pointer shrink-0">
-                        {{ __('Available') }} ({{ $menuItems->where('is_available', true)->where('stock', '>', 0)->count() }})
-                    </button>
-                    <button @click="activeStockTab = 'low_stock'" 
-                            type="button"
-                            :class="activeStockTab === 'low_stock' ? 'bg-amber-600 text-white font-bold shadow shadow-amber-600/20' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700'"
-                            class="px-3 py-2 text-xs rounded-xl transition-all cursor-pointer shrink-0">
-                        {{ __('Low Stock') }} ({{ $menuItems->where('stock', '>', 0)->where('stock', '<=', 10)->count() }})
-                    </button>
-                    <button @click="activeStockTab = 'out_of_stock'" 
-                            type="button"
-                            :class="activeStockTab === 'out_of_stock' ? 'bg-red-600 text-white font-bold shadow shadow-red-600/20' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700'"
-                            class="px-3 py-2 text-xs rounded-xl transition-all cursor-pointer shrink-0">
-                        {{ __('Out of Stock') }} ({{ $menuItems->filter(fn($i) => !$i->is_available || $i->stock <= 0)->count() }})
-                    </button>
+                <!-- Category Selector -->
+                <div class="w-full md:w-36 shrink-0">
+                    <select name="category_id" onchange="this.form.submit()"
+                            class="w-full py-2 px-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 focus:border-orange-500 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
+                        <option value="">🍽️ {{ __('All Categories') }}</option>
+                        @foreach($categories as $cat)
+                            <option value="{{ $cat->id }}" {{ ($categoryId ?? '') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
+                        @endforeach
+                    </select>
                 </div>
 
-            </div>
+                <!-- Stock Status Selector -->
+                <div class="w-full md:w-32 shrink-0">
+                    <select name="stock_status" onchange="this.form.submit()"
+                            class="w-full py-2 px-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 focus:border-orange-500 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
+                        <option value="all" {{ ($stockStatus ?? '') === 'all' ? 'selected' : '' }}>Status: All</option>
+                        <option value="available" {{ ($stockStatus ?? '') === 'available' ? 'selected' : '' }}>✅ Available</option>
+                        <option value="low_stock" {{ ($stockStatus ?? '') === 'low_stock' ? 'selected' : '' }}>⚠️ Low Stock</option>
+                        <option value="out_of_stock" {{ ($stockStatus ?? '') === 'out_of_stock' ? 'selected' : '' }}>🚫 Out of Stock</option>
+                    </select>
+                </div>
+
+                <!-- Sort By Selector -->
+                <div class="w-full md:w-36 shrink-0">
+                    <select name="sort_by" onchange="this.form.submit()"
+                            class="w-full py-2 px-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 focus:border-orange-500 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
+                        <option value="stock_asc" {{ ($sortBy ?? '') === 'stock_asc' ? 'selected' : '' }}>Stock: Low to High</option>
+                        <option value="stock_desc" {{ ($sortBy ?? '') === 'stock_desc' ? 'selected' : '' }}>Stock: High to Low</option>
+                        <option value="name_asc" {{ ($sortBy ?? '') === 'name_asc' ? 'selected' : '' }}>Name (A-Z)</option>
+                        <option value="name_desc" {{ ($sortBy ?? '') === 'name_desc' ? 'selected' : '' }}>Name (Z-A)</option>
+                        <option value="price_asc" {{ ($sortBy ?? '') === 'price_asc' ? 'selected' : '' }}>Price: Low to High</option>
+                        <option value="price_desc" {{ ($sortBy ?? '') === 'price_desc' ? 'selected' : '' }}>Price: High to Low</option>
+                        <option value="latest" {{ ($sortBy ?? '') === 'latest' ? 'selected' : '' }}>Newest First</option>
+                    </select>
+                </div>
+
+                @if(!empty($search) || ($categoryId) || ($shopId && $shopId !== 'all') || ($stockStatus && $stockStatus !== 'all') || ($sortBy && $sortBy !== 'stock_asc'))
+                    <a href="{{ route('admin.inventory.index') }}" class="px-2.5 py-2 text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all whitespace-nowrap">
+                        Reset
+                    </a>
+                @endif
+            </form>
 
             <!-- 1. GRID VIEW: INSTANT 1-CLICK STOCK SWITCH CARDS -->
             <div x-show="viewMode === 'grid'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -385,6 +397,7 @@
                         <tr>
                             <th class="px-4 py-3.5 w-16">{{ __('Dish') }}</th>
                             <th class="px-4 py-3.5">{{ __('Name & Category') }}</th>
+                            <th class="px-4 py-3.5">{{ __('Shop') }}</th>
                             <th class="px-4 py-3.5">{{ __('Unit Price') }}</th>
                             <th class="px-4 py-3.5">{{ __('Stock Count') }}</th>
                             <th class="px-4 py-3.5">{{ __('1-Click Availability') }}</th>
@@ -410,6 +423,17 @@
                                 <td class="px-4 py-3">
                                     <div class="font-bold text-slate-900 dark:text-white">{{ $item->name }}</div>
                                     <div class="text-[11px] text-slate-500 dark:text-slate-400">{{ $item->category->name ?? 'Uncategorized' }}</div>
+                                </td>
+
+                                <!-- Shop -->
+                                <td class="px-4 py-3">
+                                    @if($item->shop)
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-300 border border-orange-200 dark:border-orange-800">
+                                            🏪 {{ $item->shop->name }}
+                                        </span>
+                                    @else
+                                        <span class="text-slate-400 text-xs">—</span>
+                                    @endif
                                 </td>
 
                                 <!-- Price -->

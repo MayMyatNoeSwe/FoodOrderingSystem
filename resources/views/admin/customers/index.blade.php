@@ -154,7 +154,17 @@
                             <option value="banned" {{ $status === 'banned' ? 'selected' : '' }}>🔴 {{ __('Banned Only') }}</option>
                         </select>
 
-                        @if($search || $status !== 'all')
+                        <!-- Sort By Dropdown -->
+                        <select name="sort_by" onchange="this.form.submit()" class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs rounded-xl px-3.5 py-2.5 focus:ring-0 transition-all cursor-pointer font-medium">
+                            <option value="latest" {{ ($sortBy ?? '') === 'latest' ? 'selected' : '' }}>Sort: Newest First</option>
+                            <option value="oldest" {{ ($sortBy ?? '') === 'oldest' ? 'selected' : '' }}>Sort: Oldest First</option>
+                            <option value="name_asc" {{ ($sortBy ?? '') === 'name_asc' ? 'selected' : '' }}>Name (A-Z)</option>
+                            <option value="name_desc" {{ ($sortBy ?? '') === 'name_desc' ? 'selected' : '' }}>Name (Z-A)</option>
+                            <option value="spent_desc" {{ ($sortBy ?? '') === 'spent_desc' ? 'selected' : '' }}>Total Spent: High to Low</option>
+                            <option value="orders_desc" {{ ($sortBy ?? '') === 'orders_desc' ? 'selected' : '' }}>Orders Count: High to Low</option>
+                        </select>
+
+                        @if($search || $status !== 'all' || ($sortBy && $sortBy !== 'latest'))
                             <a href="{{ route('admin.customers.index') }}" class="px-3.5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-1">
                                 <span>✕</span>
                                 <span>{{ __('Reset') }}</span>

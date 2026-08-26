@@ -103,6 +103,67 @@
                 </button>
             </div>
 
+            <!-- Search & Filter Controls Toolbar -->
+            <form method="GET" action="{{ route('admin.riders.index') }}" class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 bg-slate-50/80 dark:bg-slate-800/60 p-3 rounded-2xl border border-slate-200/80 dark:border-slate-700 flex-wrap">
+                
+                <!-- Search Box -->
+                <div class="relative flex-1 min-w-[180px]">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    <input type="text" 
+                           name="search"
+                           value="{{ $search ?? '' }}" 
+                           placeholder="{{ __('Search by name, email, phone, city...') }}"
+                           class="w-full pl-9 pr-8 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
+                    @if(!empty($search))
+                        <a href="{{ route('admin.riders.index', request()->except('search')) }}" class="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 text-xs font-bold">✕</a>
+                    @endif
+                </div>
+
+                <!-- City Selector -->
+                <div class="w-full sm:w-36 shrink-0">
+                    <select name="city" onchange="this.form.submit()"
+                            class="w-full py-2 px-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 focus:border-orange-500 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
+                        <option value="all">City: All</option>
+                        @foreach($cities as $c)
+                            <option value="{{ $c }}" {{ ($city ?? '') == $c ? 'selected' : '' }}>📍 {{ $c }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Delivery Status Selector -->
+                <div class="w-full sm:w-36 shrink-0">
+                    <select name="status" onchange="this.form.submit()"
+                            class="w-full py-2 px-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 focus:border-orange-500 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
+                        <option value="all" {{ ($status ?? '') === 'all' ? 'selected' : '' }}>Status: All</option>
+                        <option value="active" {{ ($status ?? '') === 'active' ? 'selected' : '' }}>🛵 Delivering Now</option>
+                        <option value="idle" {{ ($status ?? '') === 'idle' ? 'selected' : '' }}>🟢 Idle / Ready</option>
+                    </select>
+                </div>
+
+                <!-- Sort By Selector -->
+                <div class="w-full sm:w-44 shrink-0">
+                    <select name="sort_by" onchange="this.form.submit()"
+                            class="w-full py-2 px-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 focus:border-orange-500 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
+                        <option value="latest" {{ ($sortBy ?? '') === 'latest' ? 'selected' : '' }}>Sort: Newest First</option>
+                        <option value="oldest" {{ ($sortBy ?? '') === 'oldest' ? 'selected' : '' }}>Sort: Oldest First</option>
+                        <option value="name_asc" {{ ($sortBy ?? '') === 'name_asc' ? 'selected' : '' }}>Name (A-Z)</option>
+                        <option value="name_desc" {{ ($sortBy ?? '') === 'name_desc' ? 'selected' : '' }}>Name (Z-A)</option>
+                        <option value="completed_desc" {{ ($sortBy ?? '') === 'completed_desc' ? 'selected' : '' }}>Completed: High to Low</option>
+                        <option value="active_desc" {{ ($sortBy ?? '') === 'active_desc' ? 'selected' : '' }}>Active: High to Low</option>
+                    </select>
+                </div>
+
+                @if(!empty($search) || ($city && $city !== 'all') || ($status && $status !== 'all') || ($sortBy && $sortBy !== 'latest'))
+                    <a href="{{ route('admin.riders.index') }}" class="px-2.5 py-2 text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all whitespace-nowrap">
+                        Reset
+                    </a>
+                @endif
+            </form>
+
             <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
                 <table class="w-full text-left text-xs">
                     <thead class="bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">

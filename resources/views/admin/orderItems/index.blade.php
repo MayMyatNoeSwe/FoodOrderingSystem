@@ -104,25 +104,40 @@
                     <p class="text-xs text-slate-500 dark:text-slate-400">{{ __('Filter by specific order number, search dishes, or filter by category') }}</p>
                 </div>
 
-                <form method="GET" action="{{ route('admin.orderItems.index') }}" class="flex flex-wrap items-center gap-3">
+                <form method="GET" action="{{ route('admin.orderItems.index') }}" class="flex flex-wrap items-center gap-2.5">
                     
                     <!-- Search Input -->
-                    <div class="relative min-w-[200px] flex-1 sm:flex-initial">
+                    <div class="relative min-w-[180px] flex-1 sm:flex-initial">
                         <input type="text" 
                                name="search" 
                                value="{{ $search }}" 
                                placeholder="{{ __('Search dish or order #...') }}" 
-                               class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2 pl-9 focus:ring-0 transition-all placeholder-slate-400">
+                               class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2 pl-9 pr-7 focus:ring-0 transition-all placeholder-slate-400">
                         <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
+                        @if($search)
+                            <a href="{{ route('admin.orderItems.index', request()->except('search')) }}" class="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 text-xs font-bold">✕</a>
+                        @endif
                     </div>
+
+                    <!-- Shop Filter -->
+                    <select name="shop_id" 
+                            onchange="this.form.submit()" 
+                            class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs rounded-xl px-2.5 py-2 focus:ring-0 focus:border-orange-500 cursor-pointer">
+                        <option value="all">Shop: All</option>
+                        @foreach($shops as $s)
+                            <option value="{{ $s->id }}" {{ ($shopId ?? '') == $s->id ? 'selected' : '' }}>
+                                🏪 {{ $s->name }}
+                            </option>
+                        @endforeach
+                    </select>
 
                     <!-- Category Filter -->
                     <select name="category_id" 
                             onchange="this.form.submit()" 
-                            class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs rounded-xl px-3 py-2 focus:ring-0 focus:border-orange-500 cursor-pointer">
-                        <option value="">{{ __('All Categories') }}</option>
+                            class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs rounded-xl px-2.5 py-2 focus:ring-0 focus:border-orange-500 cursor-pointer">
+                        <option value="">{{ __('Category: All') }}</option>
                         @foreach($categories as $cat)
                             <option value="{{ $cat->id }}" {{ $categoryId == $cat->id ? 'selected' : '' }}>
                                 {{ $cat->name }}
@@ -130,21 +145,29 @@
                         @endforeach
                     </select>
 
+                    <!-- Sort By -->
+                    <select name="sort_by" 
+                            onchange="this.form.submit()" 
+                            class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs rounded-xl px-2.5 py-2 focus:ring-0 focus:border-orange-500 cursor-pointer">
+                        <option value="latest" {{ ($sortBy ?? '') === 'latest' ? 'selected' : '' }}>Sort: Newest First</option>
+                        <option value="oldest" {{ ($sortBy ?? '') === 'oldest' ? 'selected' : '' }}>Sort: Oldest First</option>
+                        <option value="subtotal_desc" {{ ($sortBy ?? '') === 'subtotal_desc' ? 'selected' : '' }}>Subtotal: High to Low</option>
+                        <option value="subtotal_asc" {{ ($sortBy ?? '') === 'subtotal_asc' ? 'selected' : '' }}>Subtotal: Low to High</option>
+                        <option value="qty_desc" {{ ($sortBy ?? '') === 'qty_desc' ? 'selected' : '' }}>Quantity: High to Low</option>
+                        <option value="qty_asc" {{ ($sortBy ?? '') === 'qty_asc' ? 'selected' : '' }}>Quantity: Low to High</option>
+                    </select>
+
                     <!-- Order ID Filter if specified -->
                     @if($orderId)
                         <input type="hidden" name="order_id" value="{{ $orderId }}">
-                        <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 dark:bg-orange-950/50 border border-orange-200 dark:border-orange-800 rounded-xl text-xs font-bold text-orange-700 dark:text-orange-400">
+                        <div class="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-orange-50 dark:bg-orange-950/50 border border-orange-200 dark:border-orange-800 rounded-xl text-xs font-bold text-orange-700 dark:text-orange-400">
                             <span>{{ __('Order:') }} #{{ $orderId }}</span>
-                            <a href="{{ route('admin.orderItems.index', array_filter(['search' => $search, 'category_id' => $categoryId])) }}" class="text-orange-500 hover:text-orange-700 font-black">✕</a>
+                            <a href="{{ route('admin.orderItems.index', request()->except('order_id')) }}" class="text-orange-500 hover:text-orange-700 font-black">✕</a>
                         </div>
                     @endif
 
-                    <button type="submit" class="px-4 py-2 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-xs font-bold rounded-xl shadow-md shadow-orange-500/20 transition-all cursor-pointer">
-                        {{ __('Filter') }}
-                    </button>
-
-                    @if($search || $categoryId || $orderId)
-                        <a href="{{ route('admin.orderItems.index') }}" class="px-3.5 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 transition-all">
+                    @if($search || $categoryId || ($shopId && $shopId !== 'all') || $orderId || ($sortBy && $sortBy !== 'latest'))
+                        <a href="{{ route('admin.orderItems.index') }}" class="px-2.5 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 transition-all">
                             {{ __('Reset') }}
                         </a>
                     @endif
@@ -164,6 +187,7 @@
                             <th class="px-4 py-3.5 w-14">ID</th>
                             <th class="px-4 py-3.5">{{ __('Order Number') }}</th>
                             <th class="px-4 py-3.5">{{ __('Dish Item') }}</th>
+                            <th class="px-4 py-3.5">{{ __('Shop') }}</th>
                             <th class="px-4 py-3.5">{{ __('Category') }}</th>
                             <th class="px-4 py-3.5">{{ __('Qty × Unit Price') }}</th>
                             <th class="px-4 py-3.5 text-right">{{ __('Subtotal') }}</th>
@@ -216,6 +240,20 @@
                                     <div class="font-bold text-slate-900 dark:text-white text-xs">{{ $dishName }}</div>
                                     @if($item->menuItem)
                                         <div class="text-[10px] text-slate-400">Item ID #{{ $item->menu_item_id }}</div>
+                                    @endif
+                                </td>
+
+                                <!-- Shop -->
+                                <td class="px-4 py-4">
+                                    @php
+                                        $itemShop = $item->order?->shop ?? $item->menuItem?->shop;
+                                    @endphp
+                                    @if($itemShop)
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-300 border border-orange-200 dark:border-orange-800">
+                                            🏪 {{ $itemShop->name }}
+                                        </span>
+                                    @else
+                                        <span class="text-slate-400 text-xs">—</span>
                                     @endif
                                 </td>
 

@@ -249,13 +249,46 @@
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                     
                     <!-- Search & Filter Form -->
-                    <form method="GET" action="{{ route('admin.menuItems.index') }}" class="flex flex-col sm:flex-row items-center gap-2">
+                    <form method="GET" action="{{ route('admin.menuItems.index') }}" class="flex flex-col sm:flex-row items-center gap-2 flex-wrap">
                         
+                        <!-- Text Search Input -->
+                        <div class="relative w-full sm:w-48">
+                            <input type="text" 
+                                   name="search" 
+                                   value="{{ $search }}" 
+                                   placeholder="{{ __('Search item...') }}" 
+                                   class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs rounded-xl px-3 py-2 pl-8 pr-7 focus:ring-0 transition-all placeholder-slate-400">
+                            
+                            <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+
+                            @if($search)
+                                <a href="{{ route('admin.menuItems.index', request()->except('search')) }}" 
+                                   title="{{ __('Clear Search') }}" 
+                                   class="absolute right-2 top-2 text-slate-400 hover:text-slate-700 dark:hover:text-white p-0.5 text-xs font-bold rounded-full">
+                                    ✕
+                                </a>
+                            @endif
+                        </div>
+
+                        <!-- Shop Select Filter -->
+                        <select name="shop_id" 
+                                onchange="this.form.submit()" 
+                                class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 text-slate-800 dark:text-slate-100 text-xs rounded-xl px-2.5 py-2 focus:ring-0 cursor-pointer w-full sm:w-auto">
+                            <option value="all">Shop: All</option>
+                            @foreach($shops as $s)
+                                <option value="{{ $s->id }}" {{ ($shopId ?? '') == $s->id ? 'selected' : '' }}>
+                                    🏪 {{ $s->name }}
+                                </option>
+                            @endforeach
+                        </select>
+
                         <!-- Category Select Filter -->
                         <select name="category_id" 
                                 onchange="this.form.submit()" 
-                                class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs rounded-xl px-3 py-2.5 focus:ring-0 cursor-pointer w-full sm:w-auto">
-                            <option value="">{{ __('All Categories') }}</option>
+                                class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 text-slate-800 dark:text-slate-100 text-xs rounded-xl px-2.5 py-2 focus:ring-0 cursor-pointer w-full sm:w-auto">
+                            <option value="">{{ __('Category: All') }}</option>
                             @foreach($categories as $cat)
                                 <option value="{{ $cat->id }}" {{ $categoryId == $cat->id ? 'selected' : '' }}>
                                     {{ $cat->name }}
@@ -263,26 +296,36 @@
                             @endforeach
                         </select>
 
-                        <!-- Text Search Input -->
-                        <div class="relative w-full sm:w-56">
-                            <input type="text" 
-                                   name="search" 
-                                   value="{{ $search }}" 
-                                   placeholder="{{ __('Search item name...') }}" 
-                                   class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 pl-9 pr-8 focus:ring-0 transition-all placeholder-slate-400">
-                            
-                            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                            </svg>
+                        <!-- Stock Status Filter -->
+                        <select name="stock_status" 
+                                onchange="this.form.submit()" 
+                                class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 text-slate-800 dark:text-slate-100 text-xs rounded-xl px-2.5 py-2 focus:ring-0 cursor-pointer w-full sm:w-auto">
+                            <option value="">{{ __('Stock: All') }}</option>
+                            <option value="in_stock" {{ ($stockStatus ?? '') === 'in_stock' ? 'selected' : '' }}>In Stock</option>
+                            <option value="low_stock" {{ ($stockStatus ?? '') === 'low_stock' ? 'selected' : '' }}>⚠️ Low Stock</option>
+                            <option value="out_of_stock" {{ ($stockStatus ?? '') === 'out_of_stock' ? 'selected' : '' }}>❌ Out of Stock</option>
+                        </select>
 
-                            @if($search || $categoryId || $stockStatus)
-                                <a href="{{ route('admin.menuItems.index') }}" 
-                                   title="{{ __('Clear Filters') }}" 
-                                   class="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-700 dark:hover:text-white p-0.5 text-xs font-bold rounded-full">
-                                    ✕
-                                </a>
-                            @endif
-                        </div>
+                        <!-- Sort By -->
+                        <select name="sort_by" 
+                                onchange="this.form.submit()" 
+                                class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 text-slate-800 dark:text-slate-100 text-xs rounded-xl px-2.5 py-2 focus:ring-0 cursor-pointer w-full sm:w-auto">
+                            <option value="latest" {{ ($sortBy ?? '') === 'latest' ? 'selected' : '' }}>Sort: Newest First</option>
+                            <option value="oldest" {{ ($sortBy ?? '') === 'oldest' ? 'selected' : '' }}>Sort: Oldest First</option>
+                            <option value="name_asc" {{ ($sortBy ?? '') === 'name_asc' ? 'selected' : '' }}>Name (A-Z)</option>
+                            <option value="name_desc" {{ ($sortBy ?? '') === 'name_desc' ? 'selected' : '' }}>Name (Z-A)</option>
+                            <option value="price_asc" {{ ($sortBy ?? '') === 'price_asc' ? 'selected' : '' }}>Price: Low to High</option>
+                            <option value="price_desc" {{ ($sortBy ?? '') === 'price_desc' ? 'selected' : '' }}>Price: High to Low</option>
+                            <option value="stock_desc" {{ ($sortBy ?? '') === 'stock_desc' ? 'selected' : '' }}>Stock: High to Low</option>
+                            <option value="stock_asc" {{ ($sortBy ?? '') === 'stock_asc' ? 'selected' : '' }}>Stock: Low to High</option>
+                        </select>
+
+                        @if($search || $categoryId || ($shopId && $shopId !== 'all') || $stockStatus || ($sortBy && $sortBy !== 'latest'))
+                            <a href="{{ route('admin.menuItems.index') }}" 
+                               class="px-2 py-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all whitespace-nowrap">
+                                Reset
+                            </a>
+                        @endif
                     </form>
 
                     <!-- Add Item Trigger Button -->
@@ -304,6 +347,7 @@
                         <tr>
                             <th class="px-4 py-3.5 w-16">{{ __('Item') }}</th>
                             <th class="px-4 py-3.5">{{ __('Name & Description') }}</th>
+                            <th class="px-4 py-3.5">{{ __('Shop') }}</th>
                             <th class="px-4 py-3.5">{{ __('Category') }}</th>
                             <th class="px-4 py-3.5">{{ __('Price') }}</th>
                             <th class="px-4 py-3.5">{{ __('Min Stock Alert') }}</th>
@@ -358,6 +402,17 @@
                                     <div class="text-slate-500 dark:text-slate-400 text-xs mt-0.5 line-clamp-1 max-w-sm">
                                         {{ $item->description ?? __('No description available.') }}
                                     </div>
+                                </td>
+
+                                <!-- Shop -->
+                                <td class="px-4 py-4">
+                                    @if($item->shop)
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-300 border border-orange-200 dark:border-orange-800">
+                                            🏪 {{ $item->shop->name }}
+                                        </span>
+                                    @else
+                                        <span class="text-slate-400 text-xs">—</span>
+                                    @endif
                                 </td>
 
                                 <!-- Category -->

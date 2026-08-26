@@ -6,6 +6,8 @@ use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
+use App\Models\Shop;
+
 class CategoryController extends Controller
 {
     /**
@@ -14,17 +16,30 @@ class CategoryController extends Controller
     public function index(Request $request)
     {
         $search = $request->query('search');
+        $shopId = $request->query('shop_id');
+        $sortBy = $request->query('sort_by', 'latest');
 
-        $categories = Category::withCount('menuItems')
+        $query = Category::with('shop')->withCount('menuItems')
             ->when($search, function ($query, $search) {
                 return $query->where('name', 'like', "%{$search}%")
                              ->orWhere('slug', 'like', "%{$search}%");
             })
-            ->latest()
-            ->paginate(10)
-            ->withQueryString();
+            ->when($shopId && $shopId !== 'all', function ($query) use ($shopId) {
+                return $query->where('shop_id', $shopId);
+            });
 
-        return view('admin.categories.index', compact('categories', 'search'));
+        match ($sortBy) {
+            'oldest'           => $query->oldest(),
+            'name_asc'         => $query->orderBy('name', 'asc'),
+            'name_desc'        => $query->orderBy('name', 'desc'),
+            'items_count_desc' => $query->orderByDesc('menu_items_count'),
+            default            => $query->latest(),
+        };
+
+        $categories = $query->paginate(10)->withQueryString();
+        $shops = Shop::orderBy('name')->get(['id', 'name']);
+
+        return view('admin.categories.index', compact('categories', 'shops', 'search', 'shopId', 'sortBy'));
     }
 
     /**

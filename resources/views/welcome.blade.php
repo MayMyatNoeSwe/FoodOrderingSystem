@@ -103,13 +103,36 @@
                 clearSearch() {
                     this.searchQuery = '';
                 },
-                scrollToMenu() {
-                    const menuEl = document.getElementById('menu');
-                    if (menuEl) {
-                        const navOffset = 80;
-                        const targetY = menuEl.getBoundingClientRect().top + window.pageYOffset - navOffset;
-                        window.scrollTo({ top: targetY, behavior: 'smooth' });
+                activeShopId: null,
+                activeShopName: null,
+                setShop(shopId, shopName) {
+                    const cart = this.getCart();
+                    if (cart.length > 0 && String(cart[0].shop_id || '') !== String(shopId || '')) {
+                        const prevShop = cart[0].shop_name || 'another shop';
+                        if (!confirm(`Switch to "${shopName}"?\n\nYour current cart contains items from "${prevShop}". It will be cleared because you can only order from one shop at a time.`)) {
+                            return;
+                        }
+                        localStorage.removeItem('foodorder_cart');
+                        this.cartCount = 0;
+                        window.dispatchEvent(new CustomEvent('cart-updated'));
                     }
+                    this.activeShopId = shopId;
+                    this.activeShopName = shopName;
+                    this.scrollToMenu();
+                },
+                clearShop() {
+                    this.activeShopId = null;
+                    this.activeShopName = null;
+                },
+                scrollToMenu() {
+                    setTimeout(() => {
+                        const menuEl = document.getElementById('menu');
+                        if (menuEl) {
+                            const navOffset = 80;
+                            const targetY = menuEl.getBoundingClientRect().top + window.pageYOffset - navOffset;
+                            window.scrollTo({ top: targetY, behavior: 'smooth' });
+                        }
+                    }, 50);
                 },
                 getCart() {
                     try {
@@ -128,12 +151,23 @@
                     this.cartCount = this.getCart().reduce((s,i) => s + (i.qty || 0), 0);
                 },
                 addToCart(item) {
-                    const cart = this.getCart();
+                    let cart = this.getCart();
+
+                    // Check if cart already has items from a different shop
+                    if (cart.length > 0 && String(cart[0].shop_id || '') !== String(item.shop_id || '')) {
+                        const prevShop = cart[0].shop_name || 'another shop';
+                        const newShop = item.shop_name || 'a different shop';
+                        if (!confirm(`Your cart already contains items from "${prevShop}".\n\nYou can only order from one shop at a time. Do you want to clear your current cart and start a new order from "${newShop}"?`)) {
+                            return false;
+                        }
+                        cart = [];
+                    }
+
                     const existing = cart.find(i => i.id === item.id);
                     const maxStock = (item.stock !== undefined && item.stock !== null) ? Number(item.stock) : 999;
                     if (maxStock <= 0) {
                         alert('Sorry, "' + item.name + '" is currently out of stock!');
-                        return;
+                        return false;
                     }
                     if (existing) {
                         if (existing.qty < maxStock) {
@@ -141,7 +175,7 @@
                             existing.stock = maxStock;
                         } else {
                             alert('Cannot add more. Available stock limit for "' + item.name + '" is ' + maxStock + '!');
-                            return;
+                            return false;
                         }
                     } else {
                         cart.push({ ...item, qty: 1, stock: maxStock });
@@ -152,6 +186,7 @@
                     this.toastName = item.name;
                     this.toastVisible = true;
                     setTimeout(() => { this.toastVisible = false; }, 2500);
+                    return true;
                 }
             };
         };
@@ -160,11 +195,13 @@
 @php
     $itemsJson = $menuItems->map(function($i) {
         return [
-            'id' => $i->id,
-            'name' => $i->name,
-            'description' => $i->description ?? '',
+            'id'            => $i->id,
+            'name'          => $i->name,
+            'description'   => $i->description ?? '',
             'category_slug' => $i->category ? $i->category->slug : 'all',
             'category_name' => $i->category ? $i->category->name : 'Special',
+            'shop_id'       => $i->shop_id,
+            'shop_name'     => $i->shop ? $i->shop->name : '',
         ];
     });
 @endphp
@@ -307,6 +344,67 @@
             </div>
         </section>
 
+        {{-- ================= SHOPS SECTION ================= --}}
+        @if(isset($shops) && $shops->count() > 0)
+        <section id="shops" class="py-10 transition-colors duration-300 scroll-mt-24 sm:scroll-mt-28" data-reveal="fade-up">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+                <div class="flex items-center justify-between gap-4 mb-6">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-orange-500"></span>
+                        <span class="text-orange-600 dark:text-orange-400 text-xs font-black tracking-widest uppercase">🏪 {{ __('Browse Shops') }}</span>
+                    </div>
+                    <div class="flex-1 h-px bg-gradient-to-r from-slate-200 dark:from-slate-800 to-transparent"></div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                    @foreach($shops as $shop)
+                    <a href="#menu"
+                       @click.prevent="setShop({{ $shop->id }}, '{{ addslashes($shop->name) }}')"
+                       class="group block bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-orange-300 dark:hover:border-orange-700 transition-all duration-300 overflow-hidden cursor-pointer">
+                        {{-- Cover Image --}}
+                        <div class="relative h-32 bg-gradient-to-br from-orange-400 to-amber-500 overflow-hidden">
+                            @if($shop->cover_image)
+                                <img src="{{ asset($shop->cover_image) }}" alt="{{ $shop->name }}" class="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500">
+                            @else
+                                <div class="absolute inset-0 flex items-center justify-center opacity-20">
+                                    <svg class="w-24 h-24 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                </div>
+                            @endif
+                            {{-- Logo --}}
+                            <div class="absolute -bottom-5 left-4 w-12 h-12 rounded-xl border-2 border-white dark:border-slate-900 bg-white dark:bg-slate-800 shadow-md overflow-hidden flex items-center justify-center">
+                                @if($shop->logo)
+                                    <img src="{{ asset($shop->logo) }}" alt="{{ $shop->name }}" class="w-full h-full object-cover">
+                                @else
+                                    <span class="text-2xl">🏪</span>
+                                @endif
+                            </div>
+                            {{-- Item count badge --}}
+                            <div class="absolute top-3 right-3 px-2 py-0.5 rounded-full text-[10px] font-black bg-black/40 text-white backdrop-blur-sm">
+                                🍽️ {{ $shop->menu_items_count }} items
+                            </div>
+                        </div>
+
+                        <div class="p-4 pt-8">
+                            <h3 class="font-black text-slate-900 dark:text-white text-base group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">{{ $shop->name }}</h3>
+                            @if($shop->description)
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">{{ $shop->description }}</p>
+                            @endif
+                            <div class="mt-3 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                                <svg class="w-3.5 h-3.5 shrink-0 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                <span class="truncate">{{ $shop->address }}</span>
+                            </div>
+                            <div class="mt-3 flex items-center justify-between">
+                                <span class="text-xs font-bold text-orange-600 dark:text-orange-400 group-hover:underline">View Menu →</span>
+                            </div>
+                        </div>
+                    </a>
+                    @endforeach
+                </div>
+            </div>
+        </section>
+        @endif
+
         <!-- ================= CATEGORIES SECTION ================= -->
         <section id="categories" class="py-10 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md border-y border-slate-200/60 dark:border-slate-800/80 transition-colors duration-300 scroll-mt-24 sm:scroll-mt-28" data-reveal="fade-up">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -394,6 +492,12 @@
                         </h2>
                     </div>
                     <div class="flex items-center gap-3">
+                        <template x-if="activeShopName">
+                            <div class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/80 rounded-2xl text-xs font-bold shadow-sm">
+                                <span>🏪 <span x-text="activeShopName"></span></span>
+                                <button @click="clearShop()" class="hover:text-emerald-900 dark:hover:text-emerald-200 ml-1 font-extrabold cursor-pointer text-sm" title="Clear Shop Filter">✕</button>
+                            </div>
+                        </template>
                         <template x-if="searchQuery">
                             <div class="inline-flex items-center gap-2 px-4 py-2 bg-orange-50 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-800/80 rounded-2xl text-xs font-bold shadow-sm animate-pulse">
                                 <span>🔍 "<span x-text="searchQuery"></span>"</span>
@@ -401,7 +505,7 @@
                                 <button @click="clearSearch()" class="hover:text-orange-800 dark:hover:text-orange-200 ml-1 font-extrabold cursor-pointer text-sm" title="Clear Search">✕</button>
                             </div>
                         </template>
-                        <span class="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 max-w-md text-left md:text-right" x-show="!searchQuery">
+                        <span class="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 max-w-md text-left md:text-right" x-show="!searchQuery && !activeShopName">
                             {{ __('Menu Subtitle') }}
                         </span>
                     </div>
@@ -422,14 +526,15 @@
                             elseif(str_contains(strtolower($catName), 'dessert')) { $icon = '🍰'; }
                         @endphp
 
-                        <div x-show="(searchQuery.trim() !== '' || activeCategory === 'all' || activeCategory === '{{ $catSlug }}') && matchesSearch(@js($item->name), @js($item->description ?? ''), @js($catName))"
-                             x-transition:enter="transition cubic-bezier(0.16, 1, 0.3, 1) duration-400 transform"
-                             x-transition:enter-start="opacity-0 translate-y-6 scale-95"
-                             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                        <div x-show="(!activeShopId || activeShopId === {{ $item->shop_id ?? 'null' }}) && (searchQuery.trim() !== '' || activeCategory === 'all' || activeCategory === '{{ $catSlug }}') && matchesSearch(@js($item->name), @js($item->description ?? ''), @js($catName))"
+                             x-transition:enter="transition cubic-bezier(0.34, 1.56, 0.64, 1) duration-400 transform"
+                             x-transition:enter-start="opacity-0 translate-x-10 scale-95"
+                             x-transition:enter-end="opacity-100 translate-x-0 scale-100"
                              x-transition:leave="transition cubic-bezier(0.4, 0, 0.2, 1) duration-200 transform"
-                             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-                             x-transition:leave-end="opacity-0 translate-y-4 scale-95"
-                             data-reveal="zoom-fade" data-reveal-delay="{{ ($loop->index % 4) * 80 }}"
+                             x-transition:leave-start="opacity-100 translate-x-0 scale-100"
+                             x-transition:leave-end="opacity-0 -translate-x-6 scale-95"
+                             data-reveal="bounce-left" data-reveal-delay="{{ ($loop->index % 4) * 80 }}"
+                             data-shop-id="{{ $item->shop_id }}"
                              class="card-food-item card-shimmer group relative flex flex-col justify-between rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/90 shadow-sm hover:border-orange-400/80 dark:hover:border-orange-500/50 overflow-hidden">
                             
                             <div>
@@ -516,7 +621,7 @@
                                     </button>
                                 @else
                                     <button
-                                        @click="addToCart({{ json_encode(['id' => $item->id, 'name' => $item->name, 'price' => $item->price, 'image' => $item->image_url, 'category' => $catName, 'stock' => $item->stock]) }}); window.location.href='{{ route('cart') }}';"
+                                        @click="if(addToCart({{ json_encode(['id' => $item->id, 'name' => $item->name, 'price' => $item->price, 'image' => $item->image_url, 'category' => $catName, 'stock' => $item->stock, 'shop_id' => $item->shop_id, 'shop_name' => $item->shop?->name ?? 'Shop']) }})) { window.location.href='{{ route('cart') }}'; }"
                                         class="px-3.5 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 active:scale-95 text-white font-extrabold text-xs rounded-xl sm:rounded-2xl shadow-md shadow-orange-500/25 hover:shadow-lg hover:shadow-orange-500/40 flex items-center gap-1.5 transition-all duration-200 cursor-pointer">
                                         @if(app()->getLocale() === 'my')
                                             <span class="font-bold">🛒 ဝယ်ရန်</span>
@@ -571,7 +676,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
                     
                     <!-- Feature Card 1 -->
-                    <div data-reveal="fade-up" data-reveal-delay="0" class="feature-card card-shimmer group relative p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:border-orange-300 dark:hover:border-orange-700/60 text-center flex flex-col items-center cursor-default">
+                    <div data-reveal="bounce-left" data-reveal-delay="0" class="feature-card card-shimmer group relative p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:border-orange-300 dark:hover:border-orange-700/60 text-center flex flex-col items-center cursor-default">
                         <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-400 text-white flex items-center justify-center text-3xl mb-6 shadow-lg shadow-orange-500/30 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
                             📱
                         </div>
@@ -580,7 +685,7 @@
                     </div>
 
                     <!-- Feature Card 2 -->
-                    <div data-reveal="fade-up" data-reveal-delay="130" class="feature-card card-shimmer group relative p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:border-orange-300 dark:hover:border-orange-700/60 text-center flex flex-col items-center cursor-default">
+                    <div data-reveal="bounce-left" data-reveal-delay="130" class="feature-card card-shimmer group relative p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:border-orange-300 dark:hover:border-orange-700/60 text-center flex flex-col items-center cursor-default">
                         <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white flex items-center justify-center text-3xl mb-6 shadow-lg shadow-amber-500/30 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
                             🚚
                         </div>
@@ -589,7 +694,7 @@
                     </div>
 
                     <!-- Feature Card 3 -->
-                    <div data-reveal="fade-up" data-reveal-delay="260" class="feature-card card-shimmer group relative p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:border-orange-300 dark:hover:border-orange-700/60 text-center flex flex-col items-center cursor-default">
+                    <div data-reveal="bounce-left" data-reveal-delay="260" class="feature-card card-shimmer group relative p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:border-orange-300 dark:hover:border-orange-700/60 text-center flex flex-col items-center cursor-default">
                         <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-rose-500 to-orange-500 text-white flex items-center justify-center text-3xl mb-6 shadow-lg shadow-rose-500/30 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
                             💳
                         </div>

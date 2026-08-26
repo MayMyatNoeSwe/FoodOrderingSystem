@@ -147,24 +147,52 @@
                     <p class="text-slate-500 dark:text-slate-400 text-xs mt-0.5">{{ __('Manage category titles, slugs, and menu assignments') }}</p>
                 </div>
 
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 flex-wrap">
                     <!-- Search Form -->
-                    <form method="GET" action="{{ route('admin.categories.index') }}" class="relative min-w-[220px]">
-                        <input type="text" 
-                               name="search" 
-                               value="{{ $search }}" 
-                               placeholder="{{ __('Search category name or slug...') }}" 
-                               class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 pl-9 pr-8 focus:ring-0 transition-all placeholder-slate-400">
-                        
-                        <svg class="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                        </svg>
+                    <form method="GET" action="{{ route('admin.categories.index') }}" class="flex flex-col sm:flex-row items-center gap-2.5 flex-wrap">
+                        <div class="relative min-w-[200px]">
+                            <input type="text" 
+                                   name="search" 
+                                   value="{{ $search }}" 
+                                   placeholder="{{ __('Search category...') }}" 
+                                   class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2 pl-9 pr-8 focus:ring-0 transition-all placeholder-slate-400">
+                            
+                            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
 
-                        @if($search)
+                            @if($search)
+                                <a href="{{ route('admin.categories.index', request()->except('search')) }}" 
+                                   title="{{ __('Clear Search') }}" 
+                                   class="absolute right-2.5 top-2 text-slate-400 hover:text-slate-700 dark:hover:text-white text-xs font-bold">
+                                    ✕
+                                </a>
+                            @endif
+                        </div>
+
+                        {{-- Shop Filter --}}
+                        <select name="shop_id" onchange="this.form.submit()"
+                                class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 text-slate-800 dark:text-slate-100 text-xs rounded-xl px-3 py-2 focus:ring-0 transition-all cursor-pointer">
+                            <option value="all">Shop: All Shops</option>
+                            @foreach($shops as $s)
+                                <option value="{{ $s->id }}" {{ ($shopId ?? '') == $s->id ? 'selected' : '' }}>🏪 {{ $s->name }}</option>
+                            @endforeach
+                        </select>
+
+                        {{-- Sort By --}}
+                        <select name="sort_by" onchange="this.form.submit()"
+                                class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 text-slate-800 dark:text-slate-100 text-xs rounded-xl px-3 py-2 focus:ring-0 transition-all cursor-pointer">
+                            <option value="latest" {{ ($sortBy ?? '') === 'latest' ? 'selected' : '' }}>Sort: Newest First</option>
+                            <option value="oldest" {{ ($sortBy ?? '') === 'oldest' ? 'selected' : '' }}>Sort: Oldest First</option>
+                            <option value="name_asc" {{ ($sortBy ?? '') === 'name_asc' ? 'selected' : '' }}>Name (A-Z)</option>
+                            <option value="name_desc" {{ ($sortBy ?? '') === 'name_desc' ? 'selected' : '' }}>Name (Z-A)</option>
+                            <option value="items_count_desc" {{ ($sortBy ?? '') === 'items_count_desc' ? 'selected' : '' }}>Most Items</option>
+                        </select>
+
+                        @if(!empty($search) || (!empty($shopId) && $shopId !== 'all') || (!empty($sortBy) && $sortBy !== 'latest'))
                             <a href="{{ route('admin.categories.index') }}" 
-                               title="{{ __('Clear Search') }}" 
-                               class="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-700 dark:hover:text-white p-0.5 text-xs font-bold rounded-full">
-                                ✕
+                               class="px-2.5 py-2 text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all whitespace-nowrap">
+                                Reset
                             </a>
                         @endif
                     </form>
@@ -172,7 +200,7 @@
                     <!-- Add Category Trigger Button -->
                     <button @click="createModalOpen = true" 
                             type="button"
-                            class="px-4 py-2.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-orange-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0">
+                            class="px-3.5 py-2 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-bold text-xs rounded-xl shadow-md shadow-orange-500/25 transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                         </svg>
@@ -188,6 +216,7 @@
                         <tr>
                             <th class="px-4 py-3.5 w-16">ID</th>
                             <th class="px-4 py-3.5">{{ __('Category Name') }}</th>
+                            <th class="px-4 py-3.5">{{ __('Shop') }}</th>
                             <th class="px-4 py-3.5">{{ __('URL Slug') }}</th>
                             <th class="px-4 py-3.5">{{ __('Items Count') }}</th>
                             <th class="px-4 py-3.5">{{ __('Created Date') }}</th>
@@ -224,6 +253,17 @@
                                         </div>
                                         <span class="text-sm font-extrabold">{{ $category->name }}</span>
                                     </div>
+                                </td>
+
+                                <!-- Shop -->
+                                <td class="px-4 py-4">
+                                    @if($category->shop)
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-300 border border-orange-200 dark:border-orange-800">
+                                            🏪 {{ $category->shop->name }}
+                                        </span>
+                                    @else
+                                        <span class="text-slate-400 text-xs">—</span>
+                                    @endif
                                 </td>
 
                                 <!-- Slug -->
