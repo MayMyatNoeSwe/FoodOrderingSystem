@@ -94,13 +94,13 @@
                         $isActive = in_array($order->status, ['pending', 'confirmed', 'preparing', 'delivering']);
                     @endphp
 
-                    <div class="card-lift bg-white rounded-2xl border {{ $isActive ? 'border-orange-200 shadow-orange-500/10' : 'border-slate-100' }} shadow-sm overflow-hidden">
+                    <div class="card-lift bg-white dark:bg-slate-900 rounded-2xl border {{ $isActive ? 'border-orange-200 dark:border-orange-900/60 shadow-orange-500/10' : 'border-slate-100 dark:border-slate-800' }} shadow-sm overflow-hidden">
 
                         <!-- Card Header -->
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 {{ $isActive ? 'bg-orange-50/60' : 'bg-slate-50/60' }} border-b border-slate-100">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 sm:px-6 py-4 {{ $isActive ? 'bg-orange-50/60 dark:bg-orange-950/20' : 'bg-slate-50/60 dark:bg-slate-800/40' }} border-b border-slate-100 dark:border-slate-800">
                             <div class="flex items-center gap-3 flex-wrap">
                                 <!-- Order Number -->
-                                <span class="font-mono font-black text-slate-900 text-base tracking-tight">#{{ $order->order_number }}</span>
+                                <span class="font-mono font-black text-slate-900 dark:text-white text-base tracking-tight">#{{ $order->order_number }}</span>
 
                                 <!-- Live pulse for active orders -->
                                 @if($isActive)
@@ -130,34 +130,37 @@
                             </div>
                         </div>
 
-                        <!-- Card Body -->
-                        <div class="px-5 py-4">
-                            <div class="flex flex-col lg:flex-row gap-5">
+                        <!-- Card Body (Equal 2 Columns) -->
+                        <div class="px-5 sm:px-6 py-5">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 items-start">
 
-                                <!-- Left: Items Ordered -->
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Items Ordered</p>
-                                    <div class="space-y-2">
+                                <!-- Left Column (50%): Items Ordered -->
+                                <div class="space-y-3 min-w-0">
+                                    <div class="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800">
+                                        <p class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{{ __('Items Ordered') }}</p>
+                                        <span class="text-[11px] text-slate-400 dark:text-slate-500 font-semibold">{{ $order->orderItems->sum('quantity') }} {{ __('items') }}</span>
+                                    </div>
+                                    <div class="space-y-2.5">
                                         @forelse($order->orderItems as $item)
-                                            <div class="flex items-center justify-between gap-3">
-                                                <div class="flex items-center gap-2.5 min-w-0">
+                                            <div class="p-2.5 rounded-xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-3">
+                                                <div class="flex items-center gap-3 min-w-0">
                                                     @if($item->menuItem && $item->menuItem->image)
                                                         <img src="{{ asset($item->menuItem->image) }}"
                                                              alt="{{ $item->menuItem->name ?? 'Item' }}"
-                                                             class="w-9 h-9 rounded-lg object-cover shrink-0 bg-slate-100">
+                                                             class="w-10 h-10 rounded-lg object-cover shrink-0 bg-slate-100 dark:bg-slate-800">
                                                     @else
-                                                        <div class="w-9 h-9 rounded-lg bg-orange-50 flex items-center justify-center text-xl shrink-0">🍽️</div>
+                                                        <div class="w-10 h-10 rounded-lg bg-orange-50 dark:bg-slate-800 flex items-center justify-center text-xl shrink-0">🍽️</div>
                                                     @endif
                                                     <div class="min-w-0">
-                                                        <p class="text-sm font-bold text-slate-900 truncate">
+                                                        <p class="text-sm font-bold text-slate-900 dark:text-white truncate">
                                                             {{ $item->menuItem->name ?? 'Item (Removed)' }}
                                                         </p>
-                                                        <p class="text-xs text-slate-400">
+                                                        <p class="text-xs text-slate-400 dark:text-slate-500 font-medium">
                                                             {{ number_format($item->unit_price) }} MMK × {{ $item->quantity }}
                                                         </p>
                                                     </div>
                                                 </div>
-                                                <span class="text-sm font-black text-slate-900 shrink-0">
+                                                <span class="text-sm font-black text-slate-900 dark:text-slate-100 font-mono shrink-0">
                                                     {{ number_format($item->subtotal) }} <span class="text-xs text-orange-500 font-bold">MMK</span>
                                                 </span>
                                             </div>
@@ -167,22 +170,18 @@
                                     </div>
                                 </div>
 
-                                <!-- Divider -->
-                                <div class="hidden lg:block w-px bg-slate-100 self-stretch"></div>
-                                <div class="block lg:hidden h-px bg-slate-100 w-full"></div>
-
-                                <!-- Right: Delivery + Summary -->
-                                <div class="lg:w-56 shrink-0 space-y-4">
+                                <!-- Right Column (50%): Delivery Info + Financial Summary -->
+                                <div class="space-y-4 min-w-0">
                                     <!-- Delivery Info -->
-                                    <div>
-                                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Delivery Info</p>
-                                        <p class="text-xs font-semibold text-slate-700 flex items-start gap-1.5">
+                                    <div class="space-y-1.5">
+                                        <p class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest pb-1 border-b border-slate-100 dark:border-slate-800">{{ __('Delivery Info') }}</p>
+                                        <p class="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-start gap-1.5 pt-1">
                                             <span>📍</span>
-                                            <span class="leading-relaxed">{{ $order->delivery_township ?? 'Yangon' }}@if($order->delivery_address) — {{ Str::limit($order->delivery_address, 45) }}@endif</span>
+                                            <span class="leading-relaxed font-bold text-slate-900 dark:text-white">{{ $order->delivery_township ?? 'Yangon' }}@if($order->delivery_address) — <span class="font-normal text-slate-600 dark:text-slate-400">{{ $order->delivery_address }}</span>@endif</span>
                                         </p>
-                                        <p class="text-xs text-slate-500 flex items-center gap-1.5 mt-1">
+                                        <p class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
                                             <span>📞</span>
-                                            <span>{{ $order->delivery_phone }}</span>
+                                            <span class="font-mono">{{ $order->delivery_phone }}</span>
                                         </p>
                                     </div>
 
@@ -194,47 +193,62 @@
                                         }
                                         $taxCalc = $order->tax_amount > 0 ? $order->tax_amount : round($subtotalCalc * 0.05);
                                     @endphp
-                                    <div class="bg-slate-50 rounded-xl p-3 space-y-1.5">
-                                        <div class="flex justify-between text-xs text-slate-500">
+                                    <div class="bg-slate-50 dark:bg-slate-800/60 rounded-2xl p-3.5 space-y-2 border border-slate-100 dark:border-slate-800">
+                                        <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400">
                                             <span>{{ __('Subtotal') }}</span>
-                                            <span>{{ number_format($subtotalCalc) }} MMK</span>
+                                            <span class="font-mono font-bold text-slate-800 dark:text-slate-200">{{ number_format($subtotalCalc) }} MMK</span>
                                         </div>
-                                        <div class="flex justify-between text-xs text-slate-500">
+                                        <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400">
                                             <span>{{ __('Tax (5%)') }}</span>
-                                            <span>+{{ number_format($taxCalc) }} MMK</span>
+                                            <span class="font-mono font-bold text-slate-800 dark:text-slate-200">+{{ number_format($taxCalc) }} MMK</span>
                                         </div>
-                                        <div class="flex justify-between text-xs text-slate-500">
+                                        <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400">
                                             <span>{{ __('Delivery Fee') }}</span>
-                                            <span>+{{ number_format($order->delivery_fee ?? 0) }} MMK</span>
+                                            <span class="font-mono font-bold text-slate-800 dark:text-slate-200">+{{ number_format($order->delivery_fee ?? 0) }} MMK</span>
                                         </div>
-                                        <div class="border-t border-slate-200 pt-1.5 flex justify-between">
-                                            <span class="text-xs font-black text-slate-900">{{ __('Total Amount') }}</span>
-                                            <span class="text-sm font-black text-orange-500">{{ number_format($order->total_amount) }} MMK</span>
+                                        <div class="border-t border-slate-200 dark:border-slate-700 pt-2 flex justify-between items-center">
+                                            <span class="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">{{ __('Total Amount') }}</span>
+                                            <span class="text-base font-black text-orange-500 font-mono">{{ number_format($order->total_amount) }} MMK</span>
                                         </div>
                                     </div>
 
                                     <!-- Payment Method -->
-                                    <div class="flex items-center gap-2 text-xs text-slate-500 font-semibold">
-                                        <span>
-                                            @if($order->payment_method === 'cod') 💵
-                                            @elseif($order->payment_method === 'kbzpay') 📱
-                                            @else 🌊
+                                    <div class="flex items-center justify-between text-xs p-2 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+                                        <span class="text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider text-[11px]">{{ __('Payment Method') }}</span>
+                                        <span class="font-black text-slate-800 dark:text-slate-200 flex items-center gap-1.5 uppercase">
+                                            @if($order->payment_method === 'cod')
+                                                <span>💵</span> <span>COD (Cash)</span>
+                                            @elseif($order->payment_method === 'kbzpay')
+                                                <span>📱</span> <span class="text-blue-600 dark:text-blue-400">KBZPay</span>
+                                            @elseif($order->payment_method === 'wavepay')
+                                                <span>🌊</span> <span class="text-amber-600 dark:text-amber-400">WavePay</span>
+                                            @else
+                                                <span>💳</span> <span>{{ strtoupper($order->payment_method) }}</span>
                                             @endif
                                         </span>
-                                        <span>{{ strtoupper($order->payment_method) }}</span>
                                     </div>
                                 </div>
 
                             </div>
                         </div>
 
-                        <!-- Card Footer: Time ago -->
-                        <div class="px-5 py-2.5 border-t border-slate-50 flex justify-between items-center">
-                            <span class="text-[11px] text-slate-400 font-medium">{{ $order->created_at->diffForHumans() }}</span>
-                            <a href="{{ route('user.orders.show', $order) }}"
-                               class="text-xs font-bold text-orange-500 hover:text-orange-600 transition-colors">
-                                Track Order &rarr;
-                            </a>
+                        <!-- Card Footer: Time ago & Actions -->
+                        <div class="px-5 sm:px-6 py-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/40 dark:bg-slate-800/20">
+                            <span class="text-[11px] text-slate-400 dark:text-slate-500 font-medium">{{ $order->created_at->diffForHumans() }}</span>
+                            
+                            <div class="flex items-center gap-3">
+                                @if($order->status !== 'pending')
+                                    <a href="{{ route('orders.payslip', $order) }}" target="_blank"
+                                       class="text-xs font-bold text-[#D70F64] hover:underline flex items-center gap-1">
+                                        <span>🧾</span>
+                                        <span>{{ __('Digital Slip') }}</span>
+                                    </a>
+                                @endif
+                                <a href="{{ route('customer.orders.show', $order) }}"
+                                   class="text-xs font-bold text-orange-500 hover:text-orange-600 dark:text-orange-400 transition-colors flex items-center gap-1">
+                                    <span>Track Order &rarr;</span>
+                                </a>
+                            </div>
                         </div>
 
                     </div>

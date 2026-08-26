@@ -174,13 +174,72 @@
                     },
 
                     openProofPhoto(src, title) {
+                        if (!src) return;
                         this.proofModalSrc = src;
                         this.proofModalTitle = title || 'Delivery Proof Photo (သက်သေဓာတ်ပုံ)';
                         this.proofModalOpen = true;
+
+                        // Instant guaranteed popup via SweetAlert2 lightbox
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                title: `<span class="text-sm sm:text-base font-black text-slate-900 dark:text-white flex items-center justify-center gap-2">📸 ${this.proofModalTitle}</span>`,
+                                html: `<div class="mt-2 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-950 flex items-center justify-center p-2">
+                                         <img src="${src}" alt="Delivery Proof" class="max-h-[65vh] w-auto max-w-full rounded-xl object-contain shadow-lg">
+                                       </div>
+                                       <p class="text-xs text-emerald-600 dark:text-emerald-400 font-bold mt-3">✓ သုံးစွဲသူထံ အစားအသောက် ရောက်ရှိမှု အတည်ပြု ဓာတ်ပုံ (Delivery Proof Confirmed)</p>`,
+                                showCloseButton: true,
+                                showCancelButton: true,
+                                confirmButtonText: 'Open Full Size ↗',
+                                cancelButtonText: 'Close',
+                                confirmButtonColor: '#059669',
+                                cancelButtonColor: '#64748b',
+                                background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#ffffff',
+                                color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#0f172a',
+                                customClass: {
+                                    popup: 'rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-4 sm:p-6 max-w-2xl w-full',
+                                }
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    window.open(src, '_blank');
+                                }
+                            });
+                        }
                     }
                 };
             }
+
+            // Expose globally for instant button access
+            window.openProofPhoto = function(src, title) {
+                if (!src) return;
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: `<span class="text-sm sm:text-base font-black text-slate-900 dark:text-white flex items-center justify-center gap-2">📸 ${title || 'Delivery Proof Photo'}</span>`,
+                        html: `<div class="mt-2 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-950 flex items-center justify-center p-2">
+                                 <img src="${src}" alt="Delivery Proof" class="max-h-[65vh] w-auto max-w-full rounded-xl object-contain shadow-lg">
+                               </div>
+                               <p class="text-xs text-emerald-600 dark:text-emerald-400 font-bold mt-3">✓ သုံးစွဲသူထံ အစားအသောက် ရောက်ရှိမှု အတည်ပြု ဓာတ်ပုံ (Delivery Proof Confirmed)</p>`,
+                        showCloseButton: true,
+                        showCancelButton: true,
+                        confirmButtonText: 'Open Full Size ↗',
+                        cancelButtonText: 'Close',
+                        confirmButtonColor: '#059669',
+                        cancelButtonColor: '#64748b',
+                        background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#ffffff',
+                        color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#0f172a',
+                        customClass: {
+                            popup: 'rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-4 sm:p-6 max-w-2xl w-full',
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.open(src, '_blank');
+                        }
+                    });
+                }
+            };
         </script>
+        <style>
+            [x-cloak] { display: none !important; }
+        </style>
     </x-slot:head>
 
     <x-slot:badge>
@@ -723,9 +782,10 @@
                                         <!-- Direct Proof Photo Button (If available) -->
                                         @if($order->delivery_proof_photo)
                                             <button type="button"
-                                                    @click="openProofPhoto('{{ asset($order->delivery_proof_photo) }}', 'Order #{{ $order->order_number }} - Delivery Proof Photo (သက်သေဓာတ်ပုံ)')"
+                                                    @click.stop="openProofPhoto('{{ asset($order->delivery_proof_photo) }}', 'Order #{{ $order->order_number }}')"
+                                                    onclick="window.openProofPhoto && window.openProofPhoto('{{ asset($order->delivery_proof_photo) }}', 'Order #{{ $order->order_number }}')"
                                                     title="{{ __('View Delivery Proof Photo') }}"
-                                                    class="px-2.5 py-1.5 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 text-xs font-bold rounded-xl border border-emerald-200 dark:border-emerald-800 transition-all flex items-center gap-1 cursor-pointer shadow-xs">
+                                                    class="px-2.5 py-1.5 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 text-xs font-bold rounded-xl border border-emerald-200 dark:border-emerald-800 transition-all flex items-center gap-1 cursor-pointer shadow-xs active:scale-95">
                                                 <span>📸</span>
                                                 <span class="hidden sm:inline text-[11px]">{{ __('Proof') }}</span>
                                             </button>
@@ -1068,6 +1128,8 @@
                                     </div>
                                 </div>
                             </div>
+                        </template>
+
                         <!-- Modal Footer Action Toolbar -->
                         <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2">
                             <a :href="activeOrder.payslip_url" target="_blank" class="px-4 py-2 bg-pink-50 dark:bg-pink-950/50 hover:bg-pink-100 dark:hover:bg-pink-900/50 text-[#D70F64] font-bold text-xs rounded-xl border border-pink-200 dark:border-pink-800 transition-all flex items-center gap-1.5 cursor-pointer">
@@ -1167,8 +1229,7 @@
              x-transition:leave="transition ease-in duration-150"
              x-transition:leave-start="opacity-100"
              x-transition:leave-end="opacity-0"
-             class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-[100] flex items-center justify-center p-4 sm:p-6"
-             style="display: none;">
+             class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-[100] flex items-center justify-center p-4 sm:p-6">
             
             <div @click.outside="proofModalOpen = false" 
                  class="bg-slate-900 border border-slate-700 rounded-3xl p-5 sm:p-6 max-w-3xl w-full shadow-2xl space-y-4 max-h-[95vh] flex flex-col">
