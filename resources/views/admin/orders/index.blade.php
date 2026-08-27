@@ -796,6 +796,18 @@
                                 <!-- Actions -->
                                 <td x-show="cols.actions" class="px-4 py-4 text-right">
                                     <div class="flex items-center justify-end gap-2">
+                                        <!-- Direct Payslip Photo Button (If available) -->
+                                        @if($order->payment_screenshot)
+                                            <button type="button"
+                                                    @click.stop="openProofPhoto('{{ asset($order->payment_screenshot) }}', 'Order #{{ $order->order_number }} - Payment Payslip (ငွေလွှဲပြေစာ)')"
+                                                    onclick="window.openProofPhoto && window.openProofPhoto('{{ asset($order->payment_screenshot) }}', 'Order #{{ $order->order_number }} - Payment Payslip (ငွေလွှဲပြေစာ)')"
+                                                    title="{{ __('View Payment Screenshot') }}"
+                                                    class="px-2.5 py-1.5 bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-xs font-bold rounded-xl border border-blue-200 dark:border-blue-800 transition-all flex items-center gap-1 cursor-pointer shadow-xs active:scale-95">
+                                                <span>📱</span>
+                                                <span class="hidden sm:inline text-[11px]">{{ __('Payslip') }}</span>
+                                            </button>
+                                        @endif
+
                                         <!-- Direct Proof Photo Button (If available) -->
                                         @if($order->delivery_proof_photo)
                                             <button type="button"

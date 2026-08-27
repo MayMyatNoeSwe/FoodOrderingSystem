@@ -8,6 +8,9 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800,900&display=swap" rel="stylesheet"/>
 
+    <!-- Tesseract OCR -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
     <!-- Theme Initialization (Prevents FOUC) -->
     <script>
         if (localStorage.getItem('foodorder_theme') === 'dark') {
@@ -46,6 +49,8 @@
                 paymentMethod: 'cod',
                 slipPreview: null,
                 slipFileName: '',
+                transactionNumber: '',
+                isOcrScanning: false,
                 copiedAccount: false,
                 isSubmitting: false,
                 darkMode: localStorage.getItem('foodorder_theme') === 'dark',
@@ -131,18 +136,89 @@
                     }
                 },
 
-                handleSlipUpload(event) {
+                async handleSlipUpload(event) {
                     const file = event.target.files[0];
                     if (!file) return;
                     if (file.size > 5 * 1024 * 1024) {
-                        alert('File size exceeds 5MB limit. Please choose a smaller image.');
+                        Swal.fire({
+                            title: 'File too large!',
+                            text: 'File size exceeds 5MB limit. Please choose a smaller image.',
+                            icon: 'error',
+                            confirmButtonColor: '#ef4444',
+                            background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
+                            color: document.documentElement.classList.contains('dark') ? '#f9fafb' : '#111827',
+                            customClass: { popup: 'rounded-2xl', confirmButton: 'rounded-xl' }
+                        });
                         event.target.value = '';
                         return;
                     }
                     this.slipFileName = file.name;
                     const reader = new FileReader();
-                    reader.onload = (e) => {
+                    reader.onload = async (e) => {
                         this.slipPreview = e.target.result;
+                        
+                        // Start OCR scanning
+                        this.isOcrScanning = true;
+                        try {
+                            const worker = await Tesseract.createWorker('eng');
+                            const ret = await worker.recognize(file);
+                            const text = ret.data.text.replace(/\s+/g, ''); // Remove all spaces for easier matching
+                            
+                            await worker.terminate();
+                            this.isOcrScanning = false;
+                            
+                            // Validations
+                            let warnings = [];
+                            
+                            // Check transaction number (last 6 digits)
+                            if (this.transactionNumber && this.transactionNumber.length === 6) {
+                                if (!text.includes(this.transactionNumber)) {
+                                    warnings.push(`Transaction number ending in <b>${this.transactionNumber}</b> not found in image.`);
+                                }
+                            } else if (!this.transactionNumber) {
+                                warnings.push('Please enter the last 6 digits of the transaction number first.');
+                            }
+
+                            // Check amount (allow comma or no comma)
+                            const currentTotal = this.total();
+                            const totalStr = currentTotal.toString();
+                            const totalWithComma = currentTotal.toLocaleString('en-US');
+                            if (!text.includes(totalStr) && !text.includes(totalWithComma)) {
+                                warnings.push(`Order amount of <b>${totalWithComma}</b> not found in image.`);
+                            }
+                            
+                            if (warnings.length > 0) {
+                                Swal.fire({
+                                    title: 'Payslip Validation Warning',
+                                    html: '<div class="text-sm text-left"><p class="mb-2">We could not automatically verify the following from your screenshot:</p><ul class="list-disc pl-5 space-y-1">' + warnings.map(w => `<li>${w}</li>`).join('') + '</ul><p class="mt-3 text-xs text-slate-500">Please make sure you uploaded the correct payslip. The admin will review it manually.</p></div>',
+                                    icon: 'warning',
+                                    confirmButtonColor: '#eab308', // yellow
+                                    confirmButtonText: 'I understand',
+                                    background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
+                                    color: document.documentElement.classList.contains('dark') ? '#f9fafb' : '#111827',
+                                    customClass: { popup: 'rounded-2xl', confirmButton: 'rounded-xl' }
+                                });
+                            } else {
+                                // Success!
+                                const Toast = Swal.mixin({
+                                    toast: true,
+                                    position: 'top-end',
+                                    showConfirmButton: false,
+                                    timer: 3000,
+                                    timerProgressBar: true,
+                                    background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
+                                    color: document.documentElement.classList.contains('dark') ? '#f9fafb' : '#111827',
+                                });
+                                Toast.fire({
+                                    icon: 'success',
+                                    title: 'Payslip verified successfully!'
+                                });
+                            }
+
+                        } catch (err) {
+                            console.error('OCR Error:', err);
+                            this.isOcrScanning = false;
+                        }
                     };
                     reader.readAsDataURL(file);
                 },
@@ -256,7 +332,15 @@
                         item.qty++;
                         this.save();
                     } else {
-                        alert('Cannot add more. Available stock limit for "' + item.name + '" is ' + maxStock + '.');
+                        Swal.fire({
+                            title: 'Stock limit reached!',
+                            text: `Cannot add more. Available stock limit for "${item.name}" is ${maxStock}.`,
+                            icon: 'warning',
+                            confirmButtonColor: '#ef4444',
+                            background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
+                            color: document.documentElement.classList.contains('dark') ? '#f9fafb' : '#111827',
+                            customClass: { popup: 'rounded-2xl', confirmButton: 'rounded-xl' }
+                        });
                     }
                 },
 
@@ -352,20 +436,69 @@
                     for (let i of this.items) {
                         const maxStock = (i.stock !== undefined && i.stock !== null) ? Number(i.stock) : null;
                         if (maxStock !== null && i.qty > maxStock) {
-                            alert('Quantity for "' + i.name + '" exceeds available stock (' + maxStock + '). Please adjust your quantity.');
+                            Swal.fire({
+                                title: 'Stock limit exceeded!',
+                                text: `Quantity for "${i.name}" exceeds available stock (${maxStock}). Please adjust your quantity.`,
+                                icon: 'error',
+                                confirmButtonColor: '#ef4444',
+                                background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
+                                color: document.documentElement.classList.contains('dark') ? '#f9fafb' : '#111827',
+                                customClass: { popup: 'rounded-2xl', confirmButton: 'rounded-xl' }
+                            });
                             return;
                         }
                     }
                     if (!this.canSubmit()) {
+                        let errorMessage = '';
                         if (!this.selectedTownship) {
-                            alert('Please select a township first!');
+                            errorMessage = 'Please select a township first!';
                         } else if (!this.deliveryAddress || !this.deliveryAddress.trim()) {
-                            alert('Please enter your full delivery address!');
+                            errorMessage = 'Please enter your full delivery address!';
                         } else if (!this.isPhoneValid()) {
                             this.validatePhone();
-                            alert('ကျေးဇူးပြု၍ တရားဝင် မြန်မာဖုန်းနံပါတ် (+95 9...) ကို မှန်ကန်စွာ ထည့်သွင်းပေးပါ!');
+                            errorMessage = 'ကျေးဇူးပြု၍ တရားဝင် မြန်မာဖုန်းနံပါတ် (+95 9...) ကို မှန်ကန်စွာ ထည့်သွင်းပေးပါ!';
+                        }
+                        
+                        if (errorMessage) {
+                            Swal.fire({
+                                title: 'Missing Information',
+                                text: errorMessage,
+                                icon: 'warning',
+                                confirmButtonColor: '#ef4444',
+                                background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
+                                color: document.documentElement.classList.contains('dark') ? '#f9fafb' : '#111827',
+                                customClass: { popup: 'rounded-2xl', confirmButton: 'rounded-xl' }
+                            });
                         }
                         return;
+                    }
+                    
+                    if (this.paymentMethod !== 'cod') {
+                        if (!this.transactionNumber || this.transactionNumber.length !== 6) {
+                            Swal.fire({
+                                title: 'Missing Transaction Number',
+                                text: 'Please enter the exact 6 digits of your transaction number (last 6 digits).',
+                                icon: 'warning',
+                                confirmButtonColor: '#ef4444',
+                                background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
+                                color: document.documentElement.classList.contains('dark') ? '#f9fafb' : '#111827',
+                                customClass: { popup: 'rounded-2xl', confirmButton: 'rounded-xl' }
+                            });
+                            return;
+                        }
+                        const slipInput = document.getElementById('payment_screenshot_input');
+                        if (!slipInput || slipInput.files.length === 0) {
+                            Swal.fire({
+                                title: 'Missing Payslip',
+                                text: 'Please upload the payment screenshot (ငွေလွှဲပြေစာ).',
+                                icon: 'warning',
+                                confirmButtonColor: '#ef4444',
+                                background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
+                                color: document.documentElement.classList.contains('dark') ? '#f9fafb' : '#111827',
+                                customClass: { popup: 'rounded-2xl', confirmButton: 'rounded-xl' }
+                            });
+                            return;
+                        }
                     }
 
                     // Populate hidden fields
@@ -681,6 +814,7 @@
                     <input type="hidden" name="region_type"       id="region_type_input">
                     <input type="hidden" name="delivery_township" id="delivery_township_input">
                     <input type="hidden" name="shop_id"           id="shop_id_input">
+                    <input type="hidden" name="transaction_number" :value="transactionNumber">
 
                     <h2 class="text-base font-black text-slate-900 dark:text-white">{{ __('Delivery Information') }}</h2>
 
@@ -841,8 +975,28 @@
                                 </div>
                             </div>
 
+                            <!-- Transaction Number Field -->
+                            <div>
+                                <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1.5">
+                                    {{ __('Transaction Number (Last 6 Digits)') }} <span class="text-red-400">*</span>
+                                </label>
+                                <input type="text" 
+                                       x-model="transactionNumber"
+                                       maxlength="6"
+                                       pattern="\d{6}"
+                                       placeholder="e.g. 123456"
+                                       class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none transition-all placeholder-slate-400 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 font-mono font-medium">
+                                <p class="text-[10px] text-slate-400 mt-1.5">Enter exactly 6 digits to verify your transfer.</p>
+                            </div>
+
                             <!-- Payslip Upload Field -->
-                            <div class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-2xl p-4 space-y-2.5">
+                            <div class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-2xl p-4 space-y-2.5 relative overflow-hidden">
+                                
+                                <!-- OCR Scanning Overlay -->
+                                <div x-show="isOcrScanning" class="absolute inset-0 z-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm flex flex-col items-center justify-center rounded-2xl">
+                                    <svg class="animate-spin h-6 w-6 text-orange-500 mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                    <p class="text-xs font-bold text-slate-700 dark:text-slate-200 animate-pulse">Scanning payslip...</p>
+                                </div>
                                 <div class="flex items-center justify-between">
                                     <label class="text-xs font-black text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
                                         <span>🧾</span>

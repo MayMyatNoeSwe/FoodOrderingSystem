@@ -58,6 +58,7 @@ Route::middleware('auth')->group(function () {
                 'cart_items'         => 'required|string',
                 'total_amount'       => 'required|numeric|min:1',
                 'payment_screenshot' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+                'transaction_number' => 'nullable|required_if:payment_method,kbzpay,wavepay|regex:/^\d{6}$/',
                 'region_type'        => 'nullable|string',
                 'delivery_township'  => 'nullable|string',
                 'shop_id'            => 'nullable|exists:shops,id',
@@ -108,6 +109,15 @@ Route::middleware('auth')->group(function () {
                 $screenshotPath = 'uploads/payments/' . $fileName;
             }
 
+            if ($request->payment_method !== 'cod' && $request->transaction_number) {
+                $usedTx = Order::where('transaction_number', $request->transaction_number)
+                    ->whereNotIn('status', ['cancelled', 'failed', 'rejected'])
+                    ->first();
+                if ($usedTx) {
+                    return redirect()->route('cart')->with('error', "The transaction number '{$request->transaction_number}' has already been used. Please ensure you are uploading a valid, unused payslip.");
+                }
+            }
+
             // Prevent duplicate order creation if identical order was submitted in the last 15 seconds
             $existingRecentOrder = Order::where('user_id', Auth::id())
                 ->where('total_amount', $request->total_amount)
@@ -134,6 +144,7 @@ Route::middleware('auth')->group(function () {
                 'delivery_phone'     => $formattedPhone,
                 'payment_method'     => $request->payment_method,
                 'payment_screenshot' => $screenshotPath,
+                'transaction_number' => $request->transaction_number,
                 'notes'              => $request->notes,
                 'status'             => 'pending',
             ]);

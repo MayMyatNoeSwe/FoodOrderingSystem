@@ -21,6 +21,7 @@
     <link href="https://fonts.bunny.net/css?family=dm-sans:300,400,500,600,700,800|cabinet-grotesk:500,700,800,900&display=swap" rel="stylesheet" />
 
     <!-- Scripts & Styles -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
@@ -105,11 +106,29 @@
                 },
                 activeShopId: null,
                 activeShopName: null,
-                setShop(shopId, shopName) {
+                async setShop(shopId, shopName) {
                     const cart = this.getCart();
                     if (cart.length > 0 && String(cart[0].shop_id || '') !== String(shopId || '')) {
                         const prevShop = cart[0].shop_name || 'another shop';
-                        if (!confirm(`Switch to "${shopName}"?\n\nYour current cart contains items from "${prevShop}". It will be cleared because you can only order from one shop at a time.`)) {
+                        const result = await Swal.fire({
+                            title: `Switch to "${shopName}"?`,
+                            text: `Your current cart contains items from "${prevShop}". It will be cleared because you can only order from one shop at a time.`,
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#ef4444',
+                            cancelButtonColor: '#6b7280',
+                            confirmButtonText: 'Yes, switch and clear cart',
+                            cancelButtonText: 'Cancel',
+                            background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
+                            color: document.documentElement.classList.contains('dark') ? '#f9fafb' : '#111827',
+                            customClass: {
+                                popup: 'rounded-2xl',
+                                confirmButton: 'rounded-xl',
+                                cancelButton: 'rounded-xl'
+                            }
+                        });
+
+                        if (!result.isConfirmed) {
                             return;
                         }
                         localStorage.removeItem('foodorder_cart');
@@ -150,14 +169,33 @@
                 init() {
                     this.cartCount = this.getCart().reduce((s,i) => s + (i.qty || 0), 0);
                 },
-                addToCart(item) {
+                async addToCart(item) {
                     let cart = this.getCart();
 
                     // Check if cart already has items from a different shop
                     if (cart.length > 0 && String(cart[0].shop_id || '') !== String(item.shop_id || '')) {
                         const prevShop = cart[0].shop_name || 'another shop';
                         const newShop = item.shop_name || 'a different shop';
-                        if (!confirm(`Your cart already contains items from "${prevShop}".\n\nYou can only order from one shop at a time. Do you want to clear your current cart and start a new order from "${newShop}"?`)) {
+                        
+                        const result = await Swal.fire({
+                            title: 'Clear cart?',
+                            text: `Your cart already contains items from "${prevShop}". You can only order from one shop at a time. Do you want to clear your current cart and start a new order from "${newShop}"?`,
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#ef4444',
+                            cancelButtonColor: '#6b7280',
+                            confirmButtonText: 'Yes, clear cart',
+                            cancelButtonText: 'Cancel',
+                            background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
+                            color: document.documentElement.classList.contains('dark') ? '#f9fafb' : '#111827',
+                            customClass: {
+                                popup: 'rounded-2xl',
+                                confirmButton: 'rounded-xl',
+                                cancelButton: 'rounded-xl'
+                            }
+                        });
+
+                        if (!result.isConfirmed) {
                             return false;
                         }
                         cart = [];
@@ -166,7 +204,18 @@
                     const existing = cart.find(i => i.id === item.id);
                     const maxStock = (item.stock !== undefined && item.stock !== null) ? Number(item.stock) : 999;
                     if (maxStock <= 0) {
-                        alert('Sorry, "' + item.name + '" is currently out of stock!');
+                        Swal.fire({
+                            title: 'Out of stock!',
+                            text: `Sorry, "${item.name}" is currently out of stock!`,
+                            icon: 'error',
+                            confirmButtonColor: '#ef4444',
+                            background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
+                            color: document.documentElement.classList.contains('dark') ? '#f9fafb' : '#111827',
+                            customClass: {
+                                popup: 'rounded-2xl',
+                                confirmButton: 'rounded-xl'
+                            }
+                        });
                         return false;
                     }
                     if (existing) {
@@ -174,7 +223,18 @@
                             existing.qty++;
                             existing.stock = maxStock;
                         } else {
-                            alert('Cannot add more. Available stock limit for "' + item.name + '" is ' + maxStock + '!');
+                            Swal.fire({
+                                title: 'Stock limit reached!',
+                                text: `Cannot add more. Available stock limit for "${item.name}" is ${maxStock}!`,
+                                icon: 'warning',
+                                confirmButtonColor: '#ef4444',
+                                background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
+                                color: document.documentElement.classList.contains('dark') ? '#f9fafb' : '#111827',
+                                customClass: {
+                                    popup: 'rounded-2xl',
+                                    confirmButton: 'rounded-xl'
+                                }
+                            });
                             return false;
                         }
                     } else {

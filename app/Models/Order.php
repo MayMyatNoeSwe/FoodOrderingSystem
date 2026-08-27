@@ -27,6 +27,7 @@ class Order extends Model
         'payment_method',
         'payment_status',
         'payment_screenshot',
+        'transaction_number',
         'delivery_proof_photo',
         'notes'
     ];

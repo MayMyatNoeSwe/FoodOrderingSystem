@@ -160,18 +160,6 @@
                                 {{ $shop->status === 'active' ? 'Deactivate' : 'Activate' }}
                             </button>
                         </form>
-
-                        {{-- Edit --}}
-                        <button onclick="openEditShopModal({{ $shop->id }}, {{ json_encode($shop->only(['name','description','address','phone','email','status','owner_id'])) }})"
-                                class="px-3 py-1.5 text-xs font-bold text-orange-600 border border-orange-300 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-950/30 transition-colors cursor-pointer">
-                            Edit
-                        </button>
-
-                        {{-- Delete --}}
-                        <form method="POST" action="{{ route('admin.shops.destroy', $shop) }}" onsubmit="return confirm('Delete shop \'{{ addslashes($shop->name) }}\' and all its data?')">
-                            @csrf @method('DELETE')
-                            <button type="submit" class="px-3 py-1.5 text-xs font-bold text-red-600 border border-red-300 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer">Delete</button>
-                        </form>
                     </div>
                 </div>
             </div>
