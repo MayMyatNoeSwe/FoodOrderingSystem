@@ -29,6 +29,7 @@ class ShopMenuItemController extends Controller
         $search = $request->query('search');
         $categoryId = $request->query('category_id');
         $stockStatus = $request->query('stock_status', 'all');
+        $status = $request->query('status');
         $sortBy = $request->query('sort_by', 'latest');
 
         $query = MenuItem::where('shop_id', $shop->id)
@@ -50,6 +51,9 @@ class ShopMenuItemController extends Controller
                 } elseif ($stockStatus === 'out_of_stock') {
                     $q->where('is_available', false)->orWhere('stock', '<=', 0);
                 }
+            })
+            ->when(request()->has('status') && request('status') !== '', function ($q) {
+                $q->where('is_available', request('status'));
             });
 
         match ($sortBy) {
@@ -73,6 +77,7 @@ class ShopMenuItemController extends Controller
             'search',
             'categoryId',
             'stockStatus',
+            'status',
             'sortBy'
         ));
     }

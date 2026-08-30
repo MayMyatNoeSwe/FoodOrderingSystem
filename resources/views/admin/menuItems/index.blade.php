@@ -62,6 +62,62 @@
 
         draggedIdx: null,
 
+        // Column Visibility Controls
+        columnDropdownOpen: false,
+        cols: {
+            item: true,
+            name_desc: true,
+            shop: true,
+            category: true,
+            price: true,
+            min_stock: true,
+            status: true,
+            actions: true
+        },
+
+        init() {
+            const savedCols = localStorage.getItem('admin_menu_items_cols');
+            if (savedCols) {
+                try {
+                    this.cols = Object.assign(this.cols, JSON.parse(savedCols));
+                } catch (e) {}
+            }
+        },
+
+        toggleCol(colName) {
+            this.cols[colName] = !this.cols[colName];
+            localStorage.setItem('admin_menu_items_cols', JSON.stringify(this.cols));
+        },
+
+        setAllCols(val) {
+            for (let k in this.cols) {
+                this.cols[k] = val;
+            }
+            localStorage.setItem('admin_menu_items_cols', JSON.stringify(this.cols));
+        },
+
+        resetCols() {
+            this.cols = {
+                item: true,
+                name_desc: true,
+                shop: true,
+                category: true,
+                price: true,
+                min_stock: true,
+                status: true,
+                actions: true
+            };
+            localStorage.removeItem('admin_menu_items_cols');
+        },
+
+        getActiveColCount() {
+            return Object.values(this.cols).filter(Boolean).length;
+        },
+
+        getTotalColCount() {
+            return Object.keys(this.cols).length;
+        },
+
         handleCreateFiles(e) {
             const files = Array.from(e.target.files || []);
             if (files.length > 0) {
@@ -306,6 +362,15 @@
                             <option value="out_of_stock" {{ ($stockStatus ?? '') === 'out_of_stock' ? 'selected' : '' }}>❌ Out of Stock</option>
                         </select>
 
+                        <!-- Status Filter -->
+                        <select name="status" 
+                                onchange="this.form.submit()" 
+                                class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 text-slate-800 dark:text-slate-100 text-xs rounded-xl px-2.5 py-2 focus:ring-0 cursor-pointer w-full sm:w-auto">
+                            <option value="">{{ __('Status: All') }}</option>
+                            <option value="1" {{ ($status ?? '') === '1' ? 'selected' : '' }}>🟢 Available</option>
+                            <option value="0" {{ ($status ?? '') === '0' ? 'selected' : '' }}>🔴 Unavailable</option>
+                        </select>
+
                         <!-- Sort By -->
                         <select name="sort_by" 
                                 onchange="this.form.submit()" 
@@ -320,7 +385,7 @@
                             <option value="stock_asc" {{ ($sortBy ?? '') === 'stock_asc' ? 'selected' : '' }}>Stock: Low to High</option>
                         </select>
 
-                        @if($search || $categoryId || ($shopId && $shopId !== 'all') || $stockStatus || ($sortBy && $sortBy !== 'latest'))
+                        @if($search || $categoryId || ($shopId && $shopId !== 'all') || $stockStatus || ($status !== null && $status !== '') || ($sortBy && $sortBy !== 'latest'))
                             <a href="{{ route('admin.menuItems.index') }}" 
                                class="px-2 py-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all whitespace-nowrap">
                                 Reset
@@ -328,15 +393,87 @@
                         @endif
                     </form>
 
-                    <!-- Add Item Trigger Button -->
-                    <button @click="createModalOpen = true" 
-                            type="button"
-                            class="px-4 py-2.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-orange-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                        </svg>
-                        <span>{{ __('Add Item') }}</span>
-                    </button>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <!-- Column Visibility Filter Dropdown -->
+                        <div class="relative" @click.outside="columnDropdownOpen = false">
+                            <button type="button" @click="columnDropdownOpen = !columnDropdownOpen"
+                                    class="px-3 py-2.5 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs transition-all flex items-center gap-2 cursor-pointer active:scale-95">
+                                <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"></path>
+                                </svg>
+                                <span>{{ __('Columns Filter') }}</span>
+                                <span class="px-1.5 py-0.2 rounded-full bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400 font-mono text-[10px] font-black border border-orange-200 dark:border-orange-800" x-text="getActiveColCount() + '/' + getTotalColCount()"></span>
+                            </button>
+
+                            <!-- Dropdown Popover -->
+                            <div x-show="columnDropdownOpen" x-cloak
+                                 x-transition:enter="transition ease-out duration-150"
+                                 x-transition:enter-start="opacity-0 scale-95"
+                                 x-transition:enter-end="opacity-100 scale-100"
+                                 x-transition:leave="transition ease-in duration-100"
+                                 x-transition:leave-start="opacity-100 scale-100"
+                                 x-transition:leave-end="opacity-0 scale-95"
+                                 class="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl p-3.5 z-40 space-y-2.5">
+                                
+                                <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-700">
+                                    <span class="text-xs font-black text-slate-900 dark:text-white flex items-center gap-1.5">
+                                        <span>👁️</span>
+                                        <span>{{ __('Visible Columns') }}</span>
+                                    </span>
+                                    <div class="flex items-center gap-1.5 text-[10px] font-bold">
+                                        <button type="button" @click="setAllCols(true)" class="text-orange-600 dark:text-orange-400 hover:underline cursor-pointer">{{ __('All') }}</button>
+                                        <span class="text-slate-300 dark:text-slate-600">|</span>
+                                        <button type="button" @click="resetCols()" class="text-slate-500 dark:text-slate-400 hover:underline cursor-pointer">{{ __('Reset') }}</button>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-1.5 text-xs">
+                                    <label class="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/60 cursor-pointer select-none">
+                                        <input type="checkbox" :checked="cols.item" @change="toggleCol('item')" class="rounded border-slate-300 dark:border-slate-600 text-orange-600 focus:ring-0">
+                                        <span class="font-semibold text-slate-700 dark:text-slate-300">🖼️ {{ __('Item') }}</span>
+                                    </label>
+                                    <label class="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/60 cursor-pointer select-none">
+                                        <input type="checkbox" :checked="cols.name_desc" @change="toggleCol('name_desc')" class="rounded border-slate-300 dark:border-slate-600 text-orange-600 focus:ring-0">
+                                        <span class="font-semibold text-slate-700 dark:text-slate-300">📝 {{ __('Name & Description') }}</span>
+                                    </label>
+                                    <label class="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/60 cursor-pointer select-none">
+                                        <input type="checkbox" :checked="cols.shop" @change="toggleCol('shop')" class="rounded border-slate-300 dark:border-slate-600 text-orange-600 focus:ring-0">
+                                        <span class="font-semibold text-slate-700 dark:text-slate-300">🏪 {{ __('Shop') }}</span>
+                                    </label>
+                                    <label class="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/60 cursor-pointer select-none">
+                                        <input type="checkbox" :checked="cols.category" @change="toggleCol('category')" class="rounded border-slate-300 dark:border-slate-600 text-orange-600 focus:ring-0">
+                                        <span class="font-semibold text-slate-700 dark:text-slate-300">📁 {{ __('Category') }}</span>
+                                    </label>
+                                    <label class="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/60 cursor-pointer select-none">
+                                        <input type="checkbox" :checked="cols.price" @change="toggleCol('price')" class="rounded border-slate-300 dark:border-slate-600 text-orange-600 focus:ring-0">
+                                        <span class="font-semibold text-slate-700 dark:text-slate-300">💰 {{ __('Price') }}</span>
+                                    </label>
+                                    <label class="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/60 cursor-pointer select-none">
+                                        <input type="checkbox" :checked="cols.min_stock" @change="toggleCol('min_stock')" class="rounded border-slate-300 dark:border-slate-600 text-orange-600 focus:ring-0">
+                                        <span class="font-semibold text-slate-700 dark:text-slate-300">⚠️ {{ __('Min Stock Alert') }}</span>
+                                    </label>
+                                    <label class="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/60 cursor-pointer select-none">
+                                        <input type="checkbox" :checked="cols.status" @change="toggleCol('status')" class="rounded border-slate-300 dark:border-slate-600 text-orange-600 focus:ring-0">
+                                        <span class="font-semibold text-slate-700 dark:text-slate-300">🟢 {{ __('Status') }}</span>
+                                    </label>
+                                    <label class="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/60 cursor-pointer select-none">
+                                        <input type="checkbox" :checked="cols.actions" @change="toggleCol('actions')" class="rounded border-slate-300 dark:border-slate-600 text-orange-600 focus:ring-0">
+                                        <span class="font-semibold text-slate-700 dark:text-slate-300">🛠️ {{ __('Actions') }}</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Add Item Trigger Button -->
+                        <button @click="createModalOpen = true" 
+                                type="button"
+                                class="px-4 py-2.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-orange-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            <span>{{ __('Add Item') }}</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -345,14 +482,14 @@
                 <table class="w-full text-left text-xs">
                     <thead class="bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
                         <tr>
-                            <th class="px-4 py-3.5 w-16">{{ __('Item') }}</th>
-                            <th class="px-4 py-3.5">{{ __('Name & Description') }}</th>
-                            <th class="px-4 py-3.5">{{ __('Shop') }}</th>
-                            <th class="px-4 py-3.5">{{ __('Category') }}</th>
-                            <th class="px-4 py-3.5">{{ __('Price') }}</th>
-                            <th class="px-4 py-3.5">{{ __('Min Stock Alert') }}</th>
-                            <th class="px-4 py-3.5">{{ __('Status') }}</th>
-                            <th class="px-4 py-3.5 text-right">{{ __('Actions') }}</th>
+                            <th x-show="cols.item" class="px-4 py-3.5 w-16">{{ __('Item') }}</th>
+                            <th x-show="cols.name_desc" class="px-4 py-3.5">{{ __('Name & Description') }}</th>
+                            <th x-show="cols.shop" class="px-4 py-3.5 text-center">{{ __('Shop') }}</th>
+                            <th x-show="cols.category" class="px-4 py-3.5 text-center">{{ __('Category') }}</th>
+                            <th x-show="cols.price" class="px-4 py-3.5">{{ __('Price') }}</th>
+                            <th x-show="cols.min_stock" class="px-4 py-3.5">{{ __('Min Stock Alert') }}</th>
+                            <th x-show="cols.status" class="px-4 py-3.5">{{ __('Status') }}</th>
+                            <th x-show="cols.actions" class="px-4 py-3.5 text-right">{{ __('Actions') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300 font-medium">
@@ -371,7 +508,7 @@
 
                             <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
                                 <!-- Image Thumbnail with Multi-Photo Badge -->
-                                <td class="px-4 py-4">
+                                <td x-show="cols.item" class="px-4 py-4">
                                     <div class="relative w-12 h-12 rounded-xl overflow-hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shrink-0">
                                         @if($item->image || !empty($item->images))
                                             <img src="{{ $item->image_url }}" alt="{{ $item->name }}" class="w-full h-full object-cover">
@@ -390,7 +527,7 @@
                                 </td>
 
                                 <!-- Name & Description -->
-                                <td class="px-4 py-4">
+                                <td x-show="cols.name_desc" class="px-4 py-4">
                                     <div class="font-extrabold text-slate-900 dark:text-white text-sm flex items-center gap-1.5">
                                         <span>{{ $item->name }}</span>
                                         @if($imagesCount > 1)
@@ -405,7 +542,7 @@
                                 </td>
 
                                 <!-- Shop -->
-                                <td class="px-4 py-4">
+                                <td x-show="cols.shop" class="px-4 py-4 whitespace-nowrap text-center">
                                     @if($item->shop)
                                         <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-300 border border-orange-200 dark:border-orange-800">
                                             🏪 {{ $item->shop->name }}
@@ -416,19 +553,19 @@
                                 </td>
 
                                 <!-- Category -->
-                                <td class="px-4 py-4">
+                                <td x-show="cols.category" class="px-4 py-4 whitespace-nowrap text-center">
                                     <span class="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg border border-slate-200 dark:border-slate-700 text-[11px] font-bold">
                                         {{ $item->category ? $item->category->name : __('Unassigned') }}
                                     </span>
                                 </td>
 
                                 <!-- Price -->
-                                <td class="px-4 py-4 font-black text-emerald-600 dark:text-emerald-400 text-sm whitespace-nowrap">
+                                <td x-show="cols.price" class="px-4 py-4 font-black text-emerald-600 dark:text-emerald-400 text-sm whitespace-nowrap">
                                     {{ number_format($item->price) }} MMK
                                 </td>
 
                                 <!-- Min Stock Level -->
-                                <td class="px-4 py-4 whitespace-nowrap">
+                                <td x-show="cols.min_stock" class="px-4 py-4 whitespace-nowrap">
                                     <span class="px-2.5 py-1 bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 rounded-lg font-mono font-bold text-[11px] inline-flex items-center gap-1">
                                         <span>⚠️ {{ __('Min:') }}</span>
                                         <span>{{ $item->min_stock_level ?? 10 }} {{ __('units') }}</span>
@@ -436,7 +573,7 @@
                                 </td>
 
                                 <!-- Availability Status -->
-                                <td class="px-4 py-4 whitespace-nowrap">
+                                <td x-show="cols.status" class="px-4 py-4 whitespace-nowrap">
                                     @if($item->is_available)
                                         <span class="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 rounded-full border border-emerald-200 dark:border-emerald-800 text-[11px] font-bold inline-flex items-center gap-1.5">
                                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -451,7 +588,7 @@
                                 </td>
 
                                 <!-- Actions -->
-                                <td class="px-4 py-4 text-right whitespace-nowrap">
+                                <td x-show="cols.actions" class="px-4 py-4 text-right whitespace-nowrap">
                                     <div class="flex items-center justify-end gap-2">
                                         <!-- Edit Trigger Button -->
                                         <button @click="openEditModal({{ json_encode($item) }}, '{{ route('admin.menuItems.update', $item) }}')" 

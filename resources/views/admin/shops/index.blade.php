@@ -5,7 +5,7 @@
     subheading="Manage all vendor shops on the platform"
 >
     <x-slot:actions>
-        <button onclick="document.getElementById('createShopModal').classList.remove('hidden')"
+        <button onclick="document.getElementById('createShopModal').classList.remove('hidden'); document.getElementById('createShopModal').classList.add('flex');"
                 class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white text-sm font-bold rounded-xl shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
@@ -100,7 +100,7 @@
                 {{-- Cover --}}
                 <div class="h-28 bg-gradient-to-br from-orange-400 to-amber-500 relative overflow-hidden">
                     @if($shop->cover_image)
-                        <img src="{{ asset($shop->cover_image) }}" alt="Cover" class="w-full h-full object-cover opacity-80">
+                        <img src="{{ $shop->cover_image_url }}" alt="Cover" class="w-full h-full object-cover opacity-80">
                     @endif
                     {{-- Status Badge --}}
                     <div class="absolute top-3 right-3">
@@ -115,7 +115,7 @@
                     {{-- Logo --}}
                     <div class="absolute -bottom-5 left-4 w-12 h-12 rounded-xl border-2 border-white dark:border-slate-900 bg-white dark:bg-slate-800 shadow overflow-hidden flex items-center justify-center">
                         @if($shop->logo)
-                            <img src="{{ asset($shop->logo) }}" alt="{{ $shop->name }}" class="w-full h-full object-cover">
+                            <img src="{{ $shop->logo_url }}" alt="{{ $shop->name }}" class="w-full h-full object-cover">
                         @else
                             <span class="text-xl">🏪</span>
                         @endif

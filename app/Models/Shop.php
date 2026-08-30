@@ -80,7 +80,7 @@ class Shop extends Model
         if (str_starts_with($this->logo, 'http://') || str_starts_with($this->logo, 'https://')) {
             return $this->logo;
         }
-        return asset('storage/' . $this->logo);
+        return asset($this->logo);
     }
 
     /**
@@ -94,6 +94,6 @@ class Shop extends Model
         if (str_starts_with($this->cover_image, 'http://') || str_starts_with($this->cover_image, 'https://')) {
             return $this->cover_image;
         }
-        return asset('storage/' . $this->cover_image);
+        return asset($this->cover_image);
     }
 }

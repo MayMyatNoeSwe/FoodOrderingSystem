@@ -3,18 +3,98 @@
 @section('heading', '🍽️ ' . $shop->name . ' — Menu Items')
 
 @section('content')
-<div class="space-y-5">
+<div x-data="{
+    columnDropdownOpen: false,
+    cols: {
+        item: true,
+        price: true,
+        stock: true,
+        status: true,
+        actions: true
+    },
+    init() {
+        const savedCols = localStorage.getItem('shop_menu_items_cols');
+        if (savedCols) {
+            try { this.cols = Object.assign(this.cols, JSON.parse(savedCols)); } catch (e) {}
+        }
+    },
+    toggleCol(colName) {
+        this.cols[colName] = !this.cols[colName];
+        localStorage.setItem('shop_menu_items_cols', JSON.stringify(this.cols));
+    },
+    setAllCols(val) {
+        for (let k in this.cols) { this.cols[k] = val; }
+        localStorage.setItem('shop_menu_items_cols', JSON.stringify(this.cols));
+    },
+    resetCols() {
+        this.cols = { item: true, price: true, stock: true, status: true, actions: true };
+        localStorage.removeItem('shop_menu_items_cols');
+    },
+    getActiveColCount() { return Object.values(this.cols).filter(Boolean).length; },
+    getTotalColCount() { return Object.keys(this.cols).length; }
+}" class="space-y-5">
 
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
             <h2 class="text-base font-black text-slate-900 dark:text-white">🍽️ {{ __('Menu Items Catalog') }}</h2>
             <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ $menuItems->total() }} {{ __('registered menu item(s)') }}</p>
         </div>
-        <button onclick="document.getElementById('createItemModal').classList.remove('hidden'); document.getElementById('createItemModal').classList.add('flex');"
-                class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white text-xs font-bold rounded-xl shadow-md transition-all cursor-pointer">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-            {{ __('Add Item') }}
-        </button>
+        <div class="flex items-center gap-2">
+            <!-- Column Visibility Filter Dropdown -->
+            <div class="relative" @click.outside="columnDropdownOpen = false">
+                <button type="button" @click="columnDropdownOpen = !columnDropdownOpen"
+                        class="px-3 py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm transition-all flex items-center gap-2 cursor-pointer">
+                    <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"></path></svg>
+                    <span>{{ __('Columns Filter') }}</span>
+                    <span class="px-1.5 py-0.5 rounded-full bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400 font-mono text-[10px] font-black border border-orange-200 dark:border-orange-800" x-text="getActiveColCount() + '/' + getTotalColCount()"></span>
+                </button>
+
+                <div x-show="columnDropdownOpen" x-cloak
+                     x-transition
+                     class="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl p-3 z-40 space-y-2">
+                    
+                    <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-700">
+                        <span class="text-xs font-black text-slate-900 dark:text-white flex items-center gap-1.5">
+                            <span>👁️</span><span>{{ __('Visible Columns') }}</span>
+                        </span>
+                        <div class="flex items-center gap-1.5 text-[10px] font-bold">
+                            <button type="button" @click="setAllCols(true)" class="text-orange-600 hover:underline cursor-pointer">{{ __('All') }}</button>
+                            <span class="text-slate-300">|</span>
+                            <button type="button" @click="resetCols()" class="text-slate-500 hover:underline cursor-pointer">{{ __('Reset') }}</button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5 text-xs">
+                        <label class="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/60 cursor-pointer select-none">
+                            <input type="checkbox" :checked="cols.item" @change="toggleCol('item')" class="rounded border-slate-300 text-orange-600 focus:ring-0">
+                            <span class="font-semibold text-slate-700 dark:text-slate-300">🖼️ {{ __('Item') }}</span>
+                        </label>
+                        <label class="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/60 cursor-pointer select-none">
+                            <input type="checkbox" :checked="cols.price" @change="toggleCol('price')" class="rounded border-slate-300 text-orange-600 focus:ring-0">
+                            <span class="font-semibold text-slate-700 dark:text-slate-300">💰 {{ __('Price') }}</span>
+                        </label>
+                        <label class="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/60 cursor-pointer select-none">
+                            <input type="checkbox" :checked="cols.stock" @change="toggleCol('stock')" class="rounded border-slate-300 text-orange-600 focus:ring-0">
+                            <span class="font-semibold text-slate-700 dark:text-slate-300">📦 {{ __('Stock') }}</span>
+                        </label>
+                        <label class="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/60 cursor-pointer select-none">
+                            <input type="checkbox" :checked="cols.status" @change="toggleCol('status')" class="rounded border-slate-300 text-orange-600 focus:ring-0">
+                            <span class="font-semibold text-slate-700 dark:text-slate-300">🟢 {{ __('Status') }}</span>
+                        </label>
+                        <label class="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/60 cursor-pointer select-none">
+                            <input type="checkbox" :checked="cols.actions" @change="toggleCol('actions')" class="rounded border-slate-300 text-orange-600 focus:ring-0">
+                            <span class="font-semibold text-slate-700 dark:text-slate-300">🛠️ {{ __('Actions') }}</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="document.getElementById('createItemModal').classList.remove('hidden'); document.getElementById('createItemModal').classList.add('flex');"
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white text-xs font-bold rounded-xl shadow-md transition-all cursor-pointer shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                {{ __('Add Item') }}
+            </button>
+        </div>
     </div>
 
     <!-- Search & Filter Controls Toolbar -->
@@ -52,10 +132,20 @@
         <div class="w-full sm:w-auto shrink-0">
             <select name="stock_status" onchange="this.form.submit()"
                     class="w-full sm:w-40 py-2 px-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 focus:border-orange-500 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100">
-                <option value="all" {{ ($stockStatus ?? '') === 'all' ? 'selected' : '' }}>Status: All</option>
-                <option value="available" {{ ($stockStatus ?? '') === 'available' ? 'selected' : '' }}>✅ Available</option>
+                <option value="all" {{ ($stockStatus ?? '') === 'all' ? 'selected' : '' }}>Stock: All</option>
+                <option value="available" {{ ($stockStatus ?? '') === 'available' ? 'selected' : '' }}>✅ In Stock</option>
                 <option value="low_stock" {{ ($stockStatus ?? '') === 'low_stock' ? 'selected' : '' }}>⚠️ Low Stock</option>
                 <option value="out_of_stock" {{ ($stockStatus ?? '') === 'out_of_stock' ? 'selected' : '' }}>🚫 Out of Stock</option>
+            </select>
+        </div>
+
+        <!-- Status Selector -->
+        <div class="w-full sm:w-auto shrink-0">
+            <select name="status" onchange="this.form.submit()"
+                    class="w-full sm:w-40 py-2 px-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 focus:border-orange-500 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100">
+                <option value="">Status: All</option>
+                <option value="1" {{ ($status ?? '') === '1' ? 'selected' : '' }}>🟢 Available</option>
+                <option value="0" {{ ($status ?? '') === '0' ? 'selected' : '' }}>🔴 Unavailable</option>
             </select>
         </div>
 
@@ -73,7 +163,7 @@
                 <option value="stock_asc" {{ ($sortBy ?? '') === 'stock_asc' ? 'selected' : '' }}>Stock: Low to High</option>
             </select>
 
-            @if(!empty($search) || ($categoryId) || ($stockStatus && $stockStatus !== 'all') || ($sortBy && $sortBy !== 'latest'))
+            @if(!empty($search) || ($categoryId) || ($stockStatus && $stockStatus !== 'all') || ($status !== null && $status !== '') || ($sortBy && $sortBy !== 'latest'))
                 <a href="{{ route('shop_owner.menu-items.index') }}" class="px-3 py-2 text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all whitespace-nowrap">
                     Reset
                 </a>
@@ -93,17 +183,17 @@
                 <table class="w-full text-sm whitespace-nowrap">
                     <thead class="bg-slate-50/50 dark:bg-slate-800/50 text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
                         <tr>
-                            <th class="px-6 py-4 text-left">Item</th>
-                            <th class="px-6 py-4 text-left">Price</th>
-                            <th class="px-6 py-4 text-left">Stock</th>
-                            <th class="px-6 py-4 text-left">Status</th>
-                            <th class="px-6 py-4 text-right">Actions</th>
+                            <th x-show="cols.item" class="px-6 py-4 text-left">Item</th>
+                            <th x-show="cols.price" class="px-6 py-4 text-left">Price</th>
+                            <th x-show="cols.stock" class="px-6 py-4 text-left">Stock</th>
+                            <th x-show="cols.status" class="px-6 py-4 text-left">Status</th>
+                            <th x-show="cols.actions" class="px-6 py-4 text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                         @foreach($menuItems as $item)
                         <tr class="group hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all duration-200">
-                            <td class="px-6 py-4">
+                            <td x-show="cols.item" class="px-6 py-4">
                                 <div class="flex items-center gap-4">
                                     <div class="w-12 h-12 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 shrink-0 shadow-sm border border-slate-200 dark:border-slate-700 group-hover:shadow-md transition-all">
                                         <img src="{{ $item->image_url }}" alt="{{ $item->name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
@@ -123,10 +213,10 @@
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-6 py-4">
+                            <td x-show="cols.price" class="px-6 py-4">
                                 <div class="font-black text-slate-900 dark:text-white text-base">{{ number_format($item->price) }} <span class="text-xs font-semibold text-slate-400">MMK</span></div>
                             </td>
-                            <td class="px-6 py-4">
+                            <td x-show="cols.stock" class="px-6 py-4">
                                 <div class="flex items-center gap-2">
                                     <div class="flex-1 h-1.5 w-16 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                                         <div class="h-full rounded-full {{ $item->isLowStock() ? 'bg-amber-500' : 'bg-emerald-500' }}" style="width: {{ min(100, max(5, ($item->stock / max($item->min_stock_level ?: 1, 100)) * 100)) }}%"></div>
@@ -142,7 +232,7 @@
                                     </div>
                                 @endif
                             </td>
-                            <td class="px-6 py-4">
+                            <td x-show="cols.status" class="px-6 py-4">
                                 @if($item->is_available)
                                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20">
                                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
@@ -155,7 +245,7 @@
                                     </span>
                                 @endif
                             </td>
-                            <td class="px-6 py-4 text-right">
+                            <td x-show="cols.actions" class="px-6 py-4 text-right">
                                 <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                                     <button onclick="openEditItem({{ $item->id }}, {{ json_encode($item->only(['name','description','price','stock','min_stock_level','is_available','category_id'])) }})"
                                             class="p-2 text-slate-400 hover:text-orange-600 hover:bg-orange-50 rounded-xl transition-all dark:hover:bg-orange-500/10 cursor-pointer" title="Edit">

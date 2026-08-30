@@ -19,6 +19,7 @@ class MenuItemController extends Controller
         $categoryId = $request->query('category_id');
         $shopId = $request->query('shop_id');
         $stockStatus = $request->query('stock_status');
+        $status = $request->query('status');
         $sortBy = $request->query('sort_by', 'latest');
 
         $categories = Category::select('id', 'name')->orderBy('name', 'asc')->get();
@@ -57,6 +58,9 @@ class MenuItemController extends Controller
                     return $query->where('stock', 0);
                 }
                 return $query;
+            })
+            ->when(request()->has('status') && request('status') !== '', function ($query) {
+                return $query->where('is_available', request('status'));
             });
 
         match ($sortBy) {
@@ -80,6 +84,7 @@ class MenuItemController extends Controller
             'categoryId', 
             'shopId',
             'stockStatus',
+            'status',
             'sortBy',
             'totalItemsCount',
             'inStockCount',

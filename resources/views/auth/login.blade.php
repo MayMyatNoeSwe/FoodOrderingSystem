@@ -7,14 +7,31 @@
         </div>
 
         <!-- Demo Accounts (Temporary) -->
+        @php
+            $admin = \App\Models\User::where('role', 'admin')->first();
+            $customer = \App\Models\User::where('role', 'user')->first();
+            $rider = \App\Models\User::where('role', 'rider')->first();
+            $shopOwners = \App\Models\User::where('role', 'shop_owner')->get();
+        @endphp
         <div class="mb-6 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl p-4 text-xs text-blue-800 dark:text-blue-300 shadow-sm">
             <p class="font-bold mb-2 flex items-center gap-1.5"><span>🔑</span> Demo Accounts (Password: password)</p>
-            <ul class="list-disc pl-5 space-y-1 font-medium">
-                <li><span class="font-bold">Admin:</span> <span class="font-mono bg-blue-100 dark:bg-blue-900/50 px-1 rounded">admin@foodorder.com</span></li>
-                <li><span class="font-bold">Pizza Palace:</span> <span class="font-mono bg-blue-100 dark:bg-blue-900/50 px-1 rounded">owner1@pizzapalace.com</span></li>
-                <li><span class="font-bold">Burger Station:</span> <span class="font-mono bg-blue-100 dark:bg-blue-900/50 px-1 rounded">owner2@burgerstation.com</span></li>
-                <li><span class="font-bold">Noodle House:</span> <span class="font-mono bg-blue-100 dark:bg-blue-900/50 px-1 rounded">owner3@noodlehouse.com</span></li>
-            </ul>
+            <div class="pr-2">
+                <ul class="list-disc pl-5 space-y-1 font-medium">
+                    @if($admin)
+                        <li><span class="font-bold">Admin:</span> <span class="font-mono bg-blue-100 dark:bg-blue-900/50 px-1 rounded">{{ $admin->email }}</span></li>
+                    @endif
+                    @if($customer)
+                        <li><span class="font-bold">Customer:</span> <span class="font-mono bg-blue-100 dark:bg-blue-900/50 px-1 rounded">{{ $customer->email }}</span></li>
+                    @endif
+                    @if($rider)
+                        <li><span class="font-bold">Rider:</span> <span class="font-mono bg-blue-100 dark:bg-blue-900/50 px-1 rounded">{{ $rider->email }}</span></li>
+                    @endif
+                    <li class="pt-1 pb-0.5 font-black text-[10px] uppercase tracking-wider opacity-70">Shop Owners</li>
+                    @foreach($shopOwners as $owner)
+                        <li><span class="font-bold">{{ $owner->name }}:</span> <span class="font-mono bg-blue-100 dark:bg-blue-900/50 px-1 rounded">{{ $owner->email }}</span></li>
+                    @endforeach
+                </ul>
+            </div>
         </div>
         <!-- Session Status -->
         <x-auth-session-status class="mb-4" :status="session('status')" />

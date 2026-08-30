@@ -488,6 +488,7 @@ Route::middleware(['auth'])->prefix('rider')->as('rider.')->group(function () {
 Route::middleware(['auth'])->prefix('shop-owner')->name('shop_owner.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\ShopOwner\ShopDashboardController::class, 'index'])->name('dashboard');
     Route::resource('menu-items', \App\Http\Controllers\ShopOwner\ShopMenuItemController::class)->except(['create', 'edit', 'show']);
+    Route::resource('categories', \App\Http\Controllers\ShopOwner\ShopCategoryController::class)->except(['create', 'edit', 'show']);
 });
 
 // Dashboard Redirect Handler (Breeze Default Route)
