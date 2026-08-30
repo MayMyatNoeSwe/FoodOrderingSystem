@@ -56,7 +56,6 @@
             @foreach([
                 ['key'=>'dashboard',   'label'=>'Dashboard',   'route'=>'shop_owner.dashboard',          'icon'=>'📊'],
                 ['key'=>'menu-items',  'label'=>'Menu Items',  'route'=>'shop_owner.menu-items.index',   'icon'=>'🍽️'],
-                ['key'=>'categories',  'label'=>'Categories',  'route'=>'shop_owner.categories.index',   'icon'=>'📂'],
             ] as $item)
                 <a href="{{ route($item['route']) }}"
                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150

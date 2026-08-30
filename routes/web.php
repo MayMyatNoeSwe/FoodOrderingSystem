@@ -16,11 +16,18 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
-// Customer Frontstore Index (Home Page)
 Route::get('/', function () {
-    $shops     = Shop::where('status', 'active')->withCount('menuItems')->get();
+    $shops = Shop::whereIn('status', ['active', 'inactive'])->withCount('menuItems')->get();
+
     $categories = Category::withCount('menuItems')->with('menuItems')->get();
-    $menuItems = MenuItem::with(['category', 'shop'])->where('is_available', true)->get();
+
+    $menuItems = MenuItem::with(['category', 'shop'])
+        ->whereHas('shop', function ($query) {
+            $query->where('status', 'active');
+        })
+        ->where('is_available', true)
+        ->limit(60)
+        ->get();
 
     return view('welcome', compact('shops', 'categories', 'menuItems'));
 })->name('home');
@@ -89,6 +96,10 @@ Route::middleware('auth')->group(function () {
                 $menuItem = MenuItem::find($cartItem['id']);
                 if (!$menuItem || !$menuItem->is_available) {
                     return redirect()->route('cart')->with('error', "Item '" . ($cartItem['name'] ?? 'Item') . "' is currently unavailable.");
+                }
+
+                if ($menuItem->shop && $menuItem->shop->status !== 'active') {
+                    return redirect()->route('cart')->with('error', "Sorry! Cannot place order because the shop '" . $menuItem->shop->name . "' is temporarily closed.");
                 }
                 
                 // Security check: Ensure all items belong to the same shop as the order
@@ -477,7 +488,6 @@ Route::middleware(['auth'])->prefix('rider')->as('rider.')->group(function () {
 Route::middleware(['auth'])->prefix('shop-owner')->name('shop_owner.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\ShopOwner\ShopDashboardController::class, 'index'])->name('dashboard');
     Route::resource('menu-items', \App\Http\Controllers\ShopOwner\ShopMenuItemController::class)->except(['create', 'edit', 'show']);
-    Route::resource('categories', \App\Http\Controllers\ShopOwner\ShopCategoryController::class)->except(['create', 'edit', 'show']);
 });
 
 // Dashboard Redirect Handler (Breeze Default Route)

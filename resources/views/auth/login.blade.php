@@ -6,7 +6,16 @@
             <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Sign in to access your account</p>
         </div>
 
-
+        <!-- Demo Accounts (Temporary) -->
+        <div class="mb-6 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl p-4 text-xs text-blue-800 dark:text-blue-300 shadow-sm">
+            <p class="font-bold mb-2 flex items-center gap-1.5"><span>🔑</span> Demo Accounts (Password: password)</p>
+            <ul class="list-disc pl-5 space-y-1 font-medium">
+                <li><span class="font-bold">Admin:</span> <span class="font-mono bg-blue-100 dark:bg-blue-900/50 px-1 rounded">admin@foodorder.com</span></li>
+                <li><span class="font-bold">Pizza Palace:</span> <span class="font-mono bg-blue-100 dark:bg-blue-900/50 px-1 rounded">owner1@pizzapalace.com</span></li>
+                <li><span class="font-bold">Burger Station:</span> <span class="font-mono bg-blue-100 dark:bg-blue-900/50 px-1 rounded">owner2@burgerstation.com</span></li>
+                <li><span class="font-bold">Noodle House:</span> <span class="font-mono bg-blue-100 dark:bg-blue-900/50 px-1 rounded">owner3@noodlehouse.com</span></li>
+            </ul>
+        </div>
         <!-- Session Status -->
         <x-auth-session-status class="mb-4" :status="session('status')" />
 

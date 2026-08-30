@@ -371,7 +371,7 @@
 
                             <!-- Main Hero Image Showcase -->
                             <div class="relative z-10 rounded-[2rem] overflow-hidden shadow-2xl border-4 border-white/90 dark:border-slate-800/90 bg-slate-900 group">
-                                <img src="/images/hero_food.png" alt="Delicious Food Showcase" class="w-full h-[320px] sm:h-[380px] lg:h-[420px] object-cover group-hover:scale-105 transition-transform duration-700 ease-out">
+                                <img src="/images/hero_food.png" alt="Delicious Food Showcase" class="w-full h-[320px] sm:h-[380px] lg:h-[420px] object-cover group-hover:brightness-[1.03]">
                                 <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/20 to-transparent"></div>
                             </div>
 
@@ -419,43 +419,57 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                     @foreach($shops as $shop)
-                    <a href="#menu"
-                       @click.prevent="setShop({{ $shop->id }}, '{{ addslashes($shop->name) }}')"
-                       class="group block bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-orange-300 dark:hover:border-orange-700 transition-all duration-300 overflow-hidden cursor-pointer">
+                    @php $isClosed = $shop->status === 'inactive'; @endphp
+                    <a href="{{ $isClosed ? 'javascript:void(0)' : '#menu' }}"
+                       @click.prevent="{{ $isClosed ? '' : 'setShop('.$shop->id.', \''.addslashes($shop->name).'\')' }}"
+                       class="group block bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/60 dark:border-slate-800/60 shadow-md overflow-hidden {{ $isClosed ? 'cursor-not-allowed' : 'cursor-pointer' }}">
                         {{-- Cover Image --}}
-                        <div class="relative h-32 bg-gradient-to-br from-orange-400 to-amber-500 overflow-hidden">
+                        <div class="relative h-36 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-orange-400 via-rose-400 to-amber-500 overflow-hidden">
                             @if($shop->cover_image)
-                                <img src="{{ asset($shop->cover_image) }}" alt="{{ $shop->name }}" class="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500">
-                            @else
-                                <div class="absolute inset-0 flex items-center justify-center opacity-20">
-                                    <svg class="w-24 h-24 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                                </div>
+                                <img src="{{ asset($shop->cover_image) }}" alt="{{ $shop->name }}" loading="lazy" class="w-full h-full object-cover {{ $isClosed ? 'grayscale opacity-70' : 'opacity-90' }}">
                             @endif
-                            {{-- Logo --}}
-                            <div class="absolute -bottom-5 left-4 w-12 h-12 rounded-xl border-2 border-white dark:border-slate-900 bg-white dark:bg-slate-800 shadow-md overflow-hidden flex items-center justify-center">
-                                @if($shop->logo)
-                                    <img src="{{ asset($shop->logo) }}" alt="{{ $shop->name }}" class="w-full h-full object-cover">
-                                @else
-                                    <span class="text-2xl">🏪</span>
-                                @endif
+                            
+                            {{-- Closed Badge --}}
+                            @if($isClosed)
+                            <div class="absolute top-3 left-3 px-3 py-1 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md rounded-xl text-[10px] font-black text-rose-500 uppercase tracking-widest shadow-sm">
+                                Temporarily Closed
                             </div>
+                            @endif
+                            
                             {{-- Item count badge --}}
-                            <div class="absolute top-3 right-3 px-2 py-0.5 rounded-full text-[10px] font-black bg-black/40 text-white backdrop-blur-sm">
+                            <div class="absolute top-3 right-3 px-2.5 py-1 rounded-xl text-[10px] font-black glass-badge text-slate-800 dark:text-white shadow-sm flex items-center gap-1">
                                 🍽️ {{ $shop->menu_items_count }} items
                             </div>
                         </div>
 
-                        <div class="p-4 pt-8">
-                            <h3 class="font-black text-slate-900 dark:text-white text-base group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">{{ $shop->name }}</h3>
-                            @if($shop->description)
-                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">{{ $shop->description }}</p>
-                            @endif
-                            <div class="mt-3 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                                <svg class="w-3.5 h-3.5 shrink-0 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                <span class="truncate">{{ $shop->address }}</span>
+                        <div class="relative p-5 pt-8">
+                            {{-- Logo --}}
+                            <div class="absolute -top-7 left-5 w-14 h-14 rounded-full ring-4 ring-white dark:bg-slate-800 dark:ring-slate-900 bg-white shadow-md overflow-hidden flex items-center justify-center">
+                                @if($shop->logo)
+                                    <img src="{{ asset($shop->logo) }}" alt="{{ $shop->name }}" loading="lazy" class="w-full h-full object-cover {{ $isClosed ? 'grayscale opacity-80' : '' }}">
+                                @else
+                                    <span class="text-2xl {{ $isClosed ? 'grayscale opacity-50' : '' }}">🏪</span>
+                                @endif
                             </div>
-                            <div class="mt-3 flex items-center justify-between">
-                                <span class="text-xs font-bold text-orange-600 dark:text-orange-400 group-hover:underline">View Menu →</span>
+
+                            <h3 class="font-black text-slate-900 dark:text-white text-lg {{ $isClosed ? 'opacity-70' : '' }}">{{ $shop->name }}</h3>
+                            @if($shop->description)
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2 leading-relaxed {{ $isClosed ? 'opacity-70' : '' }}">{{ $shop->description }}</p>
+                            @endif
+                            
+                            <div class="mt-4 flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 {{ $isClosed ? 'opacity-70' : '' }}">
+                                <div class="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+                                    <svg class="w-3 h-3 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                </div>
+                                <span class="truncate font-medium">{{ $shop->address }}</span>
+                            </div>
+                            
+                            <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+                                @if($isClosed)
+                                    <span class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Closed</span>
+                                @else
+                                    <span class="text-xs font-extrabold text-orange-500 uppercase tracking-wider">View Menu →</span>
+                                @endif
                             </div>
                         </div>
                     </a>
@@ -485,10 +499,10 @@
                         @click="activeCategory = 'all'; searchQuery = '';"
                         :class="activeCategory === 'all' && !searchQuery
                             ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/30 ring-2 ring-orange-400/50 scale-[1.04]'
-                            : 'glass-card text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-800 hover:border-orange-300 dark:hover:border-orange-700 hover:bg-white dark:hover:bg-slate-800 hover:shadow-md hover:scale-[1.02]'"
+                            : 'glass-card text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-800'"
                         class="category-pill flex items-center gap-2.5 px-4 py-2.5 rounded-2xl font-bold text-xs sm:text-sm cursor-pointer select-none group"
                     >
-                        <div class="w-7 h-7 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 transition-transform duration-300 group-hover:rotate-12"
+                        <div class="w-7 h-7 rounded-xl flex items-center justify-center font-bold text-sm shrink-0"
                              :class="activeCategory === 'all' && !searchQuery ? 'bg-white/25 text-white' : 'bg-orange-500/10 text-orange-500 dark:bg-orange-500/20'">
                             🍽️
                         </div>
@@ -515,12 +529,12 @@
                             @click="activeCategory = '{{ $category->slug }}'; searchQuery = '';"
                             :class="activeCategory === '{{ $category->slug }}' && !searchQuery
                                 ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/30 ring-2 ring-orange-400/50 scale-[1.04]'
-                                : 'glass-card text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-800 hover:border-orange-300 dark:hover:border-orange-700 hover:bg-white dark:hover:bg-slate-800 hover:shadow-md hover:scale-[1.02]'"
+                                : 'glass-card text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-800'"
                             class="category-pill flex items-center gap-2.5 px-4 py-2.5 rounded-2xl font-bold text-xs sm:text-sm cursor-pointer select-none group"
                         >
                             <!-- Mini Circular Category Image -->
                             <div class="w-7 h-7 rounded-xl overflow-hidden shrink-0 ring-1 ring-orange-500/30 flex items-center justify-center bg-orange-100 dark:bg-slate-800">
-                                <img src="{{ $img }}" alt="{{ $category->name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                                <img src="{{ $img }}" alt="{{ $category->name }}" loading="lazy" class="w-full h-full object-cover">
                             </div>
                             <span>{{ $icon }} {{ $category->name }}</span>
                             <span
@@ -587,21 +601,14 @@
                         @endphp
 
                         <div x-show="(!activeShopId || activeShopId === {{ $item->shop_id ?? 'null' }}) && (searchQuery.trim() !== '' || activeCategory === 'all' || activeCategory === '{{ $catSlug }}') && matchesSearch(@js($item->name), @js($item->description ?? ''), @js($catName))"
-                             x-transition:enter="transition cubic-bezier(0.34, 1.56, 0.64, 1) duration-400 transform"
-                             x-transition:enter-start="opacity-0 translate-x-10 scale-95"
-                             x-transition:enter-end="opacity-100 translate-x-0 scale-100"
-                             x-transition:leave="transition cubic-bezier(0.4, 0, 0.2, 1) duration-200 transform"
-                             x-transition:leave-start="opacity-100 translate-x-0 scale-100"
-                             x-transition:leave-end="opacity-0 -translate-x-6 scale-95"
-                             data-reveal="bounce-left" data-reveal-delay="{{ ($loop->index % 4) * 80 }}"
                              data-shop-id="{{ $item->shop_id }}"
-                             class="card-food-item card-shimmer group relative flex flex-col justify-between rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/90 shadow-sm hover:border-orange-400/80 dark:hover:border-orange-500/50 overflow-hidden">
+                             class="card-food-item group relative flex flex-col justify-between rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/90 shadow-sm overflow-hidden">
                             
                             <div>
                                 <!-- Food Image Showcase -->
                                 <div class="relative h-48 sm:h-52 overflow-hidden bg-slate-100 dark:bg-slate-800"
                                      x-data="{ currentImg: '{{ $item->image_url }}', allImgs: {{ json_encode($item->all_images) }} }">
-                                    <img :src="currentImg" alt="{{ $item->name }}" class="w-full h-full object-cover group-hover:scale-108 group-hover:brightness-[1.03] transition-all duration-700 ease-out">
+                                    <img :src="currentImg" alt="{{ $item->name }}" loading="lazy" class="w-full h-full object-cover">
                                     <div class="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-black/20 pointer-events-none"></div>
                                     
                                     <!-- Category Pill Tag -->
@@ -657,7 +664,7 @@
                                     </div>
 
                                     <!-- Dish Name & Description -->
-                                    <h3 class="text-base sm:text-lg font-black text-slate-900 dark:text-white group-hover:text-orange-500 transition-colors line-clamp-1">
+                                    <h3 class="text-base sm:text-lg font-black text-slate-900 dark:text-white line-clamp-1">
                                         {{ $item->name }}
                                     </h3>
                                     <p class="text-slate-500 dark:text-slate-400 text-xs mt-1 line-clamp-2 leading-relaxed font-normal">
@@ -681,8 +688,8 @@
                                     </button>
                                 @else
                                     <button
-                                        @click="if(addToCart({{ json_encode(['id' => $item->id, 'name' => $item->name, 'price' => $item->price, 'image' => $item->image_url, 'category' => $catName, 'stock' => $item->stock, 'shop_id' => $item->shop_id, 'shop_name' => $item->shop?->name ?? 'Shop']) }})) { window.location.href='{{ route('cart') }}'; }"
-                                        class="px-3.5 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 active:scale-95 text-white font-extrabold text-xs rounded-xl sm:rounded-2xl shadow-md shadow-orange-500/25 hover:shadow-lg hover:shadow-orange-500/40 flex items-center gap-1.5 transition-all duration-200 cursor-pointer">
+                                        @click="if(await addToCart({{ json_encode(['id' => $item->id, 'name' => $item->name, 'price' => $item->price, 'image' => $item->image_url, 'category' => $catName, 'stock' => $item->stock, 'shop_id' => $item->shop_id, 'shop_name' => $item->shop?->name ?? 'Shop']) }})) { window.location.href='{{ route('cart') }}'; }"
+                                        class="px-3.5 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-extrabold text-xs rounded-xl sm:rounded-2xl shadow-md shadow-orange-500/25 flex items-center gap-1.5 cursor-pointer">
                                         @if(app()->getLocale() === 'my')
                                             <span class="font-bold">🛒 ဝယ်ရန်</span>
                                         @else
@@ -736,7 +743,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
                     
                     <!-- Feature Card 1 -->
-                    <div data-reveal="bounce-left" data-reveal-delay="0" class="feature-card card-shimmer group relative p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:border-orange-300 dark:hover:border-orange-700/60 text-center flex flex-col items-center cursor-default">
+                    <div data-reveal="bounce-left" data-reveal-delay="0" class="feature-card group relative p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:border-orange-300 dark:hover:border-orange-700/60 text-center flex flex-col items-center cursor-default">
                         <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-400 text-white flex items-center justify-center text-3xl mb-6 shadow-lg shadow-orange-500/30 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
                             📱
                         </div>
@@ -745,7 +752,7 @@
                     </div>
 
                     <!-- Feature Card 2 -->
-                    <div data-reveal="bounce-left" data-reveal-delay="130" class="feature-card card-shimmer group relative p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:border-orange-300 dark:hover:border-orange-700/60 text-center flex flex-col items-center cursor-default">
+                    <div data-reveal="bounce-left" data-reveal-delay="130" class="feature-card group relative p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:border-orange-300 dark:hover:border-orange-700/60 text-center flex flex-col items-center cursor-default">
                         <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white flex items-center justify-center text-3xl mb-6 shadow-lg shadow-amber-500/30 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
                             🚚
                         </div>
@@ -754,7 +761,7 @@
                     </div>
 
                     <!-- Feature Card 3 -->
-                    <div data-reveal="bounce-left" data-reveal-delay="260" class="feature-card card-shimmer group relative p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:border-orange-300 dark:hover:border-orange-700/60 text-center flex flex-col items-center cursor-default">
+                    <div data-reveal="bounce-left" data-reveal-delay="260" class="feature-card group relative p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:border-orange-300 dark:hover:border-orange-700/60 text-center flex flex-col items-center cursor-default">
                         <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-rose-500 to-orange-500 text-white flex items-center justify-center text-3xl mb-6 shadow-lg shadow-rose-500/30 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
                             💳
                         </div>
