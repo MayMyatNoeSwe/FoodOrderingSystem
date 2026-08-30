@@ -820,7 +820,7 @@
                                             </button>
                                         @endif
 
-                                        <!-- Foodpanda Payslip & Tax Invoice Button (Only after approved) -->
+                                        <!-- FoodOrder Payslip & Tax Invoice Button (Only after approved) -->
                                         @if($order->status !== 'pending')
                                             <a href="{{ route('orders.payslip', $order) }}" target="_blank" title="{{ __('View & Print Official Payslip') }}"
                                                class="px-2.5 py-1.5 bg-pink-50 dark:bg-pink-950/50 hover:bg-pink-100 dark:hover:bg-pink-900/50 text-[#D70F64] text-xs font-bold rounded-xl border border-pink-200 dark:border-pink-800 transition-all flex items-center gap-1 cursor-pointer shadow-xs">

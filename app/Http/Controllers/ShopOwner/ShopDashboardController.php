@@ -16,7 +16,7 @@ class ShopDashboardController extends Controller
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
-        $shop = $user->ownedShop()->withCount(['menuItems', 'categories', 'orders'])->first();
+        $shop = $user->ownedShop()->withCount(['menuItems', 'orders'])->first();
 
         if (!$shop) {
             return view('shop_owner.no_shop');

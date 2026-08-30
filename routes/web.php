@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     $shops = Shop::whereIn('status', ['active', 'inactive'])->withCount('menuItems')->get();
 
-    $categories = Category::withCount('menuItems')->with('menuItems')->get();
+    $categories = Category::has('menuItems')->withCount('menuItems')->with('menuItems')->orderBy('name', 'asc')->get();
 
     $menuItems = MenuItem::with(['category', 'shop'])
         ->whereHas('shop', function ($query) {
@@ -216,7 +216,7 @@ Route::middleware('auth')->group(function () {
             return view('user.orders.show', compact('order'));
         })->name('orders.show');
 
-        // Foodpanda-styled Printable Payslip & Invoice View
+        // FoodOrder-styled Printable Payslip & Invoice View
         Route::get('/orders/{order}/payslip', function (Order $order) {
             /** @var \App\Models\User $user */
             $user = Auth::user();
@@ -278,7 +278,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/orders/{order}/messages', [\App\Http\Controllers\OrderMessageController::class, 'index'])->name('orders.messages.index');
     Route::post('/orders/{order}/messages', [\App\Http\Controllers\OrderMessageController::class, 'store'])->name('orders.messages.store');
 
-    // Global Foodpanda Order Payslip Route
+    // Global FoodOrder Order Payslip Route
     Route::get('/orders/{order}/payslip', function (Order $order) {
         /** @var \App\Models\User $user */
         $user = Auth::user();
@@ -355,7 +355,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         ));
     })->name('dashboard');
 
-    // Quick Action Endpoint: Accept Order & Generate Foodpanda Payslips
+    // Quick Action Endpoint: Accept Order & Generate FoodOrder Payslips
     Route::post('/orders/{order}/accept', function (Order $order) {
         $isOnlinePay = in_array($order->payment_method, ['kbzpay', 'wavepay']);
         $updateData = [
@@ -369,7 +369,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         }
         $order->update($updateData);
 
-        // Generate & Email Official Foodpanda Payslips to Customer & Rider
+        // Generate & Email Official FoodOrder Payslips to Customer & Rider
         $result = \App\Services\PayslipService::sendOrderAcceptedPayslips($order);
 
         $customerEmail = $order->user->email ?? 'customer';
@@ -408,7 +408,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         }
 
         $msg = !empty($sentInfo) 
-            ? "Foodpanda Payslip emailed successfully to: " . implode(', ', $sentInfo) . " 📧🧾"
+            ? "FoodOrder Payslip emailed successfully to: " . implode(', ', $sentInfo) . " 📧🧾"
             : "Could not send payslip emails. Please check customer/rider email settings.";
 
         return back()->with('success', $msg);
@@ -488,7 +488,7 @@ Route::middleware(['auth'])->prefix('rider')->as('rider.')->group(function () {
 Route::middleware(['auth'])->prefix('shop-owner')->name('shop_owner.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\ShopOwner\ShopDashboardController::class, 'index'])->name('dashboard');
     Route::resource('menu-items', \App\Http\Controllers\ShopOwner\ShopMenuItemController::class)->except(['create', 'edit', 'show']);
-    Route::resource('categories', \App\Http\Controllers\ShopOwner\ShopCategoryController::class)->except(['create', 'edit', 'show']);
+
 });
 
 // Dashboard Redirect Handler (Breeze Default Route)

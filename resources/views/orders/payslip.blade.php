@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>Foodpanda Payslip & Receipt - #{{ $order->order_number }}</title>
+    <title>FoodOrder Payslip & Receipt - #{{ $order->order_number }}</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -109,12 +109,12 @@
         <!-- ================= CUSTOMER RECEIPT VIEW ================= -->
         <div x-show="viewType === 'customer'" class="divide-y divide-slate-100">
             
-            <!-- Foodpanda Header -->
+            <!-- FoodOrder Header -->
             <div class="bg-gradient-to-br from-[#D70F64] via-[#E21B70] to-[#FF2B85] p-6 sm:p-8 text-white text-center relative overflow-hidden">
                 <div class="relative z-10 space-y-2">
                     <div class="inline-flex items-center gap-2 text-2xl font-black tracking-tight">
                         <span class="text-3xl">🐼</span>
-                        <span>foodpanda</span>
+                        <span>FoodOrder</span>
                     </div>
                     <p class="text-xs font-semibold text-white/90 uppercase tracking-widest">Official Food Delivery Receipt &amp; Tax Invoice</p>
                     
@@ -302,7 +302,7 @@
                     <span class="text-[10px] font-mono text-slate-400 tracking-widest mt-1">*{{ $order->order_number }}*</span>
                 </div>
                 <p class="text-[11px] text-slate-500 font-medium">Thank you for dining with us! For any customer support, please contact our helpline.</p>
-                <div class="text-[10px] text-slate-400">Printed on {{ now()->format('Y-m-d H:i:s') }} &bull; Foodpanda Digital Slip System</div>
+                <div class="text-[10px] text-slate-400">Printed on {{ now()->format('Y-m-d H:i:s') }} &bull; FoodOrder Digital Slip System</div>
             </div>
 
         </div>
@@ -315,7 +315,7 @@
                 <div class="space-y-1.5">
                     <div class="inline-flex items-center gap-2 text-xl font-black">
                         <span>🐼</span>
-                        <span>food<span class="text-[#D70F64]">panda</span></span>
+                        <span>Food<span class="text-[#D70F64]">Order</span></span>
                         <span class="text-xs px-2 py-0.5 bg-[#D70F64] rounded text-white font-bold ml-1 uppercase">Rider Slip</span>
                     </div>
                     <p class="text-xs font-semibold text-slate-300">Delivery Dispatch &amp; Cash Collection Manifest</p>

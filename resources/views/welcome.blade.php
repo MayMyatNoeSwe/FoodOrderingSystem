@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'foodpanda') }} - Delicious Meals Delivered Fast</title>
+    <title>{{ config('app.name', 'FoodOrder') }} - Delicious Meals Delivered Fast</title>
 
     <!-- Theme Initialization (Prevents FOUC) -->
     <script>
@@ -736,7 +736,7 @@
                 
                 <div class="text-center max-w-2xl mx-auto mb-14" data-reveal="fade-up">
                     <h2 class="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
-                        {{ __('Why foodpanda?') }}
+                        {{ __('Why FoodOrder?') }}
                     </h2>
                 </div>
 
@@ -787,7 +787,7 @@
                         <div class="w-10 h-10 rounded-2xl bg-[#D70F64] flex items-center justify-center text-white text-2xl shadow-lg shadow-pink-500/30 group-hover:scale-105 transition-transform">
                             🐼
                         </div>
-                        <span class="text-2xl font-black text-[#D70F64] tracking-tight lowercase">food<span class="text-white">panda</span></span>
+                        <span class="text-2xl font-black text-[#D70F64] tracking-tight ">Food<span class="text-white">Order</span></span>
                     </a>
                     <p class="text-xs leading-relaxed text-slate-400 font-medium">{{ __('Footer Rights') }}</p>
                 </div>
@@ -818,14 +818,14 @@
                     <p class="text-xs text-slate-400 leading-relaxed font-medium">
                         📍 123 Main Street, Yangon, Myanmar<br />
                         📞 +95 9 123 456 789<br />
-                        ✉️ support@foodpanda.com
+                        ✉️ support@FoodOrder.com
                     </p>
                 </div>
 
             </div>
 
             <div class="border-t border-slate-800/80 pt-8 text-center text-xs text-slate-500 font-medium">
-                &copy; {{ date('Y') }} foodpanda. {{ __('All rights reserved.') }}
+                &copy; {{ date('Y') }} FoodOrder. {{ __('All rights reserved.') }}
             </div>
         </div>
     </footer>

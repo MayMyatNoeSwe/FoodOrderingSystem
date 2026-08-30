@@ -170,14 +170,7 @@
                             @endif
                         </div>
 
-                        {{-- Shop Filter --}}
-                        <select name="shop_id" onchange="this.form.submit()"
-                                class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-orange-500 text-slate-800 dark:text-slate-100 text-xs rounded-xl px-3 py-2 focus:ring-0 transition-all cursor-pointer">
-                            <option value="all">Shop: All Shops</option>
-                            @foreach($shops as $s)
-                                <option value="{{ $s->id }}" {{ ($shopId ?? '') == $s->id ? 'selected' : '' }}>🏪 {{ $s->name }}</option>
-                            @endforeach
-                        </select>
+
 
                         {{-- Sort By --}}
                         <select name="sort_by" onchange="this.form.submit()"
@@ -189,7 +182,7 @@
                             <option value="items_count_desc" {{ ($sortBy ?? '') === 'items_count_desc' ? 'selected' : '' }}>Most Items</option>
                         </select>
 
-                        @if(!empty($search) || (!empty($shopId) && $shopId !== 'all') || (!empty($sortBy) && $sortBy !== 'latest'))
+                        @if(!empty($search) || (!empty($sortBy) && $sortBy !== 'latest'))
                             <a href="{{ route('admin.categories.index') }}" 
                                class="px-2.5 py-2 text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all whitespace-nowrap">
                                 Reset
@@ -216,7 +209,7 @@
                         <tr>
                             <th class="px-4 py-3.5 w-16">ID</th>
                             <th class="px-4 py-3.5">{{ __('Category Name') }}</th>
-                            <th class="px-4 py-3.5">{{ __('Shop') }}</th>
+
                             <th class="px-4 py-3.5">{{ __('URL Slug') }}</th>
                             <th class="px-4 py-3.5">{{ __('Items Count') }}</th>
                             <th class="px-4 py-3.5">{{ __('Created Date') }}</th>
@@ -255,16 +248,7 @@
                                     </div>
                                 </td>
 
-                                <!-- Shop -->
-                                <td class="px-4 py-4">
-                                    @if($category->shop)
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-300 border border-orange-200 dark:border-orange-800">
-                                            🏪 {{ $category->shop->name }}
-                                        </span>
-                                    @else
-                                        <span class="text-slate-400 text-xs">—</span>
-                                    @endif
-                                </td>
+
 
                                 <!-- Slug -->
                                 <td class="px-4 py-4 font-mono text-[11px]">

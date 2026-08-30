@@ -195,7 +195,7 @@
             <div class="header-top">
                 <div class="brand">
                     <span>🐼</span>
-                    <span>food<span class="panda">panda</span></span>
+                    <span>Food<span class="panda">Order</span></span>
                     <span style="font-size: 14px; font-weight: 600; color: #94a3b8; margin-left: 4px;">Rider Dispatch</span>
                 </div>
                 <div class="rider-badge">Delivery Slip</div>
@@ -312,13 +312,13 @@
             <!-- View / Print Web Payslip Link -->
             <div style="text-align: center; margin-top: 14px;">
                 <a href="{{ route('orders.payslip', $order) }}" style="font-size: 12px; color: #D70F64; font-weight: 700; text-decoration: underline;">
-                    🧾 View &amp; Print Full Foodpanda Delivery Slip
+                    🧾 View &amp; Print Full FoodOrder Delivery Slip
                 </a>
             </div>
         </div>
 
         <div class="footer">
-            <p style="margin: 0 0 4px 0; font-weight: 700;">Foodpanda Rider Delivery Fleet</p>
+            <p style="margin: 0 0 4px 0; font-weight: 700;">FoodOrder Rider Delivery Fleet</p>
             <p style="margin: 0; font-size: 10px;">Please ride safely and remember to take a delivery proof photo upon handover.</p>
         </div>
     </div>

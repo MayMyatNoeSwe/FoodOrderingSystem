@@ -49,8 +49,7 @@
         <nav class="flex-1 p-3 space-y-1">
             @php
                 $currentRoute = request()->routeIs('shop_owner.dashboard') ? 'dashboard'
-                    : (request()->routeIs('shop_owner.menu-items.*') ? 'menu-items'
-                    : (request()->routeIs('shop_owner.categories.*') ? 'categories' : ''));
+                    : (request()->routeIs('shop_owner.menu-items.*') ? 'menu-items' : '');
             @endphp
 
             @foreach([

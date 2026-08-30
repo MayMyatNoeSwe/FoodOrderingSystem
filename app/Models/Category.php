@@ -12,12 +12,7 @@ class Category extends Model
     /** @use HasFactory<\Database\Factories\CategoryFactory> */
     use HasFactory;
 
-    protected $fillable = ['shop_id', 'name', 'slug'];
-
-    public function shop(): BelongsTo
-    {
-        return $this->belongsTo(Shop::class);
-    }
+    protected $fillable = ['name', 'slug'];
 
     public function menuItems(): HasMany
     {

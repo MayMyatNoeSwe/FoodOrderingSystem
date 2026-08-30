@@ -87,7 +87,7 @@
                     🐼
                 </div>
                 <div x-show="!sidebarFolded" x-cloak class="truncate transition-opacity duration-200">
-                    <span class="text-xl font-black text-[#D70F64] tracking-tight lowercase">food<span class="text-slate-900 dark:text-white">panda</span></span>
+                    <span class="text-xl font-black text-[#D70F64] tracking-tight ">Food<span class="text-slate-900 dark:text-white">Order</span></span>
                     <span class="block text-[10px] text-pink-600 font-bold uppercase tracking-widest truncate">{{ __('Admin Portal') }}</span>
                 </div>
             </a>
@@ -205,7 +205,7 @@
                     🐼
                 </div>
                 <div class="truncate">
-                    <span class="text-base font-black text-[#D70F64] lowercase">food<span class="text-slate-900 dark:text-white">panda</span></span>
+                    <span class="text-base font-black text-[#D70F64] ">Food<span class="text-slate-900 dark:text-white">Order</span></span>
                     <span class="block text-[9px] text-pink-600 font-bold uppercase tracking-widest truncate">{{ __('Admin Portal') }}</span>
                 </div>
             </a>

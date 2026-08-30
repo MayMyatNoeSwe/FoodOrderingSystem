@@ -68,7 +68,7 @@ class ShopMenuItemController extends Controller
         };
 
         $menuItems = $query->paginate(10)->withQueryString();
-        $categories = $shop->categories()->orderBy('name')->get();
+        $categories = \App\Models\Category::orderBy('name')->get();
 
         return view('shop_owner.menu_items.index', compact(
             'shop',
@@ -100,13 +100,6 @@ class ShopMenuItemController extends Controller
             'is_available'   => 'nullable|boolean',
             'image'          => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
         ]);
-
-        // Ensure category belongs to this shop
-        abort_if(
-            !$shop->categories()->where('id', $validated['category_id'])->exists(),
-            403,
-            'Category does not belong to your shop.'
-        );
 
         $validated['shop_id']      = $shop->id;
         $validated['is_available'] = $request->boolean('is_available', true);

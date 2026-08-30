@@ -76,15 +76,7 @@
             <svg class="w-4 h-4 text-slate-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
         </a>
 
-        <a href="{{ route('shop_owner.categories.index') }}"
-           class="flex items-center gap-4 bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md hover:border-orange-300 dark:hover:border-orange-800 transition-all group">
-            <div class="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-950/40 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">📂</div>
-            <div>
-                <div class="font-bold text-slate-900 dark:text-white">Manage Categories</div>
-                <div class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ $shop->categories_count ?? 0 }} categories</div>
-            </div>
-            <svg class="w-4 h-4 text-slate-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-        </a>
+
     </div>
 
     {{-- Recent Orders --}}

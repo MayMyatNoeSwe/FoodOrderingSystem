@@ -172,7 +172,7 @@ class RiderController extends Controller
             \App\Services\PayslipService::sendRiderPayslip($order, $rider);
         }
 
-        return back()->with('success', "Order #{$order->order_number} assigned to {$riderName}! Foodpanda delivery slip emailed to rider. 📦🛵");
+        return back()->with('success', "Order #{$order->order_number} assigned to {$riderName}! FoodOrder delivery slip emailed to rider. 📦🛵");
     }
 }
 

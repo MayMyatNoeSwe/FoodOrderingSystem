@@ -33,7 +33,7 @@
                     <div class="w-12 h-12 rounded-2xl bg-[#D70F64] flex items-center justify-center text-white text-3xl shadow-lg shadow-pink-500/30 group-hover:scale-105 transition-transform duration-300">
                         🐼
                     </div>
-                    <span class="text-3xl font-black tracking-tight text-[#D70F64] lowercase">food<span class="text-slate-900 dark:text-white">panda</span></span>
+                    <span class="text-3xl font-black tracking-tight text-[#D70F64] ">Food<span class="text-slate-900 dark:text-white">Order</span></span>
                 </a>
             </div>
 
@@ -44,7 +44,7 @@
 
             <!-- Footer Copy -->
             <p class="mt-8 text-center text-xs text-slate-500 dark:text-slate-400">
-                &copy; {{ date('Y') }} foodpanda. {{ __('Tasty food delivered fast.') }}
+                &copy; {{ date('Y') }} FoodOrder. {{ __('Tasty food delivered fast.') }}
             </p>
         </div>
     </body>

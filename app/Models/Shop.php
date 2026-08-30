@@ -37,13 +37,6 @@ class Shop extends Model
         return $this->belongsTo(User::class, 'owner_id');
     }
 
-    /**
-     * Categories belonging to this shop.
-     */
-    public function categories(): HasMany
-    {
-        return $this->hasMany(Category::class);
-    }
 
     /**
      * Menu items belonging to this shop.

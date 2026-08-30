@@ -33,7 +33,7 @@ class="sticky top-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md borde
                 <div class="w-9 h-9 rounded-xl bg-[#D70F64] flex items-center justify-center text-white text-xl shadow-md shadow-pink-500/30 group-hover:scale-105 transition-transform duration-300">
                     🐼
                 </div>
-                <span class="text-xl font-black tracking-tight text-[#D70F64] lowercase">food<span class="text-slate-900 dark:text-white">panda</span></span>
+                <span class="text-xl font-black tracking-tight text-[#D70F64] ">Food<span class="text-slate-900 dark:text-white">Order</span></span>
             </a>
 
             <!-- Navigation Links -->

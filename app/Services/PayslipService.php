@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Mail;
 class PayslipService
 {
     /**
-     * Send official Foodpanda-style payslips to both customer and rider upon order acceptance.
+     * Send official FoodOrder-style payslips to both customer and rider upon order acceptance.
      */
     public static function sendOrderAcceptedPayslips(Order $order): array
     {

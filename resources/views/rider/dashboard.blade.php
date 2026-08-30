@@ -270,7 +270,7 @@
                 </div>
                 <div>
                     <h1 class="text-lg font-black text-slate-900 leading-tight flex items-center gap-1.5">
-                        <span class="text-[#D70F64] lowercase font-black">food<span class="text-slate-900">panda</span></span>
+                        <span class="text-[#D70F64] font-black">Food<span class="text-slate-900">Order</span></span>
                         <span class="text-xs px-2 py-0.5 rounded-md bg-pink-50 text-[#D70F64] font-bold border border-pink-200">Rider Fleet</span>
                     </h1>
                     <p class="text-xs text-slate-500 font-semibold">Welcome back, <span class="font-bold text-slate-800">{{ $rider->name }}</span> 👋</p>
@@ -536,7 +536,7 @@
                                 {{ $order->payment_status }}
                             </span>
 
-                            <!-- Foodpanda Delivery Slip -->
+                            <!-- FoodOrder Delivery Slip -->
                             <a href="{{ route('orders.payslip', $order) }}" target="_blank"
                                class="inline-flex items-center gap-1 px-2.5 py-1 bg-pink-50 hover:bg-pink-100 border border-pink-200 text-[#D70F64] font-black rounded-lg text-[10px] transition-colors cursor-pointer shadow-sm">
                                 <span>🧾 Delivery Slip</span>

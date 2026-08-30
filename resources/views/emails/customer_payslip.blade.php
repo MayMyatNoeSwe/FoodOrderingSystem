@@ -210,7 +210,7 @@
         <div class="header">
             <div class="brand">
                 <span class="logo-icon">🐼</span>
-                <span>foodpanda</span>
+                <span>FoodOrder</span>
             </div>
             <div style="font-size: 14px; font-weight: 600; opacity: 0.95;">Official Order Receipt & Tax Invoice</div>
             <div class="badge">✓ Order Confirmed &amp; Accepted</div>
