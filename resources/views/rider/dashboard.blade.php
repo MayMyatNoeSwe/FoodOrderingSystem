@@ -310,7 +310,7 @@
         @endif
 
         <!-- Quick Stats Cards -->
-        <div class="grid grid-cols-3 gap-3 sm:gap-4 text-center">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 text-center">
             <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm relative overflow-hidden">
                 <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Ready for Pick Up</span>
                 <span class="text-2xl sm:text-3xl font-black text-amber-600 mt-1 block">{{ $availableOrders->count() }}</span>
@@ -328,6 +328,11 @@
             <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm">
                 <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Delivered Today</span>
                 <span class="text-2xl sm:text-3xl font-black text-emerald-600 mt-1 block">{{ $stats['completed_today'] }}</span>
+            </div>
+            <!-- Earnings Today Card -->
+            <div class="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-4 shadow-lg shadow-emerald-500/20 text-white">
+                <span class="block text-[10px] font-bold text-emerald-100 uppercase tracking-wider">Earnings Today</span>
+                <span class="text-2xl sm:text-3xl font-black mt-1 block">{{ number_format($stats['total_earnings_today']) }} <span class="text-sm">MMK</span></span>
             </div>
         </div>
 
@@ -551,11 +556,21 @@
                             @endif
                         </div>
 
-                        <div class="text-right">
-                            <span class="text-slate-500 font-medium">Cash to Collect: </span>
-                            <span class="text-sm font-black text-emerald-600 font-mono">
-                                {{ $order->payment_status === 'paid' ? '0 MMK (Paid)' : number_format($order->total_amount) . ' MMK' }}
-                            </span>
+                        <div class="flex flex-col items-end gap-2">
+                            <div class="text-right bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200">
+                                <span class="text-slate-500 font-bold text-[10px] uppercase">Cash to Collect: </span>
+                                <span class="text-sm font-black text-slate-900 font-mono">
+                                    {{ $order->payment_status === 'paid' ? '0 MMK (Paid)' : number_format($order->total_amount) . ' MMK' }}
+                                </span>
+                            </div>
+                            
+                            <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl">
+                                <span class="text-lg">✨</span>
+                                <div class="text-left">
+                                    <p class="text-[9px] font-bold text-emerald-600 uppercase tracking-wider">Expected Earnings</p>
+                                    <p class="font-black text-emerald-700 font-mono text-sm">+{{ number_format($order->delivery_fee) }} <span class="text-[10px]">MMK</span></p>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -707,9 +722,15 @@
                         @endif
                     </div>
 
-                    <div class="text-right sm:self-center">
-                        <p class="font-black text-emerald-600 font-mono text-sm">{{ number_format($order->total_amount) }} MMK</p>
-                        <p class="text-[10px] text-slate-500 font-medium">Earned Fee: {{ number_format($order->delivery_fee) }} MMK</p>
+                    <div class="flex flex-col items-end gap-1.5">
+                        <div class="text-[10px] text-slate-500 font-bold">Order Value: {{ number_format($order->total_amount) }} MMK</div>
+                        <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-200 rounded-xl">
+                            <span class="text-lg">💰</span>
+                            <div class="text-left">
+                                <p class="text-[9px] font-bold text-emerald-600 uppercase tracking-wider">Earned</p>
+                                <p class="font-black text-emerald-700 font-mono text-sm">+{{ number_format($order->delivery_fee) }} <span class="text-[10px]">MMK</span></p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             @empty

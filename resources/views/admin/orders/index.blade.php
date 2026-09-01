@@ -635,7 +635,17 @@
                                     <div class="text-sm font-black text-slate-900 dark:text-white">
                                         {{ number_format($order->total_amount) }} <span class="text-[10px] text-orange-600 dark:text-orange-400 font-bold">MMK</span>
                                     </div>
-                                    <div class="flex items-center gap-1.5 mt-1">
+                                    <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-1 space-y-0.5 max-w-[120px]">
+                                        <div class="flex justify-between border-b border-slate-100 dark:border-slate-800 pb-0.5">
+                                            <span>{{ __('Commission') }}:</span>
+                                            <span class="font-semibold">{{ number_format($order->commission_amount) }}</span>
+                                        </div>
+                                        <div class="flex justify-between pt-0.5">
+                                            <span>{{ __('Shop Earn') }}:</span>
+                                            <span class="font-semibold text-emerald-600 dark:text-emerald-400">{{ number_format($order->shop_earning) }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-1.5 mt-2">
                                         <span class="text-xs">{{ $pmIcon }}</span>
                                         <span class="text-[11px] text-slate-600 dark:text-slate-300 font-semibold">{{ $pmLabel }}</span>
                                     </div>

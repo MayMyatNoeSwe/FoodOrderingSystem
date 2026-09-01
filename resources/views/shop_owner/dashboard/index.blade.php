@@ -37,22 +37,19 @@
         </div>
     </div>
 
-    {{-- Stats --}}
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    {{-- Operational Stats --}}
+    <div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
         @php
             $totalOrders    = (int)($stats->total_orders ?? 0);
-            $totalRevenue   = (float)($stats->total_revenue ?? 0);
             $activeOrders   = (int)($stats->active_orders ?? 0);
-            $cancelledOrders= (int)($stats->cancelled_orders ?? 0);
+            $totalRevenue   = (float)($stats->total_revenue ?? 0);
+            $totalCommission= (float)($stats->total_commission ?? 0);
+            $totalShopEarning = (float)($stats->total_shop_earning ?? 0);
         @endphp
 
         <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
             <div class="text-3xl font-black text-orange-500">{{ number_format($totalOrders) }}</div>
             <div class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">Total Orders</div>
-        </div>
-        <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
-            <div class="text-3xl font-black text-emerald-600">{{ number_format($totalRevenue) }}</div>
-            <div class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">Revenue (MMK)</div>
         </div>
         <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
             <div class="text-3xl font-black text-blue-500">{{ $activeOrders }}</div>
@@ -61,6 +58,37 @@
         <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
             <div class="text-3xl font-black text-slate-800 dark:text-slate-200">{{ $shop->menu_items_count ?? 0 }}</div>
             <div class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">Menu Items</div>
+        </div>
+    </div>
+
+    {{-- Financial Breakdown --}}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Gross Sales -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div class="flex items-center gap-2 mb-2">
+                <span class="text-slate-400">💰</span>
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Gross Sales</span>
+            </div>
+            <div class="text-2xl font-black text-slate-800 dark:text-slate-200">{{ number_format($totalRevenue) }} <span class="text-xs text-slate-500">MMK</span></div>
+        </div>
+        
+        <!-- Platform Commission -->
+        <div class="bg-rose-50 dark:bg-rose-950/40 rounded-2xl p-5 border border-rose-100 dark:border-rose-900 shadow-sm">
+            <div class="flex items-center gap-2 mb-2">
+                <span class="text-rose-400">📉</span>
+                <span class="text-xs font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider">Platform Commission (20%)</span>
+            </div>
+            <div class="text-2xl font-black text-rose-600 dark:text-rose-400">-{{ number_format($totalCommission) }} <span class="text-xs text-rose-400">MMK</span></div>
+        </div>
+        
+        <!-- Net Earnings -->
+        <div class="bg-emerald-50 dark:bg-emerald-950/40 rounded-2xl p-5 border border-emerald-100 dark:border-emerald-900 shadow-sm relative overflow-hidden">
+            <div class="absolute right-0 top-0 w-16 h-16 bg-emerald-500 opacity-10 rounded-bl-full"></div>
+            <div class="flex items-center gap-2 mb-2 relative z-10">
+                <span class="text-emerald-500">✨</span>
+                <span class="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Your Net Earnings</span>
+            </div>
+            <div class="text-3xl font-black text-emerald-600 dark:text-emerald-400 relative z-10">{{ number_format($totalShopEarning) }} <span class="text-sm font-bold text-emerald-500">MMK</span></div>
         </div>
     </div>
 

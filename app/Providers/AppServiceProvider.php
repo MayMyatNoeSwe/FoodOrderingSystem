@@ -7,6 +7,7 @@ use App\Models\Complaint;
 use App\Models\MenuItem;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Shop;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\View;
@@ -40,6 +41,7 @@ class AppServiceProvider extends ServiceProvider
                     'navCustomerCount'            => User::where('role', 'user')->count(),
                     'navUserCount'                => User::count(),
                     'navPendingComplaintCount'    => Complaint::where('status', 'pending')->count(),
+                    'navShopCount'                => Shop::count(),
                 ];
             });
 

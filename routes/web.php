@@ -9,6 +9,7 @@ use App\Http\Controllers\OrderItemController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Models\Category;
+use App\Models\Expense;
 use App\Models\MenuItem;
 use App\Models\Order;
 use App\Models\Shop;
@@ -142,11 +143,24 @@ Route::middleware('auth')->group(function () {
                     ->with('success', "Order #{$existingRecentOrder->order_number} placed successfully! 🎉");
             }
 
+            $foodSubtotal = 0;
+            foreach ($cartItems as $cartItem) {
+                $menuItem = MenuItem::find($cartItem['id']);
+                if ($menuItem) {
+                    $foodSubtotal += ($menuItem->price * $cartItem['qty']);
+                }
+            }
+            
+            $commissionAmount = $foodSubtotal * 0.20;
+            $shopEarning = $foodSubtotal - $commissionAmount;
+
             $order = Order::create([
                 'order_number'       => 'ORD-' . strtoupper(uniqid()),
                 'user_id'            => Auth::id(),
                 'shop_id'            => $request->shop_id ?? null,
                 'total_amount'       => $request->total_amount,
+                'commission_amount'  => $commissionAmount,
+                'shop_earning'       => $shopEarning,
                 'delivery_fee'       => $request->delivery_fee ?? 0,
                 'tax_amount'         => $request->tax_amount ?? 0,
                 'delivery_address'   => $request->delivery_address,
@@ -325,6 +339,8 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as cancelled_orders,
             SUM(CASE WHEN DATE(created_at) = ? AND status = 'completed' THEN total_amount ELSE 0 END) as today_completed_revenue,
             SUM(CASE WHEN status = 'completed' THEN total_amount ELSE 0 END) as all_completed_revenue,
+            SUM(CASE WHEN status = 'completed' THEN commission_amount ELSE 0 END) as total_commission,
+            SUM(CASE WHEN status = 'completed' THEN shop_earning ELSE 0 END) as total_shop_earning,
             SUM(total_amount) as total_revenue,
             SUM(CASE WHEN DATE(created_at) = ? THEN 1 ELSE 0 END) as today_orders,
             SUM(CASE WHEN status IN ('pending', 'preparing') THEN 1 ELSE 0 END) as pending_orders,
@@ -339,6 +355,27 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         $todaysOrdersCount = (int)(($stats->today_orders ?? 0) > 0 ? $stats->today_orders : $totalOrdersCount);
         $pendingOrdersCount = (int)($stats->pending_orders ?? 0);
         $activeOrdersCount = (int)($stats->active_orders ?? 0);
+        
+        $totalCommission = (float)($stats->total_commission ?? 0);
+        $totalShopEarning = (float)($stats->total_shop_earning ?? 0);
+        $totalExpenses = Expense::sum('amount');
+        $netProfit = $totalCommission - $totalExpenses;
+
+        $shopEarningsData = Order::where('status', 'completed')
+            ->whereNotNull('shop_id')
+            ->select('shop_id', \Illuminate\Support\Facades\DB::raw('SUM(shop_earning) as total_earn'))
+            ->groupBy('shop_id')
+            ->with('shop:id,name')
+            ->get();
+            
+        $riderEarningsData = Order::where('status', 'completed')
+            ->whereNotNull('rider_id')
+            ->select('rider_id', \Illuminate\Support\Facades\DB::raw('SUM(delivery_fee) as total_earn'))
+            ->groupBy('rider_id')
+            ->with('rider:id,name')
+            ->get();
+            
+        $recentExpenses = Expense::latest()->take(10)->get();
 
         $recentOrders = Order::with(['user', 'orderItems.menuItem'])
             ->latest()
@@ -351,9 +388,65 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             'pendingOrdersCount',
             'cancellationRate',
             'activeOrdersCount',
-            'recentOrders'
+            'recentOrders',
+            'totalCommission',
+            'totalShopEarning',
+            'totalExpenses',
+            'netProfit',
+            'shopEarningsData',
+            'riderEarningsData',
+            'recentExpenses'
         ));
     })->name('dashboard');
+
+    // Admin Expense Management Routes
+    Route::post('/expenses', function (\Illuminate\Http\Request $request) {
+        $request->validate([
+            'description' => 'required|string|max:255',
+            'amount' => 'required|numeric|min:0',
+            'expense_date' => 'required|date',
+        ]);
+        \App\Models\Expense::create($request->only('description', 'amount', 'expense_date'));
+        return back()->with('success', 'Expense recorded successfully! 📉');
+    })->name('expenses.store');
+
+    Route::delete('/expenses/{expense}', function (\App\Models\Expense $expense) {
+        $expense->delete();
+        return back()->with('success', 'Expense deleted successfully! 🗑️');
+    })->name('expenses.destroy');
+
+    // Admin Rider Settlements Routes
+    Route::get('/rider-settlements', function () {
+        $riders = \App\Models\User::where('role', 'rider')->get();
+        // Get all completed orders that are NOT settled yet, to calculate pending payouts.
+        // We can optionally fetch settled ones or separate them. Let's fetch all and group.
+        $allOrders = \App\Models\Order::where('status', 'completed')
+            ->whereNotNull('rider_id')
+            ->with(['rider'])
+            ->orderBy('updated_at', 'desc')
+            ->get();
+            
+        // Group by rider_id, then by Date
+        $settlements = $allOrders->groupBy(['rider_id', function ($item) {
+            return $item->updated_at->format('Y-m-d');
+        }]);
+        
+        return view('admin.riders.settlements', compact('settlements', 'riders', 'allOrders'));
+    })->name('rider.settlements');
+
+    Route::post('/rider-settlements/mark-paid', function (\Illuminate\Http\Request $request) {
+        $orderIds = $request->input('order_ids', []);
+        if (empty($orderIds)) {
+            return back()->with('error', 'No orders selected for settlement.');
+        }
+        
+        \App\Models\Order::whereIn('id', $orderIds)->update([
+            'is_rider_settled' => true,
+            'rider_settled_at' => now(),
+        ]);
+        
+        return back()->with('success', 'Selected orders marked as paid and settled with rider! 💵');
+    })->name('rider.settlements.mark-paid');
 
     // Quick Action Endpoint: Accept Order & Generate FoodOrder Payslips
     Route::post('/orders/{order}/accept', function (Order $order) {

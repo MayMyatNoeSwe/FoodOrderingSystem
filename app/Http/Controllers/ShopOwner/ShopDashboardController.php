@@ -32,6 +32,8 @@ class ShopDashboardController extends Controller
             ->selectRaw("
                 COUNT(*) as total_orders,
                 SUM(CASE WHEN status = 'completed' THEN total_amount ELSE 0 END) as total_revenue,
+                SUM(CASE WHEN status = 'completed' THEN commission_amount ELSE 0 END) as total_commission,
+                SUM(CASE WHEN status = 'completed' THEN shop_earning ELSE 0 END) as total_shop_earning,
                 SUM(CASE WHEN status IN ('pending', 'confirmed', 'preparing') THEN 1 ELSE 0 END) as active_orders,
                 SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as cancelled_orders
             ")

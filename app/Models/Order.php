@@ -17,6 +17,8 @@ class Order extends Model
         'shop_id',
         'rider_id',
         'total_amount',
+        'commission_amount',
+        'shop_earning',
         'delivery_fee',
         'tax_amount',
         'delivery_address',
@@ -29,6 +31,8 @@ class Order extends Model
         'payment_screenshot',
         'transaction_number',
         'delivery_proof_photo',
+        'is_rider_settled',
+        'rider_settled_at',
         'notes'
     ];
     public function shop(): BelongsTo
