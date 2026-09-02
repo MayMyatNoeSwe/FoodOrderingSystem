@@ -53,10 +53,10 @@
                         // Initial baseline snapshot poll (no alert, no reload)
                         this.pollOrders(true);
 
-                        // Real-time background order polling every 5 seconds
+                        // Real-time background order polling every 30 seconds (Performance Optimization)
                         setInterval(() => {
                             this.pollOrders(false);
-                        }, 5000);
+                        }, 30000);
                     },
 
                     toggleCol(colName) {

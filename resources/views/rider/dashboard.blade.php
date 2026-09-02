@@ -252,7 +252,7 @@
                         if (self.chatModalOpen && self.activeChatOrderId) {
                             self.fetchChatMessages();
                         }
-                    }, 2500);
+                    }, 15000);
                 }
             };
         };

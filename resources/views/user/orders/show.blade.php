@@ -206,7 +206,7 @@
 
                         // Poll chat messages
                         self.fetchMessages();
-                    }, 2500);
+                    }, 15000);
                 }
             };
         };
